@@ -62,4 +62,20 @@
             </DockPanel>
         </Border>
     </DataTemplate>
+
+    <DataTemplate x:Key="TodoAttachmentTemplate">
+        <Border Padding="5"
+                BorderBrush="DodgerBlue" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <StackPanel HorizontalAlignment="Right"
+                            DockPanel.Dock="Bottom" Orientation="Horizontal">
+                    <Button Content="查看列表" />
+                    <Button Content="更新" />
+                </StackPanel>
+                <TextBox Text="{Binding Name}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Size}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
 </ResourceDictionary>

@@ -23,8 +23,9 @@ namespace TodoSynchronizer.Helpers
         [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern int GetPrivateProfileString(string lpApplicationName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, int nSize, string lpFileName);
 
-        public static string GetKeyValue(string Section, string Key, string DefaultText, string iniFilePath)
+        public static string GetKeyValue(string Section, string Key, string DefaultText)
         {
+            string iniFilePath = IniHelper.inipath;
             int BufferSize = 9999;
             StringBuilder keyValue = new StringBuilder(BufferSize);
             string text = "";
@@ -41,8 +42,9 @@ namespace TodoSynchronizer.Helpers
             }
         }
 
-        public static bool SetKeyValue(string Section, string Key, string Value, string iniFilePath)
+        public static bool SetKeyValue(string Section, string Key, string Value)
         {
+            string iniFilePath = IniHelper.inipath;
             string pat = Path.GetDirectoryName(iniFilePath);
             bool flag = !Directory.Exists(pat);
             if (flag)
@@ -59,20 +61,22 @@ namespace TodoSynchronizer.Helpers
             return !flag3;
         }
 
-        public static bool DelKeyValue(string Section, string Key, string iniFilePath)
+        public static bool DelKeyValue(string Section, string Key)
         {
+            string iniFilePath = IniHelper.inipath;
             int OpStation = IniHelper.WritePrivateProfileString(Section, Key, null, iniFilePath);
             bool flag3 = OpStation == 0L;
             return !flag3;
         }
 
-        public static bool DelSection(string Section, string iniFilePath)
+        public static bool DelSection(string Section)
         {
+            string iniFilePath = IniHelper.inipath;
             int OpStation = IniHelper.WritePrivateProfileSection(Section, null, iniFilePath);
             bool flag3 = OpStation == 0L;
             return !flag3;
         }
 
-        public static string inipath = Environment.GetEnvironmentVariable("LocalAppData") + "\\ClipboardPurifier\\Settings.ini";
+        public static string inipath = Environment.GetEnvironmentVariable("LocalAppData") + "\\TodoSynchronizer\\Settings.ini";
     }
 }

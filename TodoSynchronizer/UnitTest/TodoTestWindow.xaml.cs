@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -127,6 +128,17 @@ namespace TodoSynchronizer.UnitTest
             }
         }
 
+        private string taskAttachmentId;
+
+        public string TaskAttachmentId
+        {
+            get { return taskAttachmentId; }
+            set
+            {
+                taskAttachmentId = value;
+                this.RaisePropertyChanged("TaskAttachmentId");
+            }
+        }
 
         private async void ButtonLogin_Click(object sender, RoutedEventArgs e)
         {
@@ -170,8 +182,16 @@ namespace TodoSynchronizer.UnitTest
 
         private void ButtonAttachments_Click(object sender, RoutedEventArgs e)
         {
-            var rawres = TodoService.ListLinkedResources(TaskListId, TaskItemId);
+            var rawres = TodoService.ListAttachments(TaskListId, TaskItemId);
             Items = rawres;
+        }
+
+        private void ButtonGetAttachment_Click(object sender, RoutedEventArgs e)
+        {
+            var item = TodoService.GetAttachment(TaskListId, TaskItemId, TaskAttachmentId);
+            var fs = File.OpenWrite(@"D:\1.data");
+            item.CopyTo(fs);
+            fs.Close();
         }
 
         #region INotifyPropertyChanged members
@@ -187,6 +207,7 @@ namespace TodoSynchronizer.UnitTest
                 handler(this, e);
             }
         }
+
 
         #endregion
 

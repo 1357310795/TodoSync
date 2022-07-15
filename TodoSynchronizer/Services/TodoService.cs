@@ -1,7 +1,7 @@
-﻿using Microsoft.Graph.Beta;
-using Microsoft.Graph.Beta.Models;
+﻿using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,7 +26,7 @@ namespace TodoSynchronizer.Services
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
                 });
 
-                client = new GraphServiceClient(authProvider);
+                client = new GraphServiceClient("https://graph.microsoft.com/beta", authProvider);
             }
         }
 
@@ -34,20 +34,20 @@ namespace TodoSynchronizer.Services
 
         public static User GetUserInfo()
         {
-            var info = client.Me.GetAsync().Result;
+            var info = client.Me.Request().GetAsync().Result;
             return info;
         }
 
         public static BitmapSource GetUserAvatar()
         {
-            var s = client.Me.Photo.Content.GetAsync().Result;
+            var s = client.Me.Photo.Content.Request().GetAsync().Result;
             return BitmapHelper.GetBitmapSource(s);
         }
 
         public static List<TodoTaskList> ListLists()
         {
             List<TodoTaskList> res = new List<TodoTaskList>();
-            var page = client.Me.Todo.Lists.GetAsync();
+            var page = client.Me.Todo.Lists.Request();
             while (page != null)
             {
                 var pageres = page.GetAsync().Result;
@@ -193,6 +193,31 @@ namespace TodoSynchronizer.Services
             client.Me.Todo.Lists[$"{tasklistid}"].Tasks[$"{taskid}"].LinkedResources[linkedResourceid]
                     .Request()
                     .DeleteAsync().GetAwaiter().GetResult();
+        }
+
+        public static List<AttachmentBase> ListAttachments(string tasklistid, string taskid)
+        {
+            List<AttachmentBase> res = new List<AttachmentBase>();
+            var taskRequestBuilder = client.Me.Todo.Lists[$"{tasklistid}"].Tasks[$"{taskid}"];
+            var attachmentsRequest = new TodoTaskAttachmentsCollectionRequestBuilder(taskRequestBuilder.AppendSegmentToRequestUrl("attachments"), taskRequestBuilder.Client).Request();
+
+            while (attachmentsRequest != null)
+            {
+                var pageres = attachmentsRequest.GetAsync().Result;
+                foreach (var todolist in pageres)
+                    res.Add(todolist);
+                attachmentsRequest = pageres.NextPageRequest;
+            }
+            return res;
+        }
+
+        public static Stream GetAttachment(string tasklistid, string taskid, string attachmentid)
+        {
+            var todoTaskRequestBuilder = client.Me.Todo.Lists[$"{tasklistid}"].Tasks[$"{taskid}"];
+            var attachmentsRequestBuilder = new TodoTaskAttachmentsCollectionRequestBuilder(todoTaskRequestBuilder.AppendSegmentToRequestUrl("attachments"), todoTaskRequestBuilder.Client);
+            var attachmentRequest = attachmentsRequestBuilder[attachmentid].Content.Request().GetAsync();
+
+            return attachmentRequest.Result;
         }
     }
 }

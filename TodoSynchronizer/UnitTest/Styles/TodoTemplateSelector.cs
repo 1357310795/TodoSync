@@ -15,6 +15,7 @@ namespace TodoSynchronizer.UnitTest
         public DataTemplate TodoItemTemplate { get; set; }
         public DataTemplate TodoLinkedResourceTemplate { get; set; }
         public DataTemplate TodoCheckItemTemplate { get; set; }
+        public DataTemplate TodoAttachmentTemplate { get; set; }
         public override DataTemplate SelectTemplate(object obj, DependencyObject container)
         {
             if (obj == null) return null;
@@ -22,6 +23,7 @@ namespace TodoSynchronizer.UnitTest
             if (obj is TodoTask) return TodoItemTemplate;
             if (obj is ChecklistItem) return TodoCheckItemTemplate;
             if (obj is LinkedResource) return TodoLinkedResourceTemplate;
+            if (obj is AttachmentBase) return TodoAttachmentTemplate;
             return null;
         }
     }

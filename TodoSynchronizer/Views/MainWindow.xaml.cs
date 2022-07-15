@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TodoSynchronizer
+namespace TodoSynchronizer.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

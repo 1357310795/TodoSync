@@ -1,12 +1,14 @@
-﻿<Window x:Class="TodoSynchronizer.MainWindow"
+﻿<Window x:Class="TodoSynchronizer.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TodoSynchronizer"
-        mc:Ignorable="d"
+        xmlns:ext="clr-namespace:TodoSynchronizer.Extensions" 
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        mc:Ignorable="d" Background="Black"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-
+        <ui:Button Height="100" Width="200" ext:ButtonProgressAssist.IsIndicatorVisible="True" ext:ButtonProgressAssist.IsIndeterminate="True" Appearance="Primary" Content="4444" />
     </Grid>
 </Window>

@@ -3,14 +3,25 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:TodoSynchronizer"
-    StartupUri="UnitTest\TodoTestWindow.xaml">
+    StartupUri="UnitTest\CanvasTestWindow.xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <!--StartupUri="UnitTest\CanvasTestWindow.xaml"-->
+    <!--StartupUri="Views\MainWindow.xaml"-->
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ui:Resources Theme="Light"/>
+
                 <ResourceDictionary Source="Resources/Icons.xaml" />
+                <ResourceDictionary Source="Styles/TextBoxStyle.xaml" />
+                <ResourceDictionary Source="Styles/ProgressBarStyle.xaml" />
+                <ResourceDictionary Source="Styles/ButtonStyle.xaml" />
                 <ResourceDictionary Source="UnitTest/Styles/TodoTemplate.xaml" />
                 <ResourceDictionary Source="UnitTest/Styles/TodoListBoxStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <FontFamily x:Key="ContentControlThemeFontFamily">微软雅黑</FontFamily>
+            <FontFamily x:Key="DFontFamily">微软雅黑</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
