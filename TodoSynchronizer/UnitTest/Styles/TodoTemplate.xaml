@@ -1,0 +1,65 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DataTemplate x:Key="TodoListTemplate">
+        <Border Padding="5"
+                BorderBrush="Coral" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <TextBox Text="{Binding DisplayName}" DockPanel.Dock="Top" />
+                <StackPanel HorizontalAlignment="Right"
+                            DockPanel.Dock="Bottom" Orientation="Horizontal">
+                    <Button Content="查看列表" />
+                    <Button Content="更新" />
+                </StackPanel>
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="TodoItemTemplate">
+        <Border Padding="5"
+                BorderBrush="BlueViolet" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <StackPanel HorizontalAlignment="Right"
+                            DockPanel.Dock="Bottom" Orientation="Horizontal">
+                    <Button Content="查看列表" />
+                    <Button Content="更新" />
+                </StackPanel>
+                <TextBox Text="{Binding Title}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Status}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Body.Content}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="TodoLinkedResourceTemplate">
+        <Border Padding="5"
+                BorderBrush="GreenYellow" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <StackPanel HorizontalAlignment="Right"
+                            DockPanel.Dock="Bottom" Orientation="Horizontal">
+                    <Button Content="查看列表" />
+                    <Button Content="更新" />
+                </StackPanel>
+                <TextBox Text="{Binding DisplayName}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding WebUrl}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="TodoCheckItemTemplate">
+        <Border Padding="5"
+                BorderBrush="Gold" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <StackPanel HorizontalAlignment="Right"
+                            DockPanel.Dock="Bottom" Orientation="Horizontal">
+                    <Button Content="查看列表" />
+                    <Button Content="更新" />
+                </StackPanel>
+                <TextBox Text="{Binding DisplayName}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding IsChecked}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+</ResourceDictionary>
