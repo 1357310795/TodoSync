@@ -6,9 +6,10 @@
         xmlns:local="clr-namespace:TodoSynchronizer"
         xmlns:ext="clr-namespace:TodoSynchronizer.Extensions" 
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        mc:Ignorable="d" Background="Black"
+        mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <ui:Button Height="100" Width="200" ext:ButtonProgressAssist.IsIndicatorVisible="True" ext:ButtonProgressAssist.IsIndeterminate="True" Appearance="Primary" Content="4444" />
-    </Grid>
+    <StackPanel>
+        <TextBox x:Name="Text1" Width="300" Height="200" AcceptsReturn="True" MinLines="3"/>
+        <ui:Button Height="100" Width="200" Appearance="Primary" Content="4444" Click="Button_Click"/>
+    </StackPanel>
 </Window>

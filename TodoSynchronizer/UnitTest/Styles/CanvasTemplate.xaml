@@ -1,0 +1,58 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DataTemplate x:Key="CourseTemplate">
+        <Border Padding="5"
+                BorderBrush="Coral" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <TextBox Text="{Binding Name}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding CourseCode}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="AssignmentTemplate">
+        <Border Padding="5"
+                BorderBrush="BlueViolet" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <TextBox Text="{Binding Name}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Description}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding DueAt}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="AnouncementTemplate">
+        <Border Padding="5"
+                BorderBrush="GreenYellow" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <TextBox Text="{Binding Title}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding PostedAt}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Message}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="QuizTemplate">
+        <Border Padding="5"
+                BorderBrush="Gold" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <TextBox Text="{Binding Title}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding QuizType}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="DiscussionTemplate">
+        <Border Padding="5"
+                BorderBrush="DodgerBlue" BorderThickness="2">
+            <DockPanel LastChildFill="True">
+                <TextBox Text="{Binding Title}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Message}" DockPanel.Dock="Top" />
+                <TextBox Text="{Binding Id}" />
+            </DockPanel>
+        </Border>
+    </DataTemplate>
+</ResourceDictionary>

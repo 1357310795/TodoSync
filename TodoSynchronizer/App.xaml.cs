@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -17,6 +18,7 @@ namespace TodoSynchronizer
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore };
         }
     }
 }

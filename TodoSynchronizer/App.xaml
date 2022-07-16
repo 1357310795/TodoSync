@@ -17,6 +17,7 @@
                 <ResourceDictionary Source="Styles/ProgressBarStyle.xaml" />
                 <ResourceDictionary Source="Styles/ButtonStyle.xaml" />
                 <ResourceDictionary Source="UnitTest/Styles/TodoTemplate.xaml" />
+                <ResourceDictionary Source="UnitTest/Styles/CanvasTemplate.xaml" />
                 <ResourceDictionary Source="UnitTest/Styles/TodoListBoxStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
 

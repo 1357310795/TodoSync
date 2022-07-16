@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:unittest="clr-namespace:TodoSynchronizer.UnitTest"
         Title="CanvasTestWindow"
-        Width="800" Height="450"
+        Width="800" Height="600"
         mc:Ignorable="d">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -58,35 +58,26 @@
                             Click="ButtonListCourses_Click" />
                     <Button Height="40"
                             Margin="5,5,5,0"
-                            Content="" />
-                    <Button Height="40"
-                            Margin="5,5,5,0"
                             Content="List assignments"
                             Click="ButtonListAssignments_Click" />
-                    <Button Height="40"
-                            Margin="5,5,5,0"
-                            Content="" />
                     <Button Height="40"
                             Margin="5,5,5,0"
                             Content="List anouncements"
                             Click="ButtonListAnouncements_Click" />
                     <Button Height="40"
                             Margin="5,5,5,0"
-                            Content="" />
-                    <Button Height="40"
-                            Margin="5,5,5,0"
                             Content="List quizzes"
                             Click="ButtonListQuizzes_Click" />
-                    <Button Height="40"
-                            Margin="5,5,5,0"
-                            Content="" />
                     <Button Height="40"
                             Margin="5,5,5,0"
                             Content="List discussions"
                             Click="ButtonListDiscussions_Click" />
                     <Button Height="40"
                             Margin="5,5,5,0"
-                            Content=""/>
+                            Content="List Assignment submissions" />
+                    <Button Height="40"
+                            Margin="5,5,5,0"
+                            Content="List Quiz submissions" />
                 </StackPanel>
             </ScrollViewer>
         </DockPanel>
@@ -94,28 +85,18 @@
                    Grid.Column="1"
                    LastChildFill="True">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                <TextBlock Text="TaskListId" />
-                <TextBox Width="400" Text="{Binding TaskListId}" />
+                <TextBlock Text="CourseId" />
+                <TextBox Width="400" Text="{Binding CourseId}" />
             </StackPanel>
             <StackPanel Margin="0,5,0,0"
                         DockPanel.Dock="Top" Orientation="Horizontal">
-                <TextBlock Text="TaskId" />
-                <TextBox Width="400" Text="{Binding TaskItemId}" />
+                <TextBlock Text="AssignmentId" />
+                <TextBox Width="400" Text="{Binding AssignmentId}" />
             </StackPanel>
             <StackPanel Margin="0,5,0,0"
                         DockPanel.Dock="Top" Orientation="Horizontal">
-                <TextBlock Text="TaskCheckItemId" />
-                <TextBox Width="400" Text="{Binding TaskCheckItemId}" />
-            </StackPanel>
-            <StackPanel Margin="0,5,0,0"
-                        DockPanel.Dock="Top" Orientation="Horizontal">
-                <TextBlock Text="TaskLinkedResourceId" />
-                <TextBox Width="400" Text="{Binding TaskLinkedResourceId}" />
-            </StackPanel>
-            <StackPanel Margin="0,5,0,0"
-                        DockPanel.Dock="Top" Orientation="Horizontal">
-                <TextBlock Text="TaskAttachmentId" />
-                <TextBox Width="400" Text="{Binding TaskAttachmentId}" />
+                <TextBlock Text="QuizId" />
+                <TextBox Width="400" Text="{Binding QuizId}" />
             </StackPanel>
             <TextBlock Foreground="Red"
                        Text="{Binding Message}"
@@ -125,11 +106,11 @@
                      ItemsSource="{Binding Items}"
                      Style="{StaticResource TaskListBoxStyle}">
                 <ListBox.ItemTemplateSelector>
-                    <unittest:TodoTemplateSelector TodoListTemplate="{StaticResource TodoListTemplate}"
-                                                   TodoItemTemplate="{StaticResource TodoItemTemplate}"
-                                                   TodoCheckItemTemplate="{StaticResource TodoCheckItemTemplate}"
-                                                   TodoLinkedResourceTemplate="{StaticResource TodoLinkedResourceTemplate}"
-                                                   TodoAttachmentTemplate="{StaticResource TodoAttachmentTemplate}" />
+                    <unittest:CanvasTemplateSelector CourseTemplate="{StaticResource CourseTemplate}"
+                                                     QuizTemplate="{StaticResource QuizTemplate}"
+                                                     DiscussionTemplate="{StaticResource DiscussionTemplate}"
+                                                     AssignmentTemplate="{StaticResource AssignmentTemplate}"
+                                                     AnouncementTemplate="{StaticResource AnouncementTemplate}" />
                 </ListBox.ItemTemplateSelector>
             </ListBox>
         </DockPanel>

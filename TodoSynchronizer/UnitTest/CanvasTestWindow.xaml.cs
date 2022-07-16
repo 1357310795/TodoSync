@@ -84,6 +84,63 @@ namespace TodoSynchronizer.UnitTest
             }
         }
 
+        private string courseId;
+
+        public string CourseId
+        {
+            get { return courseId; }
+            set
+            {
+                courseId = value;
+                this.RaisePropertyChanged("CourseId");
+            }
+        }
+        private string assignmentId;
+
+        public string AssignmentId
+        {
+            get { return assignmentId; }
+            set
+            {
+                assignmentId = value;
+                this.RaisePropertyChanged("AssignmentId");
+            }
+        }
+        private string anouncementId;
+
+        public string AnouncementId
+        {
+            get { return anouncementId; }
+            set
+            {
+                anouncementId = value;
+                this.RaisePropertyChanged("AnouncementId");
+            }
+        }
+        private string quizId;
+
+        public string QuizId
+        {
+            get { return quizId; }
+            set
+            {
+                quizId = value;
+                this.RaisePropertyChanged("QuizId");
+            }
+        }
+        private string discussionId;
+
+        public string DiscussionId
+        {
+            get { return discussionId; }
+            set
+            {
+                discussionId = value;
+                this.RaisePropertyChanged("DiscussionId");
+            }
+        }
+
+
 
         private void ButtonLogin_Click(object sender, RoutedEventArgs e)
         {
@@ -123,27 +180,32 @@ namespace TodoSynchronizer.UnitTest
 
         private void ButtonListCourses_Click(object sender, RoutedEventArgs e)
         {
-
+            var rawres = CanvasService.ListCourses();
+            Items = rawres;
         }
 
         private void ButtonListAssignments_Click(object sender, RoutedEventArgs e)
         {
-
+            var rawres = CanvasService.ListAssignments(CourseId);
+            Items = rawres;
         }
 
         private void ButtonListAnouncements_Click(object sender, RoutedEventArgs e)
         {
-
+            var rawres = CanvasService.ListAnouncements(CourseId);
+            Items = rawres;
         }
 
         private void ButtonListQuizzes_Click(object sender, RoutedEventArgs e)
         {
-
+            var rawres = CanvasService.ListQuizes(CourseId);
+            Items = rawres;
         }
 
         private void ButtonListDiscussions_Click(object sender, RoutedEventArgs e)
         {
-
+            var rawres = CanvasService.ListDiscussions(CourseId);
+            Items = rawres;
         }
 
         #region INotifyPropertyChanged members

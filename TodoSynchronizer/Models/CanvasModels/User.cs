@@ -51,10 +51,4 @@ namespace TodoSynchronizer.Models.CanvasModels
         [JsonProperty("title")]
         public object Title { get; set; }
     }
-
-    public class Calendar
-    {
-        [JsonProperty("ics")]
-        public string Ics { get; set; }
-    }
 }

@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using TodoSynchronizer.Extensions;
+using TodoSynchronizer.Helpers;
 using TodoSynchronizer.Models;
 using TodoSynchronizer.Services;
 using Wpf.Ui.Controls;
@@ -91,6 +92,7 @@ namespace TodoSynchronizer.Views
             this.IsEnabled = true;
             if (res.success)
             {
+                IniHelper.SetKeyValue("canvas", "token", Token);
                 this.Dispatcher.Invoke(() => {
                     this.DialogResult = true;
                     this.Close();

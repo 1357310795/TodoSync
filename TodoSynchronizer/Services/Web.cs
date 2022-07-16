@@ -57,7 +57,7 @@ namespace TodoSynchronizer.Service
             }
             catch (Exception ex)
             {
-                return new WebResult(null, false, null, ex.ToString());
+                return new WebResult(null, false, null, ex.ToString(), null);
             }
             #endregion
 
@@ -192,6 +192,11 @@ namespace TodoSynchronizer.Service
             return GetFinalResult(req);
         }
 
+        public static WebResult Get(string url, Dictionary<string, string> headers, Dictionary<string, string> queryparas)
+        {
+            return Get(BuildUrl(url, queryparas),headers);
+        }
+
         public static WebResult GetFinalResult(HttpWebRequest req)
         {
             HttpWebResponse resp = null;
@@ -203,7 +208,7 @@ namespace TodoSynchronizer.Service
             {
                 resp = (HttpWebResponse)ex.Response;
                 if (resp == null)
-                    return new WebResult(null, false, null, ex.ToString());
+                    return new WebResult(null, false, null, ex.ToString(), resp.Headers);
             }
             Stream stream = null;
             try
@@ -213,16 +218,16 @@ namespace TodoSynchronizer.Service
             catch (Exception ex)
             {
                 if (stream == null)
-                    return new WebResult(resp.StatusCode, false, null, ex.ToString());
+                    return new WebResult(resp.StatusCode, false, null, ex.ToString(), resp.Headers);
             }
             try
             {
                 var body = GetResponseBody(resp, stream);
-                return new WebResult(resp.StatusCode, true, body, null);
+                return new WebResult(resp.StatusCode, true, body, null, resp.Headers);
             }
             catch (Exception ex)
             {
-                return new WebResult(resp.StatusCode, false, null, ex.ToString());
+                return new WebResult(resp.StatusCode, false, null, ex.ToString(), resp.Headers);
             }
         }
 

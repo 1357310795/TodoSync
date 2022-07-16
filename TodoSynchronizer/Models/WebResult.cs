@@ -11,13 +11,15 @@ namespace TodoSynchronizer.Models
     {
         public HttpStatusCode? code;
         public string message;
+        public WebHeaderCollection headers;
 
-        public WebResult(HttpStatusCode? code, bool success, string result, string message)
+        public WebResult(HttpStatusCode? code, bool success, string result, string message, WebHeaderCollection headers)
         {
             this.code = code;
             this.success = success;
             this.result = result;
             this.message = message;
+            this.headers = headers;
         }
     }
 }
