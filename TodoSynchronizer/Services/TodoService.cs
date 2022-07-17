@@ -244,11 +244,14 @@ namespace TodoSynchronizer.Services
             var attachmentsRequestBuilder = new TodoTaskAttachmentsCollectionRequestBuilder(todoTaskRequestBuilder.AppendSegmentToRequestUrl("attachments"), todoTaskRequestBuilder.Client);
 
             var uploadSession = attachmentsRequestBuilder.CreateUploadSession(attachmentInfo).Request().PostAsync().Result;
-            
-            var task = new LargeFileUploadTask<AttachmentSession>(uploadSession, ms, 12*320*1024, todoTaskRequestBuilder.Client);
+
+            //var task = new LargeFileUploadTask<AttachmentSession>(uploadSession, ms, 12*320*1024, todoTaskRequestBuilder.Client);
+            //var res = task.UploadAsync().Result;
+            var task = new LargeFileUploadTask<AttachmentSession>(uploadSession, ms, 12 * 320 * 1024, todoTaskRequestBuilder.Client);
             var res = task.UploadAsync().Result;
 
             return res.ItemResponse;
         }
+
     }
 }

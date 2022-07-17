@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Brotli.NET" Version="2.1.1" />
     <PackageReference Include="Microsoft.Graph" Version="4.34.0" />
-    <PackageReference Include="Microsoft.Graph.Core" Version="3.0.0-preview.10" />
+    <PackageReference Include="Microsoft.Graph.Core" Version="2.0.9" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.45.0" />
     <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.45.0-preview" />
     <PackageReference Include="Microsoft.Identity.Client.Desktop" Version="4.45.0" />
