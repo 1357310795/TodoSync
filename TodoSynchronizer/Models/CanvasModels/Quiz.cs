@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TodoSynchronizer.Models.CanvasModels
 {
-    public class Quiz
+    public class Quiz : ICanvasItem
     {
         [JsonProperty("access_code")]
         public string AccessCode { get; set; }
@@ -125,6 +125,7 @@ namespace TodoSynchronizer.Models.CanvasModels
 
         [JsonProperty("version_number")]
         public long VersionNumber { get; set; }
+        public string Content { get => Description; set => throw new NotImplementedException(); }
     }
 
     public class AllDate

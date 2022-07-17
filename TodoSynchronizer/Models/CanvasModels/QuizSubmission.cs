@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace TodoSynchronizer.Models.CanvasModels
 {
-    public partial class QuizSubmissions
+    public partial class QuizSubmissionDto
     {
         [JsonProperty("quiz_submissions")]
-        public System.Collections.Generic.List<QuizSubmission> QuizSubmissionsQuizSubmissions { get; set; }
+        public System.Collections.Generic.List<QuizSubmission> QuizSubmissions { get; set; }
     }
 
     public partial class QuizSubmission
@@ -19,7 +19,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public long Attempt { get; set; }
 
         [JsonProperty("end_at")]
-        public string EndAt { get; set; }
+        public DateTime EndAt { get; set; }
 
         [JsonProperty("extra_attempts")]
         public long ExtraAttempts { get; set; }
@@ -28,7 +28,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public long ExtraTime { get; set; }
 
         [JsonProperty("finished_at")]
-        public string FinishedAt { get; set; }
+        public DateTime FinishedAt { get; set; }
 
         [JsonProperty("fudge_points")]
         public long FudgePoints { get; set; }
@@ -51,6 +51,9 @@ namespace TodoSynchronizer.Models.CanvasModels
         [JsonProperty("quiz_id")]
         public long QuizId { get; set; }
 
+        [JsonProperty("quiz_points_possible")]
+        public long QuizPointsPossible { get; set; }
+
         [JsonProperty("score")]
         public long Score { get; set; }
 
@@ -58,7 +61,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public long ScoreBeforeRegrade { get; set; }
 
         [JsonProperty("started_at")]
-        public string StartedAt { get; set; }
+        public DateTime StartedAt { get; set; }
 
         [JsonProperty("submission_id")]
         public long SubmissionId { get; set; }

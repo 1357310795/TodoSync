@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TodoSynchronizer.Models.CanvasModels
 {
-    public class Discussion
+    public class Discussion : ICanvasItem
     {
         [JsonProperty("allow_rating")]
         public bool AllowRating { get; set; }
@@ -113,6 +113,7 @@ namespace TodoSynchronizer.Models.CanvasModels
 
         [JsonProperty("user_name")]
         public string UserName { get; set; }
+        public string Content { get => ""; set => throw new NotImplementedException(); }
     }
 
     public class GroupTopicChild

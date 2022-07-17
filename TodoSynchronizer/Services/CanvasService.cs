@@ -96,6 +96,56 @@ namespace TodoSynchronizer.Services
             return GetAllPageResult<Discussion>($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/discussion_topics", headers, query);
         }
 
+        public static AssignmentSubmission GetAssignmentSubmisson(string course_id, string assignment_id)
+        {
+            var headers = new Dictionary<string, string>();
+            var query = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Bearer {Token}");
+
+            var res = Web.Get($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/assignments/{assignment_id}/submissions/self", headers, query);
+            if (!res.success)
+                throw new Exception(res.message);
+
+            if (res.code != System.Net.HttpStatusCode.OK)
+                return null;
+
+            try
+            {
+                var json = JsonConvert.DeserializeObject<AssignmentSubmission>(res.result);
+                return json;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public static List<QuizSubmission> ListQuizSubmissons(string course_id, string quiz_id)
+        {
+            var headers = new Dictionary<string, string>();
+            var query = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Bearer {Token}");
+            query.Add("page", "1");
+            query.Add("per_page", "20");
+
+            var res = Web.Get($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/quizzes/{quiz_id}/submissions", headers, query);
+            if (!res.success)
+                throw new Exception(res.message);
+
+            if (res.code != System.Net.HttpStatusCode.OK)
+                return null;
+
+            try
+            {
+                var json = JsonConvert.DeserializeObject<QuizSubmissionDto>(res.result);
+                return json.QuizSubmissions;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public static List<T> GetAllPageResult<T>(string url, Dictionary<string, string> headers, Dictionary<string, string> query)
         {
             headers.Add("Authorization", $"Bearer {Token}");

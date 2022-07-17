@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TodoSynchronizer.Models.CanvasModels
 {
-    public class Assignment
+    public class Assignment : ICanvasItem
     {
         [JsonProperty("all_dates")]
         public object AllDates { get; set; }
@@ -46,7 +46,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public long CourseId { get; set; }
 
         [JsonProperty("created_at")]
-        public string CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
 
         [JsonProperty("description")]
         public string Description { get; set; }
@@ -55,7 +55,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public object DiscussionTopic { get; set; }
 
         [JsonProperty("due_at")]
-        public string DueAt { get; set; }
+        public DateTime? DueAt { get; set; }
 
         [JsonProperty("due_date_required")]
         public bool DueDateRequired { get; set; }
@@ -119,9 +119,12 @@ namespace TodoSynchronizer.Models.CanvasModels
 
         [JsonProperty("intra_group_peer_reviews")]
         public bool IntraGroupPeerReviews { get; set; }
+        
+        [JsonProperty("is_quiz_assignment")]
+        public bool IsQuizAssignment { get; set; }
 
         [JsonProperty("lock_at")]
-        public string LockAt { get; set; }
+        public DateTime? LockAt { get; set; }
 
         [JsonProperty("lock_explanation")]
         public string LockExplanation { get; set; }
@@ -211,19 +214,22 @@ namespace TodoSynchronizer.Models.CanvasModels
         public object TurnitinSettings { get; set; }
 
         [JsonProperty("unlock_at")]
-        public string UnlockAt { get; set; }
+        public DateTime? UnlockAt { get; set; }
 
         [JsonProperty("unpublishable")]
         public bool Unpublishable { get; set; }
 
         [JsonProperty("updated_at")]
-        public string UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         [JsonProperty("use_rubric_for_grading")]
         public bool UseRubricForGrading { get; set; }
 
         [JsonProperty("vericite_enabled")]
         public bool VericiteEnabled { get; set; }
+
+        public string Title { get => Name; set => throw new NotImplementedException(); }
+        public string Content { get => Description; set => throw new NotImplementedException(); }
     }
 
     public class NeedsGradingCountBySection

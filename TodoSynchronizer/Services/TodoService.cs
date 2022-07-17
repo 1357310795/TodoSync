@@ -1,4 +1,5 @@
 ﻿using Microsoft.Graph;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using TodoSynchronizer.Helpers;
+using TodoSynchronizer.Service;
 
 namespace TodoSynchronizer.Services
 {
@@ -110,6 +112,22 @@ namespace TodoSynchronizer.Services
                  .Request()
                  .UpdateAsync(task).Result;
             return todoTask;
+        }
+
+        public static void DeleteDueDate(string tasklistid, string taskid)
+        {
+            var headers = new Dictionary<string, string>();
+            var query = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Bearer {Token}");
+            headers.Add("Content-Type", "application/json");
+
+            string content = "{\"dueDateTime\":null}";
+            var res = Web.Patch($"https://graph.microsoft.com/v1.0/me/todo/lists/{tasklistid}/tasks/{taskid}", headers, query, content);
+            if (!res.success)
+                throw new Exception(res.message);
+
+            if (res.code != System.Net.HttpStatusCode.OK)
+                throw new Exception(res.result);
         }
 
         public static void DeleteTask(string tasklistid, string taskid)
@@ -218,6 +236,19 @@ namespace TodoSynchronizer.Services
             var attachmentRequest = attachmentsRequestBuilder[attachmentid].Content.Request().GetAsync();
 
             return attachmentRequest.Result;
+        }
+
+        public static AttachmentSession UploadAttachment(string tasklistid, string taskid, AttachmentInfo attachmentInfo, Stream ms)
+        {
+            var todoTaskRequestBuilder = client.Me.Todo.Lists[$"{tasklistid}"].Tasks[$"{taskid}"];
+            var attachmentsRequestBuilder = new TodoTaskAttachmentsCollectionRequestBuilder(todoTaskRequestBuilder.AppendSegmentToRequestUrl("attachments"), todoTaskRequestBuilder.Client);
+
+            var uploadSession = attachmentsRequestBuilder.CreateUploadSession(attachmentInfo).Request().PostAsync().Result;
+            
+            var task = new LargeFileUploadTask<AttachmentSession>(uploadSession, ms, 12*320*1024, todoTaskRequestBuilder.Client);
+            var res = task.UploadAsync().Result;
+
+            return res.ItemResponse;
         }
     }
 }

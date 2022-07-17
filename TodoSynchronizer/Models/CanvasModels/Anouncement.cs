@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TodoSynchronizer.Models.CanvasModels
 {
-    public partial class Anouncement
+    public partial class Anouncement : ICanvasItem
     {
         [JsonProperty("allow_rating")]
         public bool AllowRating { get; set; }
@@ -140,6 +140,7 @@ namespace TodoSynchronizer.Models.CanvasModels
 
         [JsonProperty("user_name")]
         public string UserName { get; set; }
+        public string Content { get => Message ; set => throw new NotImplementedException(); }
     }
 
     public class AnouncementPermissions

@@ -197,6 +197,41 @@ namespace TodoSynchronizer.Service
             return Get(BuildUrl(url, queryparas),headers);
         }
 
+        public static WebResult Patch(string url, Dictionary<string, string> headers, string formdata, bool urlencode, Encoding eco)
+        {
+            #region 初始化请求
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
+            req.Method = "PATCH";
+            ProcessHeaders(headers, req);
+            #endregion
+
+            #region 添加 body 参数
+            try
+            {
+                byte[] data = eco.GetBytes(formdata);
+                req.ContentLength = data.Length;
+                using (Stream reqStream = req.GetRequestStream())
+                {
+                    reqStream.Write(data, 0, data.Length);
+                    reqStream.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                return new WebResult(null, false, null, ex.ToString(), null);
+            }
+            #endregion
+
+            #region 获取响应
+            return GetFinalResult(req);
+            #endregion
+        }
+
+        public static WebResult Patch(string url, Dictionary<string, string> headers, Dictionary<string, string> queryparas, string formdata)
+        {
+            return Patch(BuildUrl(url, queryparas), headers, formdata, false, Encoding.Default);
+        }
+
         public static WebResult GetFinalResult(HttpWebRequest req)
         {
             HttpWebResponse resp = null;
