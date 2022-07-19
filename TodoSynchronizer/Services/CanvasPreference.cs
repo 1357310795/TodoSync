@@ -9,6 +9,17 @@ namespace TodoSynchronizer.Services
 {
     public static class CanvasPreference
     {
+        public static DateTime? GetRemindMeTime(this Quiz quiz)
+        {
+            //return assignment.UnlockAt;
+            return quiz.DueAt == null ? null : quiz.DueAt - TimeSpan.FromHours(1);
+        }
+
+        public static DateTime? GetDueTime(this Quiz quiz)
+        {
+            return quiz.UnlockAt;
+            //return assignment.DueAt;
+        }
         public static DateTime? GetRemindMeTime(this Assignment assignment)
         {
             //return assignment.UnlockAt;
@@ -18,6 +29,30 @@ namespace TodoSynchronizer.Services
         public static DateTime? GetDueTime(this Assignment assignment)
         {
             return assignment.UnlockAt;
+            //return assignment.DueAt;
+        }
+
+        public static DateTime? GetRemindMeTime(this Anouncement anouncement)
+        {
+            //return assignment.UnlockAt;
+            return DateTime.Now + TimeSpan.FromMinutes(1);
+        }
+
+        public static DateTime? GetDueTime(this Anouncement anouncement)
+        {
+            return anouncement.PostedAt;
+            //return assignment.DueAt;
+        }
+
+        public static DateTime? GetRemindMeTime(this Discussion discussion)
+        {
+            //return assignment.UnlockAt;
+            return DateTime.Now + TimeSpan.FromMinutes(1);
+        }
+
+        public static DateTime? GetDueTime(this Discussion discussion)
+        {
+            return discussion.PostedAt;
             //return assignment.DueAt;
         }
 

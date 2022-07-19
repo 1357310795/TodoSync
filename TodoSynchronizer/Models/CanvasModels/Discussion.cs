@@ -22,7 +22,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public Author Author { get; set; }
 
         [JsonProperty("delayed_post_at")]
-        public string DelayedPostAt { get; set; }
+        public DateTime? DelayedPostAt { get; set; }
 
         [JsonProperty("discussion_subentry_count")]
         public long DiscussionSubentryCount { get; set; }
@@ -43,10 +43,10 @@ namespace TodoSynchronizer.Models.CanvasModels
         public long Id { get; set; }
 
         [JsonProperty("last_reply_at")]
-        public string LastReplyAt { get; set; }
+        public DateTime? LastReplyAt { get; set; }
 
         [JsonProperty("lock_at")]
-        public object LockAt { get; set; }
+        public DateTime? LockAt { get; set; }
 
         [JsonProperty("lock_explanation")]
         public string LockExplanation { get; set; }
@@ -76,7 +76,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public string PodcastUrl { get; set; }
 
         [JsonProperty("posted_at")]
-        public string PostedAt { get; set; }
+        public DateTime? PostedAt { get; set; }
 
         [JsonProperty("published")]
         public bool Published { get; set; }
@@ -113,7 +113,7 @@ namespace TodoSynchronizer.Models.CanvasModels
 
         [JsonProperty("user_name")]
         public string UserName { get; set; }
-        public string Content { get => ""; set => throw new NotImplementedException(); }
+        public string Content { get => $"{UserName}：\n{Message}"; set => throw new NotImplementedException(); }
     }
 
     public class GroupTopicChild

@@ -31,7 +31,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public string Description { get; set; }
 
         [JsonProperty("due_at")]
-        public string DueAt { get; set; }
+        public DateTime? DueAt { get; set; }
 
         [JsonProperty("hide_correct_answers_at")]
         public string HideCorrectAnswersAt { get; set; }
@@ -49,7 +49,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public string IpFilter { get; set; }
 
         [JsonProperty("lock_at")]
-        public string LockAt { get; set; }
+        public DateTime? LockAt { get; set; }
 
         [JsonProperty("lock_explanation")]
         public string LockExplanation { get; set; }
@@ -100,7 +100,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public bool ShowCorrectAnswers { get; set; }
 
         [JsonProperty("show_correct_answers_at")]
-        public string ShowCorrectAnswersAt { get; set; }
+        public DateTime? ShowCorrectAnswersAt { get; set; }
 
         [JsonProperty("show_correct_answers_last_attempt")]
         public bool ShowCorrectAnswersLastAttempt { get; set; }
@@ -118,7 +118,7 @@ namespace TodoSynchronizer.Models.CanvasModels
         public string Title { get; set; }
 
         [JsonProperty("unlock_at")]
-        public string UnlockAt { get; set; }
+        public DateTime? UnlockAt { get; set; }
 
         [JsonProperty("unpublishable")]
         public bool Unpublishable { get; set; }
