@@ -10,15 +10,14 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ui:Resources Theme="Light"/>
+                <ui:ControlsDictionary />
+                <ui:ThemesDictionary Theme="Light" />
 
                 <ResourceDictionary Source="Resources/Icons.xaml" />
-                <ResourceDictionary Source="Styles/TextBoxStyle.xaml" />
-                <ResourceDictionary Source="Styles/ProgressBarStyle.xaml" />
-                <ResourceDictionary Source="Styles/ButtonStyle.xaml" />
                 <ResourceDictionary Source="UnitTest/Styles/TodoTemplate.xaml" />
                 <ResourceDictionary Source="UnitTest/Styles/CanvasTemplate.xaml" />
                 <ResourceDictionary Source="UnitTest/Styles/TodoListBoxStyle.xaml" />
+                <ResourceDictionary Source="Styles/SideHideBar.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <FontFamily x:Key="ContentControlThemeFontFamily">微软雅黑</FontFamily>

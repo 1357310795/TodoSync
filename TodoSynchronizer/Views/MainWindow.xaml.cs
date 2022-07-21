@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -19,8 +20,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TodoSynchronizer.Helpers;
+using TodoSynchronizer.Models;
 using TodoSynchronizer.Models.CanvasModels;
 using TodoSynchronizer.Services;
+using TodoSynchronizer.ViewModels;
+using Wpf.Ui.Extensions;
+using Application = System.Windows.Application;
 
 namespace TodoSynchronizer.Views
 {
@@ -36,7 +41,6 @@ namespace TodoSynchronizer.Views
         }
 
         private string message;
-
         public string Message
         {
             get { return message; }
@@ -47,45 +51,25 @@ namespace TodoSynchronizer.Views
             }
         }
 
+        public CanvasLoginViewModel CanvasLoginViewModel { get; set; } = new CanvasLoginViewModel();
+        public TodoLoginViewModel TodoLoginViewModel { get; set; } = new TodoLoginViewModel();
+
         public Dictionary<string, TodoTask> dic = null;
         public TodoTaskList canvasTaskList = null;
         public List<TodoTask> canvasTasks = null;
         public List<Course> courses = null;
         public int CourseCount, ItemCount, UpdateCount, FailedCount;
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Message = "登录";
-            var res = await MsalHelper.GetToken(this);
-            if (!res.success)
-            {
-                MessageBox.Show(res.result);
-                return;
-            }
-            TodoService.Token = res.result;
-
-            var res1 = CanvasService.TryCacheLogin();
-            if (!res1.success)
-            {
-                MessageBox.Show(res1.result);
-                return;
-            }
-
-            Thread t = new Thread(Go);
+            ButtonProgressAssist.SetIsIndicatorVisible(GoButton, true);
+            ButtonProgressAssist.SetIsIndeterminate(GoButton, true);
+            Thread t = new Thread(() => { Go(); Finish(); });
             t.Start();
         }
 
         private async void ButtonTest_Click(object sender, RoutedEventArgs e)
         {
-            Message = "登录";
-            var res = await MsalHelper.GetToken(this);
-            if (!res.success)
-            {
-                MessageBox.Show(res.result);
-                return;
-            }
-            TodoService.Token = res.result;
-
             FileStream fs = new FileStream(@"C:\Users\111\Downloads\98568049_p0.jpg", FileMode.Open);
             AttachmentInfo info = new AttachmentInfo();
             info.AttachmentType = AttachmentType.File;
@@ -192,6 +176,20 @@ namespace TodoSynchronizer.Views
                 return;
             }
             Message = $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目";
+        }
+
+        public void Finish()
+        {
+            this.Dispatcher.Invoke(() =>{
+                ButtonProgressAssist.SetIsIndicatorVisible(GoButton, true);
+                ButtonProgressAssist.SetIsIndeterminate(GoButton, true);
+            });
+        }
+
+        private void ButtonSetting_Click(object sender, RoutedEventArgs e)
+        {
+            var m = new SettingsWindow();
+            m.Show();
         }
 
         #region Assignments
@@ -876,6 +874,7 @@ namespace TodoSynchronizer.Views
                 return;
             }
         }
+
         public bool UpdateAnouncement(Course course, Anouncement anouncement, TodoTask todoTaskOld, TodoTask todoTaskNew)
         {
             var modified = false;

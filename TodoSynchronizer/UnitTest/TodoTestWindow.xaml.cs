@@ -142,18 +142,18 @@ namespace TodoSynchronizer.UnitTest
 
         private async void ButtonLogin_Click(object sender, RoutedEventArgs e)
         {
-            var res = await MsalHelper.GetToken(this);
-            if (!res.success)
-            {
-                MessageBox.Show(res.result);
-                return;
-            }
-            TodoService.Token = res.result;
-            var info = TodoService.GetUserInfo();
-            UserName = info.DisplayName;
-            UserEmail = info.UserPrincipalName;
-            UserAvatar = TodoService.GetUserAvatar();
-            Message = "登录成功";
+            //var res = await MsalHelper.GetToken(this);
+            //if (!res.success)
+            //{
+            //    MessageBox.Show(res.result);
+            //    return;
+            //}
+            //TodoService.Token = res.result;
+            //var info = TodoService.GetUserInfo();
+            //UserName = info.DisplayName;
+            //UserEmail = info.UserPrincipalName;
+            //UserAvatar = TodoService.GetUserAvatar();
+            //Message = "登录成功";
         }
 
         private void ButtonListLists_Click(object sender, RoutedEventArgs e)

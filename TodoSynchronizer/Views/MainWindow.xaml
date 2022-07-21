@@ -4,13 +4,201 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TodoSynchronizer"
-        xmlns:ext="clr-namespace:TodoSynchronizer.Extensions" 
+        xmlns:ext="clr-namespace:TodoSynchronizer.Extensions"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="600">
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <TextBlock Text="{Binding Message}" FontSize="16" TextWrapping="Wrap" HorizontalAlignment="Center"/>
-        <ui:Button Margin="10" Height="40" Width="200" Appearance="Primary" Content="4444" Click="Button_Click"/>
-        <ui:Button Margin="10" Height="40" Width="200" Appearance="Primary" Content="Test" Click="ButtonTest_Click"/>
-    </StackPanel>
+        xmlns:controls="clr-namespace:TodoSynchronizer.Controls"
+        xmlns:converters="clr-namespace:TodoSynchronizer.Converters"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:mvvm="clr-namespace:TodoSynchronizer.Mvvm"
+        Title="MainWindow"
+        Width="600" Height="450"
+        mc:Ignorable="d">
+    <Window.Resources>
+        <converters:BoolToAppearanceConverter x:Key="BoolToAppearanceConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:RevBooleanToVisibilityConverter x:Key="RevBooleanToVisibilityConverter" />
+    </Window.Resources>
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Text="{Binding Message}"
+                       FontSize="16" />
+            <ui:Button Width="200" Height="40"
+                       Margin="10" x:Name="GoButton"
+                       Content="4444"
+                       Appearance="Primary" Click="Button_Click" />
+            <ui:Button Width="200" Height="40"
+                       Margin="10"
+                       Content="Test"
+                       Appearance="Primary" Click="ButtonTest_Click" />
+            <ui:Button Width="200" Height="40"
+                       Margin="10"
+                       Content="设置"
+                       Appearance="Primary" Click="ButtonSetting_Click" />
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Margin="0,10"
+                    Orientation="Vertical">
+            <controls:SideHideBar DataContext="{Binding CanvasLoginViewModel}" Appearance="{Binding LoginInfo.IsLogin, Converter={StaticResource BoolToAppearanceConverter}}">
+                <controls:SideHideBar.Header>
+                    Canvas
+                </controls:SideHideBar.Header>
+                <Grid Margin="10">
+                    <Grid Visibility="{Binding LoginInfo.IsLogin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Image Width="54" Height="54"
+                               Grid.RowSpan="2"
+                               d:Source="{StaticResource user_roundDrawingImage}"
+                               Source="{Binding LoginInfo.UserAvatar}">
+                            <Image.Clip>
+                                <EllipseGeometry Center="27,27" RadiusX="27"
+                                                 RadiusY="27" />
+                            </Image.Clip>
+                        </Image>
+                        <TextBlock VerticalAlignment="Bottom"
+                                   Margin="8,0,0,0"
+                                   Grid.Column="1"
+                                   Text="{Binding LoginInfo.UserName}"
+                                   d:Text="Yamauchi Sakura"
+                                   FontSize="14" />
+                        <TextBlock VerticalAlignment="Top"
+                                   Margin="8,0,0,0"
+                                   Grid.Row="1" Grid.Column="1"
+                                   Text="{Binding LoginInfo.UserEmail}"
+                                   d:Text="tenkinoko2019@outlook.com" Opacity="0.4"
+                                   FontSize="12" />
+                        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                    Grid.Row="2" Grid.ColumnSpan="2"
+                                    Orientation="Horizontal">
+                            <TextBlock Text="退出登录" Cursor="Hand">
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{DynamicResource SystemAccentColorSecondary}" />
+                                </TextBlock.Foreground>
+                                <i:Interaction.Behaviors>
+                                    <ext:ClickBehavior />
+                                </i:Interaction.Behaviors>
+                                <i:Interaction.Triggers>
+                                    <mvvm:RoutedEventTrigger RoutedEvent="{x:Static ext:ClickExtensions.ClickEvent}">
+                                        <i:InvokeCommandAction Command="{Binding LogoutCommand}" />
+                                    </mvvm:RoutedEventTrigger>
+                                </i:Interaction.Triggers>
+                            </TextBlock>
+                            <TextBlock Margin="5,0,0,0"
+                                       Text="切换账号"
+                                       Cursor="Hand">
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{DynamicResource SystemAccentColorSecondary}" />
+                                </TextBlock.Foreground>
+                                <i:Interaction.Behaviors>
+                                    <ext:ClickBehavior />
+                                </i:Interaction.Behaviors>
+                                <i:Interaction.Triggers>
+                                    <mvvm:RoutedEventTrigger RoutedEvent="{x:Static ext:ClickExtensions.ClickEvent}">
+                                        <i:InvokeCommandAction Command="{Binding SwitchCommand}" />
+                                    </mvvm:RoutedEventTrigger>
+                                </i:Interaction.Triggers>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Visibility="{Binding LoginInfo.IsLogin, Converter={StaticResource RevBooleanToVisibilityConverter}}">
+                        <ui:Button HorizontalAlignment="Center"
+                                   Padding="10"
+                                   Content="连接 Canvas 账户"
+                                   Command="{Binding LoginCommand}"
+                                   Appearance="Transparent" />
+                    </Grid>
+                </Grid>
+            </controls:SideHideBar>
+            <controls:SideHideBar Margin="0,8"
+                                  DataContext="{Binding TodoLoginViewModel}"
+                                  Appearance="{Binding LoginInfo.IsLogin, Converter={StaticResource BoolToAppearanceConverter}}">
+                <controls:SideHideBar.Header>
+                    Todo
+                </controls:SideHideBar.Header>
+                <Grid Margin="10">
+                    <Grid Visibility="{Binding LoginInfo.IsLogin, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Image Width="54" Height="54"
+                               Grid.RowSpan="2"
+                               d:Source="{StaticResource user_roundDrawingImage}"
+                               Source="{Binding LoginInfo.UserAvatar}">
+                            <Image.Clip>
+                                <EllipseGeometry Center="27,27" RadiusX="27"
+                                                 RadiusY="27" />
+                            </Image.Clip>
+                        </Image>
+                        <TextBlock VerticalAlignment="Bottom"
+                                   Margin="8,0,0,0"
+                                   Grid.Column="1"
+                                   Text="{Binding LoginInfo.UserName}"
+                                   d:Text="Yamauchi Sakura"
+                                   FontSize="14" />
+                        <TextBlock VerticalAlignment="Top"
+                                   Margin="8,0,0,0"
+                                   Grid.Row="1" Grid.Column="1"
+                                   Text="{Binding LoginInfo.UserEmail}"
+                                   d:Text="tenkinoko2019@outlook.com" Opacity="0.4"
+                                   FontSize="12" />
+                        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                    Grid.Row="2" Grid.ColumnSpan="2"
+                                    Orientation="Horizontal">
+                            <TextBlock Text="退出登录" Cursor="Hand">
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{DynamicResource SystemAccentColorSecondary}" />
+                                </TextBlock.Foreground>
+                                <i:Interaction.Behaviors>
+                                    <ext:ClickBehavior />
+                                </i:Interaction.Behaviors>
+                                <i:Interaction.Triggers>
+                                    <mvvm:RoutedEventTrigger RoutedEvent="{x:Static ext:ClickExtensions.ClickEvent}">
+                                        <i:InvokeCommandAction Command="{Binding LogoutCommand}" />
+                                    </mvvm:RoutedEventTrigger>
+                                </i:Interaction.Triggers>
+                            </TextBlock>
+                            <TextBlock Margin="5,0,0,0"
+                                       Text="切换账号"
+                                       Cursor="Hand">
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{DynamicResource SystemAccentColorSecondary}" />
+                                </TextBlock.Foreground>
+                                <i:Interaction.Behaviors>
+                                    <ext:ClickBehavior />
+                                </i:Interaction.Behaviors>
+                                <i:Interaction.Triggers>
+                                    <mvvm:RoutedEventTrigger RoutedEvent="{x:Static ext:ClickExtensions.ClickEvent}">
+                                        <i:InvokeCommandAction Command="{Binding SwitchCommand}" />
+                                    </mvvm:RoutedEventTrigger>
+                                </i:Interaction.Triggers>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                    <Grid Visibility="{Binding LoginInfo.IsLogin, Converter={StaticResource RevBooleanToVisibilityConverter}}">
+                        <ui:Button HorizontalAlignment="Center"
+                                   Padding="10"
+                                   Content="连接 Microsoft 账户"
+                                   Command="{Binding LoginCommand}"
+                                   Appearance="Transparent" />
+                    </Grid>
+                </Grid>
+            </controls:SideHideBar>
+        </StackPanel>
+
+    </Grid>
 </Window>

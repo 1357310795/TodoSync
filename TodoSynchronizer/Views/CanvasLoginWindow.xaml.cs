@@ -17,6 +17,7 @@ using TodoSynchronizer.Helpers;
 using TodoSynchronizer.Models;
 using TodoSynchronizer.Services;
 using Wpf.Ui.Controls;
+using Wpf.Ui.Extensions;
 
 namespace TodoSynchronizer.Views
 {

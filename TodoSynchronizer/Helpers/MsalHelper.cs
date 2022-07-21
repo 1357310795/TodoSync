@@ -1,6 +1,6 @@
 ﻿using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Broker;
-using Microsoft.Identity.Client.Desktop;
+//using Microsoft.Identity.Client.Desktop;
 using Microsoft.Identity.Client.Extensions.Msal;
 using System;
 using System.Collections.Generic;
@@ -14,19 +14,19 @@ using TodoSynchronizer.Models;
 
 namespace TodoSynchronizer.Helpers
 {
-    public static class MsalHelper
+    public class MsalHelper
     {
-        static MsalHelper()
+        public MsalHelper()
         {
             CreateApplication();
         }
 
-        public static void CreateApplication()
+        public void CreateApplication()
         {
             _clientApp = PublicClientApplicationBuilder.Create(ClientId)
                                                     .WithAuthority($"{Instance}{Tenant}")
                                                     .WithDefaultRedirectUri()
-                                                    .WithWindowsBroker(true)
+                                                    .WithBrokerPreview(true)
                                                     .Build();
             var storageProperties =
                  new StorageCreationPropertiesBuilder(CacheFileName, CacheDir)
@@ -37,7 +37,7 @@ namespace TodoSynchronizer.Helpers
             cacheHelper.RegisterCache(_clientApp.UserTokenCache);
         }
 
-        public static async Task<CommonResult> GetToken(Window host)
+        public async Task<CommonResult> GetToken(Window host)
         {
             AuthenticationResult authResult = null;
             var app = PublicClientApp;
@@ -90,9 +90,9 @@ namespace TodoSynchronizer.Helpers
 
         private static string Tenant = "common";
         private static string Instance = "https://login.microsoftonline.com/";
-        private static IPublicClientApplication _clientApp;
+        private IPublicClientApplication _clientApp;
 
-        public static IPublicClientApplication PublicClientApp { get { return _clientApp; } }
+        public IPublicClientApplication PublicClientApp { get { return _clientApp; } }
 
         private static readonly string s_cacheFilePath =
                    Path.Combine(MsalCacheHelper.UserRootDirectory, "msal.contoso.cache");
