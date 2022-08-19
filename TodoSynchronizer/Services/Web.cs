@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using TodoSynchronizer.Core.Extensions;
 using TodoSynchronizer.Extensions;
 using TodoSynchronizer.Models;
 using static TodoSynchronizer.Models.WebResult;

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TodoSynchronizer.Extensions
+namespace TodoSynchronizer.Core.Extensions
 {
     public static class UrlExtension
     {
