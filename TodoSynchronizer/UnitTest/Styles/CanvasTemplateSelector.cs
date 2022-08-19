@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using TodoSynchronizer.Models.CanvasModels;
+using TodoSynchronizer.Core.Models.CanvasModels;
 
 namespace TodoSynchronizer.UnitTest
 {

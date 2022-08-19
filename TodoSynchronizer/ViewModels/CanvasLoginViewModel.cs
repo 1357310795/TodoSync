@@ -1,29 +1,23 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.CommandWpf;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using TodoSynchronizer.Models;
-using TodoSynchronizer.Services;
+using TodoSynchronizer.Core.Models;
+using TodoSynchronizer.Core.Services;
+using TodoSynchronizer.Helpers;
 using TodoSynchronizer.Views;
 
 namespace TodoSynchronizer.ViewModels
 {
-    public class CanvasLoginViewModel : ViewModelBase
+    public partial class CanvasLoginViewModel : ObservableObject
     {
+        [ObservableProperty]
         private LoginInfoModel loginInfo = new LoginInfoModel();
-        public LoginInfoModel LoginInfo
-        {
-            get { return loginInfo; }
-            set
-            {
-                loginInfo = value;
-                this.RaisePropertyChanged("LoginInfo");
-            }
-        }
+
         public RelayCommand LoginCommand { get; set; }
         public RelayCommand LogoutCommand { get; set; }
         public RelayCommand SwitchCommand { get; set; }
@@ -37,12 +31,17 @@ namespace TodoSynchronizer.ViewModels
 
         public void Login()
         {
-            var res1 = CanvasService.TryCacheLogin();
-            if (res1.success)
+            var token = IniHelper.GetKeyValue("canvas", "token", "");
+            if (token != "")
             {
-                CanvasLoginSuccess();
-                return;
+                var res1 = CanvasService.Login(token);
+                if (res1.success)
+                {
+                    CanvasLoginSuccess();
+                    return;
+                }
             }
+            
             var m = new CanvasLoginWindow();
             var res2 = m.ShowDialog();
             if (res2.Value == true)

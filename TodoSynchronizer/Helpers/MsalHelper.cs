@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
-using TodoSynchronizer.Models;
+using TodoSynchronizer.Core.Models;
 
 namespace TodoSynchronizer.Helpers
 {
@@ -26,7 +26,7 @@ namespace TodoSynchronizer.Helpers
             _clientApp = PublicClientApplicationBuilder.Create(ClientId)
                                                     .WithAuthority($"{Instance}{Tenant}")
                                                     .WithDefaultRedirectUri()
-                                                    .WithBrokerPreview(true)
+                                                    //.WithBrokerPreview(true)
                                                     .Build();
             var storageProperties =
                  new StorageCreationPropertiesBuilder(CacheFileName, CacheDir)

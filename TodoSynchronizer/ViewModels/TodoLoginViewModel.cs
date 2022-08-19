@@ -1,30 +1,23 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.CommandWpf;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using TodoSynchronizer.Helpers;
-using TodoSynchronizer.Models;
+using TodoSynchronizer.Core.Models;
 using TodoSynchronizer.Mvvm;
-using TodoSynchronizer.Services;
+using TodoSynchronizer.Core.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace TodoSynchronizer.ViewModels
 {
-    public class TodoLoginViewModel : ViewModelBase
+    public partial class TodoLoginViewModel : ObservableObject
     {
+        [ObservableProperty]
+
         private LoginInfoModel loginInfo = new LoginInfoModel();
-        public LoginInfoModel LoginInfo
-        {
-            get { return loginInfo; }
-            set
-            {
-                loginInfo = value;
-                this.RaisePropertyChanged("LoginInfo");
-            }
-        }
         public AsyncRelayCommand LoginCommand { get; set; }
         public RelayCommand LogoutCommand { get; set; }
         public RelayCommand SwitchCommand { get; set; }

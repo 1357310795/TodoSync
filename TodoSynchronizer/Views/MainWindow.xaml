@@ -19,14 +19,15 @@
         <converters:RevBooleanToVisibilityConverter x:Key="RevBooleanToVisibilityConverter" />
     </Window.Resources>
     <Grid>
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Stretch">
             <TextBlock HorizontalAlignment="Center"
                        TextWrapping="Wrap"
                        Text="{Binding Message}"
                        FontSize="16" />
+            <ListBox Margin="0,5" ItemsSource="{Binding Items}" MaxHeight="400" MaxWidth="800"></ListBox>
             <ui:Button Width="200" Height="40"
                        Margin="10" x:Name="GoButton"
-                       Content="4444"
+                       Content="Go"
                        Appearance="Primary" Click="Button_Click" />
             <ui:Button Width="200" Height="40"
                        Margin="10"

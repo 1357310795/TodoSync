@@ -14,8 +14,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using TodoSynchronizer.Extensions;
 using TodoSynchronizer.Helpers;
-using TodoSynchronizer.Models;
-using TodoSynchronizer.Services;
+using TodoSynchronizer.Core.Models;
+using TodoSynchronizer.Core.Services;
 using Wpf.Ui.Controls;
 using Wpf.Ui.Extensions;
 

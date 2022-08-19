@@ -13,7 +13,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using TodoSynchronizer.Services;
+using TodoSynchronizer.Core.Services;
+using TodoSynchronizer.Helpers;
 using TodoSynchronizer.Views;
 
 namespace TodoSynchronizer.UnitTest
@@ -140,17 +141,20 @@ namespace TodoSynchronizer.UnitTest
             }
         }
 
-
-
         private void ButtonLogin_Click(object sender, RoutedEventArgs e)
         {
-            var res1 = CanvasService.TryCacheLogin();
-            if (res1.success)
+            var token = IniHelper.GetKeyValue("canvas", "token", "");
+            if (token != "")
             {
-                Message = "登录成功";
-                Success();
-                return;
+                var res1 = CanvasService.Login(token);
+                if (res1.success)
+                {
+                    Message = "登录成功";
+                    Success();
+                    return;
+                }
             }
+
             var m = new CanvasLoginWindow();
             var res2 = m.ShowDialog();
             if (res2.Value == true)
