@@ -1,0 +1,227 @@
+# 这是 TodoSynchronizer 的配置文件
+# 注意：修改配置请严格遵循格式；请勿删除字段，否则程序可能无法正常运行。
+# ———————————————————————————————————————————
+# 同步 Todo 列表的模式
+# 可选值: Category | Course
+# Category 表示按项目种类创建列表
+# Course 表示按课程创建列表
+ListNameMode : Category
+# 若 ListNameMode 为 Course，则可指定创建 Todo 列表的模板
+# 可用的替换参数：
+# {course.name} -> 课程名
+# {course.coursecode} -> 课程代码（e.g.本-(2021-2022-2)-PHY1251-6-大学物理(A类）（1））
+# {course.coursecodeshort} -> 简化的课程代码（e.g.PHY1251）
+# {course.originalname} -> 原始课程名（你可以在 Canvas 上随意修改课程名，但改不掉原始课程名）
+ListNameTemplateForCourse : "Canvas - {course.name}"
+# 若 ListNameMode 为 Category，则可指定创建 Todo 列表的名称
+ListNamesForCategory : 
+  QuizListName : "Canvas 测验"
+  DiscussionListName : "Canvas 讨论"
+  AssignmentListName : "Canvas 作业"
+  AnouncementListName : "Canvas 公告"
+# 不处理 14 天前过期的项目
+# 如果你是在学期中开始使用本程序，建议设置为 true
+IgnoreTooOldItems : true
+# 遇到错误，程序退出仍返回 0
+# 如果程序总是遇到完全可以忽略的错误，可以设置为 true，防止 GitHub 的邮件轰炸
+IgnoreErrors : false
+# Canvas 公告 配置
+AnouncementConfig : 
+  # 若 Todo 列表内无当前的公告，
+  # 则在创建的新待办事项的备注中包含公告的内容
+  CreateContent : true
+  # 若 Todo 列表内无当前的公告，
+  # 则把创建的新待办事项的过期时间设置为公告的发布时间
+  CreateDueDate : true
+  # 检查并上传公告的附件到待办事项的附件
+  CreateAttachments : true
+  # 若 Todo 列表内无当前的公告，
+  # 则把创建的新待办事项的提醒时间设置为 当前时间+RemindAfter
+  CreateRemind : true
+  # 若 Todo 列表内无当前的公告，
+  # 则把创建的新待办事项的重要性设置为 SetImportance 指定的值
+  CreateImportance : false
+  # 若 Todo 列表内已存在当前的公告，
+  # 且已存在待办事项的标题与 TitleTemplate 所指定的不一致，
+  # 则更新待办事项的标题
+  UpdateTitle : true
+  # 若 Todo 列表内已存在当前的公告，
+  # 且已存在待办事项的备注与公告的内容不一致，
+  # 则更新待办事项的备注
+  UpdateContent : true
+  # 若 Todo 列表内已存在当前的公告，
+  # 且已存在待办事项的过期时间与公告的发布时间不一致，
+  # 则更新待办事项的过期时间
+  UpdateDueDate : true
+  # 若 Todo 列表内已存在当前的公告，
+  # 且已存在待办事项的提醒时间与 当前时间+RemindAfter 不一致，
+  # 则更新待办事项的提醒时间
+  # ⚠注意：此选项应当保持 false（思考一下为什么）
+  UpdateRemind : false
+  # 若 Todo 列表内已存在当前的公告，
+  # 且已存在待办事项的重要程度与 SetImportance 指定的不一致，
+  # 则更新已存在待办事项的重要程度
+  UpdateImportance : false
+  # 指定待办事项的标题模板
+  # 可用的替换参数：
+  # {course.name} -> 课程名
+  # {course.coursecode} -> 课程代码
+  # {course.coursecodeshort} -> 简化的课程代码
+  # {course.originalname} -> 原始课程名
+  # {anouncement.title} -> 公告标题
+  # {anouncement.author} -> 公告发布者
+  TitleTemplate : "{course.name} - {anouncement.title}"
+  # 指定待办事项的重要性：true 为重要
+  SetImportance : false
+  # 指定延后提醒的时间间隔
+  # 格式：[d.]hh:mm:ss[.fffffff]
+  # d 可选天数，不带前导零。
+  # hh 小时数，范围从“00”到“23”。
+  # mm 分钟数，范围从“00”到“59”。
+  # ss 秒数，范围从“0”到“59”。
+  # fffffff 可选毫秒数，范围从“0010000”到“9990000”。
+  RemindAfter : 00:05:00.00
+# Canvas 作业 配置
+AssignmentConfig : 
+  CreateContent : true
+  # 若 Todo 列表内无当前的作业，
+  # 则把创建的新待办事项的提醒时间设置为 DueDateMode 指定的值
+  CreateDueDate : true
+  # 若 Todo 列表内无当前的作业，
+  # 则把创建的新待办事项的提醒时间设置为 RemindMode 指定的值
+  CreateRemind : true
+  # 若 Todo 列表内无当前的作业，
+  # 则在创建的新待办事项的步骤里添加提交和分数信息
+  CreateScoreAndCommit : true
+  CreateAttachments : true
+  CreateImportance : false
+  UpdateTitle : true
+  UpdateContent : true
+  UpdateDueDate : false
+  UpdateRemind : true
+  # 若 Todo 列表内已存在当前的公告，
+  # 且已存在待办事项的提交和分数信息与最新的不一致，
+  # 则更新已存在待办事项的提交和分数信息
+  UpdateScoreAndCommit : true
+  UpdateImportance : false
+  # 指定待办事项的标题模板
+  # 可用的替换参数：
+  # {course.name} -> 课程名
+  # {course.coursecode} -> 课程代码
+  # {course.coursecodeshort} -> 简化的课程代码
+  # {course.originalname} -> 原始课程名
+  # {assignment.title} -> 作业标题
+  TitleTemplate : "{course.coursecodeshort} -> {assignment.title}"
+  SetImportance : false
+  # 指定待办事项过期时间的来源
+  # 可选值: due_at | lock_at
+  # due_at 表示将作业的过期时间作为待办事项的过期时间
+  # lock_at 表示将作业的锁定时间作为待办事项的过期时间
+  # 过期和锁定的区别：https://community.canvaslms.com/t5/Instructor-Guide/What-is-the-difference-between-assignment-due-dates-and/ta-p/897
+  DueDateMode : lock_at
+  # 指定待办事项提醒时间的来源
+  # 可选值: unlock_at | before_due_at | before_lock_at
+  # unlock_at 表示将作业的解锁时间作为待办事项的提醒时间
+  # before_due_at 表示将作业的过期时间之前BeforeTimeSpan作为待办事项的提醒时间
+  # before_lock_at 表示将作业的锁定时间之前BeforeTimeSpan作为待办事项的提醒时间
+  RemindMode : before_due_at
+  # 指定提前提醒的时间间隔
+  # 格式：[d.]hh:mm:ss[.fffffff]
+  # d 可选天数，不带前导零。
+  # hh 小时数，范围从“00”到“23”。
+  # mm 分钟数，范围从“00”到“59”。
+  # ss 秒数，范围从“0”到“59”。
+  # fffffff 可选毫秒数，范围从“0010000”到“9990000”。
+  BeforeTimeSpan : 1.00:00:00.00
+# Canvas 测验 配置
+QuizConfig : 
+  CreateContent : true
+  # 若 Todo 列表内无当前的测验，
+  # 则把创建的新待办事项的提醒时间设置为 DueDateMode 指定的值
+  CreateDueDate : true
+  # 若 Todo 列表内无当前的测验，
+  # 则把创建的新待办事项的提醒时间设置为 RemindMode 指定的值
+  CreateRemind : true
+  # 若 Todo 列表内无当前的测验，
+  # 则在创建的新待办事项的步骤里添加提交和分数信息
+  CreateScoreAndCommit : true
+  CreateAttachments : true
+  CreateImportance : false
+  UpdateTitle : true
+  UpdateContent : true
+  UpdateDueDate : true
+  UpdateRemind : true
+  UpdateScoreAndCommit : true
+  UpdateImportance : false
+  # 指定待办事项的标题模板
+  # 可用的替换参数：
+  # {course.name} -> 课程名
+  # {course.coursecode} -> 课程代码
+  # {course.coursecodeshort} -> 简化的课程代码
+  # {course.originalname} -> 原始课程名
+  # {quiz.title} -> 测验标题
+  TitleTemplate : "{course.name} - {quiz.title}"
+  SetImportance : false
+  # 指定待办事项过期时间的来源
+  # 同 Assignment 的配置
+  DueDateMode : lock_at
+  # 指定待办事项提醒时间的来源
+  # 同 Assignment 的配置
+  RemindMode : before_lock_at
+  BeforeTimeSpan : 12:00:00.00 
+# Canvas 讨论 配置
+DiscussionConfig : 
+  CreateContent : true
+  # 若 Todo 列表内无当前的讨论，
+  # 则把创建的新待办事项的过期时间设置为讨论的发布时间
+  CreateDueDate : true
+  # 若 Todo 列表内无当前的讨论，
+  # 则把创建的新待办事项的提醒时间设置为 当前时间+RemindAfter
+  CreateRemind : true
+  CreateAttachments : true
+  CreateImportance : false
+  UpdateTitle : true
+  UpdateContent : true
+  # 若 Todo 列表内已存在当前的讨论，
+  # 且已存在待办事项的过期时间与讨论的发布时间不一致，
+  # 则更新待办事项的过期时间
+  UpdateDueDate : true
+  # 若 Todo 列表内已存在当前的讨论，
+  # 且已存在待办事项的提醒时间与 当前时间+RemindAfter 不一致，
+  # 则更新待办事项的提醒时间
+  # ⚠注意：此选项应当保持 false（思考一下为什么）
+  UpdateRemind : false
+  UpdateImportance : false
+  # 指定待办事项的标题模板
+  # 可用的替换参数：
+  # {course.name} -> 课程名
+  # {course.coursecode} -> 课程代码
+  # {course.coursecodeshort} -> 简化的课程代码
+  # {course.originalname} -> 原始课程名
+  # {discussion.title} -> 讨论标题
+  TitleTemplate : "{course.name} - {discussion.title}"
+  SetImportance : false
+  RemindAfter : 00:05:00.00
+
+## ------Q&A------
+## Q: CreateXXX 和 UpdateXXX 的区别在哪里？为什么要分开？
+## A: 同步程序使用待办事项的 LinkedResource 作为待办事项的唯一识别码。
+##    当你修改待办事项的标题、备注、过期时间、提醒时间、重要性后，程序仍然能知道这个待办事项是从哪个 Canvas 条目同步过来的。
+##    CreateXXX 生效当且仅当列表中没有一个待办事项的识别码匹配当前要同步的 Canvas 条目，
+##    换句话说就是第一次同步这个条目或者之前同步过但被删除了；
+##    UpdateXXX 生效当且仅当列表中已有一个待办事项的识别码匹配当前要同步的 Canvas 条目，
+##    换句话说就是之前同步过了；
+##    有时候，老师在 Canvas 设置的条目没有过期时间，
+##    但是你希望在 Todo 里给对应的待办事项设置一个过期时间；
+##    或者，对于某个讨论话题，你有一个绝妙的灵感，却暂时没时间去回复，
+##    想把这个灵感记录在待办事项的“备注”里。
+##    对于以上情况，可以把 CreateXXX 设置为 true 而把 UpdateXXX 设置为 false，
+##    这样你后来的修改就不会被同步程序覆盖。
+## Q: ListNamesForCategory 里面的各个子项可以重名吗？
+## A: 可以。如果把四个子项都设置为“Canvas”，则所有内容都同步到名为“Canvas”的 Todo 列表。（我就是这么干的）
+## Q: CreateImportance、UpdateImportance、SetImportance 应该怎么用？
+## A: 如果你每天打开 Todo 希望在“重要”列表里看到所有想看到的消息，
+##    请将 CreateImportance 和 SetImportance 设置为 true。
+##    UpdateImportance 用处应该不大，自己理解吧。
+## Q: 带“#”的注释行可以删除吗？
+## A: 可以。
