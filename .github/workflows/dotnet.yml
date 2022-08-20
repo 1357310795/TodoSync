@@ -10,6 +10,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Branch Filestorage Action
+      uses: moonrailgun/branch-filestorage-action@v1.2.2
+      with:
+        branch: graphtoken
+        path: graphtoken.asc
+    - name: test
+      run: cat graphtoken.asc
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
