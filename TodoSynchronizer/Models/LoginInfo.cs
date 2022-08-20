@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
-namespace TodoSynchronizer.Core.Models
+namespace TodoSynchronizer.Models
 {
     public class LoginInfoModel
     {

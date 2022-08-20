@@ -10,6 +10,7 @@ using TodoSynchronizer.Mvvm;
 using TodoSynchronizer.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using TodoSynchronizer.Models;
 
 namespace TodoSynchronizer.ViewModels
 {
@@ -45,7 +46,7 @@ namespace TodoSynchronizer.ViewModels
 
             logininfo.UserName = userinfo.DisplayName;
             logininfo.UserEmail = userinfo.UserPrincipalName;
-            logininfo.UserAvatar = TodoService.GetUserAvatar();
+            logininfo.UserAvatar = BitmapHelper.GetBitmapSource(TodoService.GetUserAvatar());
             logininfo.IsLogin = true;
             LoginInfo = logininfo;
         }

@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace TodoSynchronizer.Core.Helpers
+namespace TodoSynchronizer.Helpers
 {
     public class BitmapHelper
     {

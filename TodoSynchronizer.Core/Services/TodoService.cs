@@ -1,18 +1,13 @@
 ﻿using Microsoft.Graph;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Service;
 
 namespace TodoSynchronizer.Core.Services
 {
-    public class TodoService
+    public partial class TodoService
     {
         private static string token;
         public static string Token {
@@ -40,10 +35,10 @@ namespace TodoSynchronizer.Core.Services
             return info;
         }
 
-        public static BitmapSource GetUserAvatar()
+        public static Stream GetUserAvatar()
         {
             var s = client.Me.Photo.Content.Request().GetAsync().Result;
-            return BitmapHelper.GetBitmapSource(s);
+            return s;
         }
 
         public static List<TodoTaskList> ListLists()

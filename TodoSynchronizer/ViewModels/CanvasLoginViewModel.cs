@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using TodoSynchronizer.Core.Models;
 using TodoSynchronizer.Core.Services;
 using TodoSynchronizer.Helpers;
+using TodoSynchronizer.Models;
 using TodoSynchronizer.Views;
 
 namespace TodoSynchronizer.ViewModels
