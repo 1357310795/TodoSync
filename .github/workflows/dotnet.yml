@@ -17,7 +17,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore -c Release
+      run: dotnet build .\TodoSynchronizer.CLI\TodoSynchronizer.CLI.csproj --no-restore -c Release
     - name: Test
       run: echo 999
     - name: Test
