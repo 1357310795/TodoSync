@@ -538,7 +538,7 @@ namespace TodoSynchronizer.Core.Services
             var duetime = CanvasPreference.GetDueTime(discussion);
             if (duetime.HasValue)
             {
-                var date = duetime.Value.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
                 if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
                 {
                     todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
@@ -555,7 +555,7 @@ namespace TodoSynchronizer.Core.Services
             var remindtime = CanvasPreference.GetRemindTime(discussion);
             if (remindtime.HasValue)
             {
-                var date = remindtime.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
                 if (todoTaskOld == null || todoTaskOld.Status == Microsoft.Graph.TaskStatus.NotStarted)
                 {
                     todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
@@ -707,7 +707,7 @@ namespace TodoSynchronizer.Core.Services
             var duetime = CanvasPreference.GetDueTime(quiz);
             if (duetime.HasValue)
             {
-                var date = duetime.Value.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
                 if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
                 {
                     todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
@@ -724,7 +724,7 @@ namespace TodoSynchronizer.Core.Services
             var remindtime = CanvasPreference.GetRemindTime(quiz);
             if (remindtime.HasValue)
             {
-                var date = remindtime.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
                 if (todoTaskOld == null || todoTaskOld.IsReminderOn == false || todoTaskOld.ReminderDateTime == null || date != todoTaskOld.ReminderDateTime.DateTime)
                 {
                     todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
@@ -860,7 +860,7 @@ namespace TodoSynchronizer.Core.Services
             var duetime = CanvasPreference.GetDueTime(anouncement);
             if (duetime.HasValue)
             {
-                var date = duetime.Value.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
                 if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
                 {
                     todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
@@ -877,7 +877,7 @@ namespace TodoSynchronizer.Core.Services
             var remindtime = CanvasPreference.GetRemindTime(anouncement);
             if (remindtime.HasValue)
             {
-                var date = remindtime.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
                 if (todoTaskOld == null || todoTaskOld.Status == Microsoft.Graph.TaskStatus.NotStarted)
                 {
                     todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
