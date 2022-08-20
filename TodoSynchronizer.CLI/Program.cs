@@ -5,6 +5,7 @@ using TodoSynchronizer.Core.Config;
 using YamlDotNet.Serialization;
 using TodoSynchronizer.Core.Yaml;
 using File = System.IO.File;
+using TodoSynchronizer.Core.Helpers;
 
 namespace TodoSynchronizer.CLI;
 class Program
@@ -13,17 +14,17 @@ class Program
     {
         Console.WriteLine("TodoSynchronizer v0.1 beta");
 
-        string canvastoken = "", graphtoken = "";
+        string canvastoken = "", graphtokenpath = "";
         string configpath = "";
         for(int i = 0; i < args.Length; i++)
         {
-            if (args[i] == "-canvas")
+            if (args[i] == "-canvastoken")
                 if (i + 1 < args.Length)
                     canvastoken = args[i + 1];
-            if (args[i] == "-graph")
+            if (args[i] == "-graphtokenfile")
                 if (i + 1 < args.Length)
-                    graphtoken = args[i + 1];
-            if (args[i] == "-c")
+                    graphtokenpath = args[i + 1];
+            if (args[i] == "-configfile")
                 if (i + 1 < args.Length)
                     configpath = args[i + 1];
         }
@@ -33,9 +34,9 @@ class Program
             Console.WriteLine("未指定 Canvas Token！");
             Environment.Exit(-1);
         }
-        if (graphtoken == "")
+        if (graphtokenpath == "")
         {
-            Console.WriteLine("未指定 Graph RefreshToken！");
+            Console.WriteLine("未指定 Graph Token 文件！");
             Environment.Exit(-1);
         }
         if (configpath == "")
@@ -53,6 +54,8 @@ class Program
 
         try
         {
+            var graphtoken = File.ReadAllText(graphtokenpath);
+
             var headers = new Dictionary<string, string>();
             headers.Add("Content-Type", "application/x-www-form-urlencoded");
             var forms = new Dictionary<string, string>();
@@ -69,6 +72,7 @@ class Program
             }
             RefreshModel refreshModel = JsonConvert.DeserializeObject<RefreshModel>(refreshres.result);
             TodoService.Token = refreshModel.AccessToken;
+            File.WriteAllText(graphtokenpath, refreshModel.RefreshToken);
             var userinfo = TodoService.GetUserInfo();
         }
         catch (Exception ex)
