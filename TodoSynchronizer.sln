@@ -5,7 +5,9 @@ VisualStudioVersion = 17.3.32505.426
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoSynchronizer", "TodoSynchronizer\TodoSynchronizer.csproj", "{A8A2A2B6-50A3-4409-88E7-B7B145C87FF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoSynchronizer.Core", "TodoSynchronizer.Core\TodoSynchronizer.Core.csproj", "{F45982FF-82C6-4878-AAD4-C45B6F38A950}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoSynchronizer.Core", "TodoSynchronizer.Core\TodoSynchronizer.Core.csproj", "{F45982FF-82C6-4878-AAD4-C45B6F38A950}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoSynchronizer.CLI", "TodoSynchronizer.CLI\TodoSynchronizer.CLI.csproj", "{5762C101-EF4C-47FF-AC75-E859F09AEFF2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{F45982FF-82C6-4878-AAD4-C45B6F38A950}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F45982FF-82C6-4878-AAD4-C45B6F38A950}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F45982FF-82C6-4878-AAD4-C45B6F38A950}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5762C101-EF4C-47FF-AC75-E859F09AEFF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5762C101-EF4C-47FF-AC75-E859F09AEFF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5762C101-EF4C-47FF-AC75-E859F09AEFF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5762C101-EF4C-47FF-AC75-E859F09AEFF2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
