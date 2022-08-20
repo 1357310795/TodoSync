@@ -3,20 +3,53 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Models.CanvasModels;
 
 namespace TodoSynchronizer.Core.Helpers
 {
-    public class CanvasStringTemplateHelper
+    public static class CanvasStringTemplateHelper
     {
-        public static string TitleTemplate { get; set; } = "{course.name} - {item.title}";
-
         public static string GetTitle(Course course, ICanvasItem item)
         {
-            return TitleTemplate.Replace("{course.name}", course.Name)
-                .Replace("{course.id}", course.Id.ToString())
-                .Replace("{item.title}", item.Title.ToString())
-                .Replace("{item.id}", item.Id.ToString());
+            if (item is Assignment assignment)
+            {
+                return SyncConfig.Default.AssignmentConfig.TitleTemplate
+                    .ReplaceCourse(course)
+                    .Replace("{assignment.title}", assignment.Title);
+            }
+            if (item is Anouncement anouncement)
+            {
+                return SyncConfig.Default.AnouncementConfig.TitleTemplate
+                    .ReplaceCourse(course)
+                    .Replace("{anouncement.title}", anouncement.Title)
+                    .Replace("{anouncement.author}", anouncement.Author.DisplayName);
+            }
+            if (item is Quiz quiz)
+            {
+                return SyncConfig.Default.QuizConfig.TitleTemplate
+                    .ReplaceCourse(course)
+                    .Replace("{quiz.title}", quiz.Title);
+            }
+            if (item is Discussion discussion)
+            {
+                return SyncConfig.Default.DiscussionConfig.TitleTemplate
+                    .ReplaceCourse(course)
+                    .Replace("{discussion.title}", discussion.Title);
+            }
+            return "Error";
+        }
+
+        public static string GetListNameForCourse(Course course)
+        {
+            return SyncConfig.Default.ListNameTemplateForCourse.ReplaceCourse(course);
+        }
+
+        public static string ReplaceCourse(this string s, Course course)
+        {
+            return s.Replace("{course.name}", course.Name)
+                .Replace("{course.coursecode}", course.CourseCode)
+                .Replace("{course.originalname}", course.OriginalName);
         }
 
         public static string GetContent(ICanvasItem item)

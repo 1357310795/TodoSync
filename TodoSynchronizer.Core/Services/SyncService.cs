@@ -15,13 +15,13 @@ namespace TodoSynchronizer.Core.Services
     public class SyncService
     {
         public Dictionary<string, TodoTask> dic = null;
+        public Dictionary<string, TodoTask> dicCanvasTaskList = null;
         public TodoTaskList canvasTaskList = null;
         public List<TodoTask> canvasTasks = null;
         public List<Course> courses = null;
         public int CourseCount, ItemCount, UpdateCount, FailedCount;
 
         private string message;
-
         public string Message
         {
             get { return message; }
@@ -30,7 +30,6 @@ namespace TodoSynchronizer.Core.Services
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Progress, value));
             }
         }
-
 
         public delegate void ReportProgressDelegate(SyncState state);
 
@@ -42,9 +41,24 @@ namespace TodoSynchronizer.Core.Services
             ItemCount = 0;
             UpdateCount = 0;
             FailedCount = 0;
+
+            Message = "读取Canvas课程列表";
+            try
+            {
+                courses = CanvasService.ListCourses();
+                if (courses == null)
+                    throw new Exception("Canvas课程列表为空");
+            }
+            catch (Exception ex)
+            {
+                OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
+                return;
+            }
+
             Message = "检查Todo列表";
             try
             {
+                dicCanvasTaskList = new Dictionary<string, TodoTask>();
                 var todoTaskLists = TodoService.ListLists();
                 canvasTaskList = todoTaskLists.Find(x => x.DisplayName == "Canvas");
 
@@ -53,6 +67,8 @@ namespace TodoSynchronizer.Core.Services
 
                 if (canvasTaskList == null)
                     throw new Exception("创建Todo列表失败");
+                else
+                    Message = $"找到Todo列表：{canvasTaskList.DisplayName}";
             }
             catch (Exception ex)
             {
@@ -88,19 +104,6 @@ namespace TodoSynchronizer.Core.Services
                                 dic.Add(url, todoTask);
                         }
                 }
-            }
-            catch (Exception ex)
-            {
-                OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
-                return;
-            }
-
-            Message = "读取Canvas课程列表";
-            try
-            {
-                courses = CanvasService.ListCourses();
-                if (courses == null)
-                    throw new Exception("Canvas课程列表为空");
             }
             catch (Exception ex)
             {
@@ -345,7 +348,7 @@ namespace TodoSynchronizer.Core.Services
                 }
             }
 
-            var remindtime = CanvasPreference.GetRemindMeTime(assignment);
+            var remindtime = CanvasPreference.GetRemindTime(assignment);
             if (remindtime.HasValue)
             {
                 var date = remindtime.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
@@ -499,7 +502,7 @@ namespace TodoSynchronizer.Core.Services
                 }
             }
 
-            var remindtime = CanvasPreference.GetRemindMeTime(discussion);
+            var remindtime = CanvasPreference.GetRemindTime(discussion);
             if (remindtime.HasValue)
             {
                 var date = remindtime.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
@@ -688,7 +691,7 @@ namespace TodoSynchronizer.Core.Services
                 }
             }
 
-            var remindtime = CanvasPreference.GetRemindMeTime(quiz);
+            var remindtime = CanvasPreference.GetRemindTime(quiz);
             if (remindtime.HasValue)
             {
                 var date = remindtime.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
@@ -843,7 +846,7 @@ namespace TodoSynchronizer.Core.Services
                 }
             }
 
-            var remindtime = CanvasPreference.GetRemindMeTime(anouncement);
+            var remindtime = CanvasPreference.GetRemindTime(anouncement);
             if (remindtime.HasValue)
             {
                 var date = remindtime.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);

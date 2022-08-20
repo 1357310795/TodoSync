@@ -4,17 +4,23 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Web.UI.WebControls;
 using System.Windows;
+using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models.CanvasModels;
 using TodoSynchronizer.Core.Services;
+using TodoSynchronizer.Core.Yaml;
 using TodoSynchronizer.ViewModels;
 using Wpf.Ui.Extensions;
+using YamlDotNet.Serialization;
+using File = System.IO.File;
 
 namespace TodoSynchronizer.Views
 {
@@ -43,6 +49,7 @@ namespace TodoSynchronizer.Views
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            ReadConfig();
             ButtonProgressAssist.SetIsIndicatorVisible(GoButton, true);
             ButtonProgressAssist.SetIsIndeterminate(GoButton, true);
             Thread t = new Thread(() => { Go(); });
@@ -71,6 +78,7 @@ namespace TodoSynchronizer.Views
 
         private async void ButtonTest_Click(object sender, RoutedEventArgs e)
         {
+            ReadConfig();
             //FileStream fs = new FileStream(@"C:\Users\111\Downloads\98568049_p0.jpg", FileMode.Open);
             //AttachmentInfo info = new AttachmentInfo();
             //info.AttachmentType = AttachmentType.File;
@@ -86,6 +94,17 @@ namespace TodoSynchronizer.Views
             //}
 
             //TodoService.UploadAttachment("AQMkADAwATM0MDAAMS0xM2UxLWVlAGIxLTAwAi0wMAoALgAAA_qILJaukoNEkdO_6z6BimcBAFr-8yPLKcJMlzMhuV24V6IAA3FhX8EAAAA=", "AQMkADAwATM0MDAAMS0xM2UxLWVlAGIxLTAwAi0wMAoARgAAA_qILJaukoNEkdO_6z6BimcHAFr-8yPLKcJMlzMhuV24V6IAA3FhX8EAAABa--MjyynCTJczIblduFeiAANxYbM1AAAA", info, stream);
+        }
+
+        private static void ReadConfig()
+        {
+            var yml = File.ReadAllText(@"C:\Users\111\Downloads\test.yaml");
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
+                .WithTypeInspector(n => new IgnoreCaseTypeInspector(n))
+                .IgnoreUnmatchedProperties()
+                .Build();
+            SyncConfig.Default = deserializer.Deserialize<SyncConfig>(yml);
         }
 
         public void Finish()
