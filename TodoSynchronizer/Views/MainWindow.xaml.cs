@@ -10,7 +10,6 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Web.UI.WebControls;
 using System.Windows;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Helpers;
