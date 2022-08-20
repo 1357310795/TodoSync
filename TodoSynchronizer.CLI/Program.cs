@@ -109,7 +109,7 @@ class Program
         Console.WriteLine(state.Message);
         if (state.State == SyncStateEnum.Finished)
         {
-            Environment.Exit(-1);
+            Environment.Exit(0);
             //Finish();
         }
     }

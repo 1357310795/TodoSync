@@ -29,3 +29,5 @@ jobs:
       run: echo 999
     - name: Test
       run: .\TodoSynchronizer.CLI\bin\Release\net6.0\TodoSynchronizer.CLI.exe -canvastoken ${{ secrets.CANVAS_TOKEN }} -graphtokenfile graphtoken.txt -configfile config.yaml
+    - name: Update Graph RefreshToken
+      run: gpg --passphrase "${{ secrets.PASSWORD }}" --batch -o "graphtoken.asc"  -c --armor "graphtoken.txt"
