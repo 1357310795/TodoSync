@@ -239,7 +239,7 @@ namespace TodoSynchronizer.Core.Service
             {
                 resp = (HttpWebResponse)ex.Response;
                 if (resp == null)
-                    return new WebResult(null, false, null, ex.ToString(), resp.Headers);
+                    return new WebResult(null, false, null, ex.ToString(), resp?.Headers);
             }
             Stream stream = null;
             try

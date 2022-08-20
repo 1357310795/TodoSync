@@ -184,8 +184,8 @@ namespace TodoSynchronizer.Core.Services
                     foreach (var course in courses)
                     {
                         CourseCount++;
-                        //ProcessAssignments($"处理课程 {course.Name} ", course, dicCategory["assignment"]);
-                        ProcessAnouncements($"处理课程 {course.Name} ", course, dicCategory["anouncement"]);
+                        ProcessAssignments($"处理课程 {course.Name} ", course, dicCategory["assignment"]);
+                        //ProcessAnouncements($"处理课程 {course.Name} ", course, dicCategory["anouncement"]);
                         //ProcessQuizes($"处理课程 {course.Name} ", course, dicCategory["quiz"]);
                         //ProcessDiscussions($"处理课程 {course.Name} ", course, dicCategory["discussion"]);
                     }
@@ -195,8 +195,8 @@ namespace TodoSynchronizer.Core.Services
                     foreach (var course in courses)
                     {
                         CourseCount++;
-                        //ProcessAssignments($"处理课程 {course.Name} ", course, dicCourse[course]);
-                        ProcessAnouncements($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        ProcessAssignments($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        //ProcessAnouncements($"处理课程 {course.Name} ", course, dicCourse[course]);
                         //ProcessQuizes($"处理课程 {course.Name} ", course, dicCourse[course]);
                         //ProcessDiscussions($"处理课程 {course.Name} ", course, dicCourse[course]);
                     }
@@ -229,6 +229,7 @@ namespace TodoSynchronizer.Core.Services
 
                 foreach (var assignment in assignments)
                 {
+                    if (assignment.IsQuizAssignment) continue;
                     var updated = false;
                     ItemCount++;
                     Message = message_prefix + $"作业 {assignment.Name}";
@@ -260,78 +261,49 @@ namespace TodoSynchronizer.Core.Services
                     if (assignment.HasSubmittedSubmissions)
                     {
                         var links = TodoService.ListCheckItems(taskList.Id.ToString(), todoTask.Id.ToString());
-                        if (assignment.IsQuizAssignment)
-                        {
-                            var quizsubmissions = CanvasService.ListQuizSubmissons(course.Id.ToString(), assignment.QuizId.ToString());
-                            for (int i = 0; i < quizsubmissions.Count; i++)
-                            {
-                                ChecklistItem checkitem0 = null;
-                                if (links.Count >= i + 1)
-                                    checkitem0 = links[i];
-                                else
-                                    checkitem0 = null;
+                        
+                        var submission = CanvasService.GetAssignmentSubmisson(course.Id.ToString(), assignment.Id.ToString());
 
-                                ChecklistItem checkitem0New = new ChecklistItem();
-                                var res4 = UpdateSubmissionInfo(assignment, quizsubmissions[i], checkitem0, checkitem0New, CanvasStringTemplateHelper.GetSubmissionDesc);
-                                if (res4)
-                                {
-                                    if (checkitem0 == null)
-                                    {
-                                        TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
-                                    }
-                                    else
-                                    {
-                                        TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
-                                    }
-                                    updated = true;
-                                }
-                            }
-                        }
+                        ChecklistItem checkitem1 = null;
+                        if (links.Count >= 1)
+                            checkitem1 = links[0];
                         else
+                            checkitem1 = null;
+
+                        ChecklistItem checkitem1New = new ChecklistItem();
+                        var res2 = UpdateSubmissionInfo(assignment, submission, checkitem1, checkitem1New, CanvasStringTemplateHelper.GetSubmissionDesc);
+                        if (res2)
                         {
-                            var submission = CanvasService.GetAssignmentSubmisson(course.Id.ToString(), assignment.Id.ToString());
-
-                            ChecklistItem checkitem1 = null;
-                            if (links.Count >= 1)
-                                checkitem1 = links[0];
-                            else
-                                checkitem1 = null;
-
-                            ChecklistItem checkitem1New = new ChecklistItem();
-                            var res2 = UpdateSubmissionInfo(assignment, submission, checkitem1, checkitem1New, CanvasStringTemplateHelper.GetSubmissionDesc);
-                            if (res2)
+                            if (checkitem1 == null)
                             {
-                                if (checkitem1 == null)
-                                {
-                                    TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem1New);
-                                }
-                                else
-                                {
-                                    TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem1.Id.ToString(), checkitem1New);
-                                }
-                                updated = true;
+                                TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem1New);
                             }
-
-                            ChecklistItem checkitem2 = null;
-                            if (links.Count >= 2)
-                                checkitem2 = links[1];
                             else
-                                checkitem2 = null;
-
-                            ChecklistItem checkitem2New = new ChecklistItem();
-                            var res3 = UpdateSubmissionInfo(assignment, submission, checkitem2, checkitem2New, CanvasStringTemplateHelper.GetGradeDesc);
-                            if (res3)
                             {
-                                if (checkitem2 == null)
-                                {
-                                    TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem2New);
-                                }
-                                else
-                                {
-                                    TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem2.Id.ToString(), checkitem2New);
-                                }
-                                updated = true;
+                                TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem1.Id.ToString(), checkitem1New);
                             }
+                            updated = true;
+                        }
+
+                        ChecklistItem checkitem2 = null;
+                        if (links.Count >= 2)
+                            checkitem2 = links[1];
+                        else
+                            checkitem2 = null;
+
+                        ChecklistItem checkitem2New = new ChecklistItem();
+                        var res3 = UpdateSubmissionInfo(assignment, submission, checkitem2, checkitem2New, CanvasStringTemplateHelper.GetGradeDesc);
+                        if (res3)
+                        {
+                            if (checkitem2 == null)
+                            {
+                                TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem2New);
+                            }
+                            else
+                            {
+                                TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem2.Id.ToString(), checkitem2New);
+                            }
+                            updated = true;
                         }
                     }
                     //---Attachments---//
@@ -379,6 +351,7 @@ namespace TodoSynchronizer.Core.Services
             var modified = false;
             var desc = func(assignment, submission);
             var check = !desc.Contains("未");
+            checklistitemNew.IsChecked = checklistitemOld.IsChecked;
             if (checklistitemNew.IsChecked != check)
             {
                 checklistitemNew.IsChecked = check;
@@ -413,7 +386,7 @@ namespace TodoSynchronizer.Core.Services
             var duetime = CanvasPreference.GetDueTime(assignment);
             if (duetime.HasValue)
             {
-                var date = duetime.Value.Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
                 if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
                 {
                     todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
@@ -430,7 +403,7 @@ namespace TodoSynchronizer.Core.Services
             var remindtime = CanvasPreference.GetRemindTime(assignment);
             if (remindtime.HasValue)
             {
-                var date = remindtime.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
                 if (todoTaskOld == null || todoTaskOld.IsReminderOn == false || todoTaskOld.ReminderDateTime == null || date != todoTaskOld.ReminderDateTime.DateTime)
                 {
                     todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
@@ -608,33 +581,34 @@ namespace TodoSynchronizer.Core.Services
             Message = message_prefix;
             try
             {
-                var quizes = CanvasService.ListQuizes(course.Id.ToString());
-                if (quizes == null)
+                var assignments = CanvasService.ListAssignments(course.Id.ToString());
+                if (assignments == null)
                     return;
-                if (quizes.Count == 0)
+                if (assignments.Count == 0)
                     return;
 
-                foreach (var quiz in quizes)
+                foreach (var assignment in assignments)
                 {
+                    if (!assignment.IsQuizAssignment) continue;
                     var updated = false;
                     ItemCount++;
-                    Message = message_prefix + $"测验 {quiz.Title}";
+                    Message = message_prefix + $"测验 {assignment.Name}";
                     TodoTask todoTask = null;
-                    if (dicUrl.ContainsKey(quiz.HtmlUrl))
-                        todoTask = dicUrl[quiz.HtmlUrl];
+                    if (dicUrl.ContainsKey(assignment.HtmlUrl))
+                        todoTask = dicUrl[assignment.HtmlUrl];
                     else
                         todoTask = null;
 
                     //---Self & LinkedResource---//
                     TodoTask todoTaskNew = new TodoTask();
-                    var res1 = UpdateQuiz(course, quiz, todoTask, todoTaskNew);
+                    var res1 = UpdateQuiz(course, assignment, todoTask, todoTaskNew);
                     if (res1)
                     {
                         if (todoTask is null)
                         {
                             todoTask = TodoService.AddTask(taskList.Id.ToString(), todoTaskNew);
-                            TodoService.AddLinkedResource(taskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = quiz.HtmlUrl, WebUrl = quiz.HtmlUrl, ApplicationName = "Canvas" });
-                            dicUrl.Add(quiz.HtmlUrl, todoTask);
+                            TodoService.AddLinkedResource(taskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = assignment.HtmlUrl, WebUrl = assignment.HtmlUrl, ApplicationName = "Canvas" });
+                            dicUrl.Add(assignment.HtmlUrl, todoTask);
                         }
                         else
                         {
@@ -644,38 +618,37 @@ namespace TodoSynchronizer.Core.Services
                     }
 
                     //---Submissions -> CheckItems---//
-                    //if (quiz.)
-                    //{
-                    //    var links = TodoService.ListCheckItems(taskList.Id.ToString(), todoTask.Id.ToString());
-                    //    var quizsubmissions = CanvasService.ListQuizSubmissons(course.Id.ToString(), quiz.QuizId.ToString());
-                    //    for (int i = 0; i < quizsubmissions.Count; i++)
-                    //    {
-                    //        ChecklistItem checkitem0 = null;
-                    //        if (links.Count >= i + 1)
-                    //            checkitem0 = links[i];
-                    //        else
-                    //            checkitem0 = null;
+                    if (assignment.HasSubmittedSubmissions)
+                    {
+                        var links = TodoService.ListCheckItems(taskList.Id.ToString(), todoTask.Id.ToString());
+                        var quizsubmissions = CanvasService.ListQuizSubmissons(course.Id.ToString(), assignment.QuizId.ToString());
+                        for (int i = 0; i < quizsubmissions.Count; i++)
+                        {
+                            ChecklistItem checkitem0 = null;
+                            if (links.Count >= i + 1)
+                                checkitem0 = links[i];
+                            else
+                                checkitem0 = null;
 
-                    //        ChecklistItem checkitem0New = new ChecklistItem();
-                    //        var res4 = UpdateSubmissionInfo(quiz, quizsubmissions[i], checkitem0, checkitem0New, CanvasStringTemplateHelper.GetSubmissionDesc);
-                    //        if (res4)
-                    //        {
-                    //            if (checkitem0 == null)
-                    //            {
-                    //                TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
-                    //            }
-                    //            else
-                    //            {
-                    //                TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
-                    //            }
-                    //            updated = true;
-                    //        }
-                    //    }
-                    //}
-
+                            ChecklistItem checkitem0New = new ChecklistItem();
+                            var res4 = UpdateSubmissionInfo(assignment, quizsubmissions[i], checkitem0, checkitem0New, CanvasStringTemplateHelper.GetSubmissionDesc);
+                            if (res4)
+                            {
+                                if (checkitem0 == null)
+                                {
+                                    TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
+                                }
+                                else
+                                {
+                                    TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
+                                }
+                                updated = true;
+                            }
+                        }
+                    }
                     //---Attachments---//
                     var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
-                    var file_matches = file_reg.Matches(quiz.Content);
+                    var file_matches = file_reg.Matches(assignment.Content);
                     if (file_matches.Count > 0)
                     {
                         var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
@@ -713,25 +686,7 @@ namespace TodoSynchronizer.Core.Services
             }
         }
 
-        private bool UpdateQuizSubmissionInfo<T>(Assignment assignment, T submission, ChecklistItem checklistitemOld, ChecklistItem checklistitemNew, Func<Assignment, T, string> func)
-        {
-            var modified = false;
-            var desc = func(assignment, submission);
-            var check = !desc.Contains("未");
-            if (checklistitemOld == null || checklistitemOld.IsChecked != check)
-            {
-                checklistitemNew.IsChecked = check;
-                modified = true;
-            }
-            if (checklistitemOld == null || checklistitemOld.DisplayName != desc)
-            {
-                checklistitemNew.DisplayName = desc;
-                modified = true;
-            }
-            return modified;
-        }
-
-        public bool UpdateQuiz(Course course, Quiz quiz, TodoTask todoTaskOld, TodoTask todoTaskNew)
+        public bool UpdateQuiz(Course course, Assignment quiz, TodoTask todoTaskOld, TodoTask todoTaskNew)
         {
             var modified = false;
             var title = CanvasStringTemplateHelper.GetTitle(course, quiz);
