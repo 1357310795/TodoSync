@@ -6,19 +6,19 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: 5.0.x
-    - name: .NetFramework Action Template
-      uses: auycro/netframework-action-template@v0.0.2
+        dotnet-version: 6.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore -c Release
     - name: Test
       run: echo 999
+    - name: Test
+      run: .\TodoSynchronizer.CLI\bin\Release\net6.0\TodoSynchronizer.CLI.exe
