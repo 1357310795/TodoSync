@@ -7,16 +7,18 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models.CanvasModels;
+using Newtonsoft.Json;
 
 namespace TodoSynchronizer.Core.Services
 {
     public class SyncService
     {
-        public Dictionary<string, TodoTask> dic = null;
-        public Dictionary<string, TodoTask> dicCanvasTaskList = null;
-        public TodoTaskList canvasTaskList = null;
+        public Dictionary<string, TodoTask> dicUrl = null;
+        public Dictionary<string, TodoTaskList> dicCategory = null;
+        public Dictionary<Course, TodoTaskList> dicCourse = null;
         public List<TodoTask> canvasTasks = null;
         public List<Course> courses = null;
         public int CourseCount, ItemCount, UpdateCount, FailedCount;
@@ -37,62 +39,124 @@ namespace TodoSynchronizer.Core.Services
 
         public void Go()
         {
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings() { DateTimeZoneHandling = DateTimeZoneHandling.Local };
             CourseCount = 0;
             ItemCount = 0;
             UpdateCount = 0;
             FailedCount = 0;
 
-            Message = "读取Canvas课程列表";
+            #region 读取 Canvas 课程列表
+            Message = "读取 Canvas 课程列表";
             try
             {
                 courses = CanvasService.ListCourses();
                 if (courses == null)
-                    throw new Exception("Canvas课程列表为空");
+                    throw new Exception("Canvas 课程列表为空");
             }
             catch (Exception ex)
             {
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
                 return;
             }
+            #endregion
 
-            Message = "检查Todo列表";
+            #region 检查 Todo 列表
+            Message = "检查 Todo 列表";
             try
             {
-                dicCanvasTaskList = new Dictionary<string, TodoTask>();
-                var todoTaskLists = TodoService.ListLists();
-                canvasTaskList = todoTaskLists.Find(x => x.DisplayName == "Canvas");
+                if (SyncConfig.Default.ListNameMode == ListNameMode.Category)
+                {
+                    dicCategory = new Dictionary<string, TodoTaskList>();
+                    var todoTaskLists = TodoService.ListLists();
 
-                if (canvasTaskList == null)
-                    canvasTaskList = TodoService.AddTaskList(new TodoTaskList() { DisplayName = "Canvas" });
+                    void FindList(string cat, string name)
+                    {
+                        var taskList = todoTaskLists.Find(x => x.DisplayName == name);
 
-                if (canvasTaskList == null)
-                    throw new Exception("创建Todo列表失败");
+                        if (taskList == null)
+                            taskList = TodoService.AddTaskList(new TodoTaskList() { DisplayName = name });
+
+                        if (taskList == null)
+                            throw new Exception("创建 Todo 列表失败");
+                        else
+                            Message = $"找到 Todo 列表：{taskList.DisplayName}";
+                        dicCategory.Add(cat, taskList);
+                    }
+                    FindList("quiz", SyncConfig.Default.ListNamesForCategory.QuizListName);
+                    FindList("discussion", SyncConfig.Default.ListNamesForCategory.DiscussionListName);
+                    FindList("assignment", SyncConfig.Default.ListNamesForCategory.AssignmentListName);
+                    FindList("anouncement", SyncConfig.Default.ListNamesForCategory.AnouncementListName);
+                }
                 else
-                    Message = $"找到Todo列表：{canvasTaskList.DisplayName}";
+                {
+                    dicCourse = new Dictionary<Course, TodoTaskList>();
+                    var todoTaskLists = TodoService.ListLists();
+
+                    foreach(var c in courses)
+                    {
+                        var name = CanvasStringTemplateHelper.GetListNameForCourse(c);
+                        var taskList = todoTaskLists.Find(x => x.DisplayName == name);
+
+                        if (taskList == null)
+                            taskList = TodoService.AddTaskList(new TodoTaskList() { DisplayName = name });
+
+                        if (taskList == null)
+                            throw new Exception("创建 Todo 列表失败");
+                        else
+                            Message = $"找到 Todo 列表：{taskList.DisplayName}";
+                        dicCourse.Add(c, taskList);
+                    }
+                }
+                
             }
             catch (Exception ex)
             {
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
                 return;
             }
+            #endregion
 
-            Message = "读取Todo项目";
+            #region 读取 Todo 项目
+            Message = "读取 Todo 项目";
             try
             {
-                canvasTasks = TodoService.ListTodoTasks(canvasTaskList.Id);
+                IEnumerable<TodoTask> ListTodoTasksInternal()
+                {
+                    if (SyncConfig.Default.ListNameMode == ListNameMode.Category)
+                    {
+                        foreach(var item in dicCategory)
+                        {
+                            var tmplist = TodoService.ListTodoTasks(item.Value.Id);
+                            foreach (var task in tmplist)
+                                yield return task;
+                        }
+                    }
+                    else
+                    {
+                        foreach (var item in dicCourse)
+                        {
+                            var tmplist = TodoService.ListTodoTasks(item.Value.Id);
+                            foreach (var task in tmplist)
+                                yield return task;
+                        }
+                    }
+                }
+                canvasTasks = ListTodoTasksInternal().ToList();
                 if (canvasTasks == null)
-                    throw new Exception("Todo项目为空");
+                    throw new Exception("Todo 项目为空");
             }
             catch (Exception ex)
             {
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
                 return;
             }
+            #endregion
 
-            Message = "处理LinkedResources";
+            #region 处理 LinkedResources
+            Message = "建立字典";
             try
             {
-                dic = new Dictionary<string, TodoTask>();
+                dicUrl = new Dictionary<string, TodoTask>();
                 foreach (var todoTask in canvasTasks)
                 {
                     if (todoTask.LinkedResources != null)
@@ -101,7 +165,7 @@ namespace TodoSynchronizer.Core.Services
                             var url = todoTask.LinkedResources.First().WebUrl;
                             Uri uri;
                             if (Uri.TryCreate(url, UriKind.Absolute, out uri))
-                                dic.Add(url, todoTask);
+                                dicUrl.Add(url, todoTask);
                         }
                 }
             }
@@ -110,16 +174,32 @@ namespace TodoSynchronizer.Core.Services
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
                 return;
             }
+            #endregion
 
+            #region Main
             try
             {
-                foreach (var course in courses)
+                if (SyncConfig.Default.ListNameMode == ListNameMode.Category)
                 {
-                    CourseCount++;
-                    //ProcessAssignments($"处理课程 {course.Name} ", course);
-                    //ProcessAnouncements($"处理课程 {course.Name} ", course);
-                    ProcessQuizes($"处理课程 {course.Name} ", course);
-                    ProcessDiscussions($"处理课程 {course.Name} ", course);
+                    foreach (var course in courses)
+                    {
+                        CourseCount++;
+                        //ProcessAssignments($"处理课程 {course.Name} ", course, dicCategory["assignment"]);
+                        ProcessAnouncements($"处理课程 {course.Name} ", course, dicCategory["anouncement"]);
+                        //ProcessQuizes($"处理课程 {course.Name} ", course, dicCategory["quiz"]);
+                        //ProcessDiscussions($"处理课程 {course.Name} ", course, dicCategory["discussion"]);
+                    }
+                }
+                else//Course
+                {
+                    foreach (var course in courses)
+                    {
+                        CourseCount++;
+                        //ProcessAssignments($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        ProcessAnouncements($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        //ProcessQuizes($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        //ProcessDiscussions($"处理课程 {course.Name} ", course, dicCourse[course]);
+                    }
                 }
             }
             catch (Exception ex)
@@ -127,7 +207,8 @@ namespace TodoSynchronizer.Core.Services
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
                 return;
             }
-            //Message = $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目";
+            #endregion
+            
             OnReportProgress.Invoke(new SyncState(
                 SyncStateEnum.Finished,
                 $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目"
@@ -135,7 +216,7 @@ namespace TodoSynchronizer.Core.Services
         }
 
         #region Assignments
-        public void ProcessAssignments(string message_prefix, Course course)
+        public void ProcessAssignments(string message_prefix, Course course, TodoTaskList taskList)
         {
             Message = message_prefix;
             try
@@ -152,8 +233,8 @@ namespace TodoSynchronizer.Core.Services
                     ItemCount++;
                     Message = message_prefix + $"作业 {assignment.Name}";
                     TodoTask todoTask = null;
-                    if (dic.ContainsKey(assignment.HtmlUrl))
-                        todoTask = dic[assignment.HtmlUrl];
+                    if (dicUrl.ContainsKey(assignment.HtmlUrl))
+                        todoTask = dicUrl[assignment.HtmlUrl];
                     else
                         todoTask = null;
 
@@ -164,29 +245,21 @@ namespace TodoSynchronizer.Core.Services
                     {
                         if (todoTask is null)
                         {
-                            todoTask = TodoService.AddTask(canvasTaskList.Id.ToString(), todoTaskNew);
-                            TodoService.AddLinkedResource(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = assignment.HtmlUrl, WebUrl = assignment.HtmlUrl, ApplicationName = "Canvas" });
-                            dic.Add(assignment.HtmlUrl, todoTask);
+                            todoTask = TodoService.AddTask(taskList.Id.ToString(), todoTaskNew);
+                            TodoService.AddLinkedResource(taskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = assignment.HtmlUrl, WebUrl = assignment.HtmlUrl, ApplicationName = "Canvas" });
+                            dicUrl.Add(assignment.HtmlUrl, todoTask);
                         }
                         else
                         {
-                            todoTask = TodoService.UpdateTask(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
+                            todoTask = TodoService.UpdateTask(taskList.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
                         }
-                        updated = true;
-                    }
-
-                    //---DueDate---//
-                    if (CanvasPreference.GetDueTime(assignment) == null && todoTask.DueDateTime != null)
-                    {
-                        TodoService.DeleteDueDate(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
-                        todoTask.DueDateTime = null;
                         updated = true;
                     }
 
                     //---Submissions -> CheckItems---//
                     if (assignment.HasSubmittedSubmissions)
                     {
-                        var links = TodoService.ListCheckItems(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
+                        var links = TodoService.ListCheckItems(taskList.Id.ToString(), todoTask.Id.ToString());
                         if (assignment.IsQuizAssignment)
                         {
                             var quizsubmissions = CanvasService.ListQuizSubmissons(course.Id.ToString(), assignment.QuizId.ToString());
@@ -204,11 +277,11 @@ namespace TodoSynchronizer.Core.Services
                                 {
                                     if (checkitem0 == null)
                                     {
-                                        TodoService.AddCheckItem(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
+                                        TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
                                     }
                                     else
                                     {
-                                        TodoService.UpdateCheckItem(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
+                                        TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
                                     }
                                     updated = true;
                                 }
@@ -230,11 +303,11 @@ namespace TodoSynchronizer.Core.Services
                             {
                                 if (checkitem1 == null)
                                 {
-                                    TodoService.AddCheckItem(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), checkitem1New);
+                                    TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem1New);
                                 }
                                 else
                                 {
-                                    TodoService.UpdateCheckItem(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), checkitem1.Id.ToString(), checkitem1New);
+                                    TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem1.Id.ToString(), checkitem1New);
                                 }
                                 updated = true;
                             }
@@ -251,11 +324,11 @@ namespace TodoSynchronizer.Core.Services
                             {
                                 if (checkitem2 == null)
                                 {
-                                    TodoService.AddCheckItem(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), checkitem2New);
+                                    TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem2New);
                                 }
                                 else
                                 {
-                                    TodoService.UpdateCheckItem(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), checkitem2.Id.ToString(), checkitem2New);
+                                    TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem2.Id.ToString(), checkitem2New);
                                 }
                                 updated = true;
                             }
@@ -266,7 +339,7 @@ namespace TodoSynchronizer.Core.Services
                     var file_matches = file_reg.Matches(assignment.Content);
                     if (file_matches.Count > 0)
                     {
-                        var attachments = TodoService.ListAttachments(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
+                        var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
                         foreach (Match match in file_matches)
                         {
                             var filename = match.Groups[1].Value;
@@ -284,7 +357,7 @@ namespace TodoSynchronizer.Core.Services
                                 info.Size = data.Length;
                                 info.Name = filename;
 
-                                TodoService.UploadAttachment(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                                TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
                                 updated = true;
                             }
                         }
@@ -306,7 +379,7 @@ namespace TodoSynchronizer.Core.Services
             var modified = false;
             var desc = func(assignment, submission);
             var check = !desc.Contains("未");
-            if (checklistitemOld == null || checklistitemOld.IsChecked != check)
+            if (checklistitemNew.IsChecked != check)
             {
                 checklistitemNew.IsChecked = check;
                 modified = true;
@@ -347,6 +420,12 @@ namespace TodoSynchronizer.Core.Services
                     modified = true;
                 }
             }
+            else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
+            {
+                todoTaskNew.AdditionalData = new Dictionary<string, object>();
+                todoTaskNew.AdditionalData["dueDateTime"] = null;
+                modified = true;
+            }
 
             var remindtime = CanvasPreference.GetRemindTime(assignment);
             if (remindtime.HasValue)
@@ -372,7 +451,7 @@ namespace TodoSynchronizer.Core.Services
         #endregion
 
         #region Discussions
-        private void ProcessDiscussions(string message_prefix, Course course)
+        private void ProcessDiscussions(string message_prefix, Course course, TodoTaskList taskList)
         {
             Message = message_prefix;
             try
@@ -389,8 +468,8 @@ namespace TodoSynchronizer.Core.Services
                     ItemCount++;
                     Message = message_prefix + $"讨论 {discussion.Title}";
                     TodoTask todoTask = null;
-                    if (dic.ContainsKey(discussion.HtmlUrl))
-                        todoTask = dic[discussion.HtmlUrl];
+                    if (dicUrl.ContainsKey(discussion.HtmlUrl))
+                        todoTask = dicUrl[discussion.HtmlUrl];
                     else
                         todoTask = null;
 
@@ -401,22 +480,14 @@ namespace TodoSynchronizer.Core.Services
                     {
                         if (todoTask is null)
                         {
-                            todoTask = TodoService.AddTask(canvasTaskList.Id.ToString(), todoTaskNew);
-                            TodoService.AddLinkedResource(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = discussion.HtmlUrl, WebUrl = discussion.HtmlUrl, ApplicationName = "Canvas" });
-                            dic.Add(discussion.HtmlUrl, todoTask);
+                            todoTask = TodoService.AddTask(taskList.Id.ToString(), todoTaskNew);
+                            TodoService.AddLinkedResource(taskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = discussion.HtmlUrl, WebUrl = discussion.HtmlUrl, ApplicationName = "Canvas" });
+                            dicUrl.Add(discussion.HtmlUrl, todoTask);
                         }
                         else
                         {
-                            todoTask = TodoService.UpdateTask(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
+                            todoTask = TodoService.UpdateTask(taskList.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
                         }
-                        updated = true;
-                    }
-
-                    //---DueDate---//
-                    if (CanvasPreference.GetDueTime(discussion) == null && todoTask.DueDateTime != null)
-                    {
-                        TodoService.DeleteDueDate(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
-                        todoTask.DueDateTime = null;
                         updated = true;
                     }
 
@@ -441,7 +512,7 @@ namespace TodoSynchronizer.Core.Services
 
                     if (files.Count > 0)
                     {
-                        var attachments = TodoService.ListAttachments(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
+                        var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
                         foreach (var file in files)
                         {
                             var exist = attachments.Any(x => x.Name == file.DisplayName);
@@ -457,7 +528,7 @@ namespace TodoSynchronizer.Core.Services
                                 info.Size = data.Length;
                                 info.Name = file.DisplayName;
 
-                                TodoService.UploadAttachment(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                                TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
                                 updated = true;
                             }
                         }
@@ -501,6 +572,12 @@ namespace TodoSynchronizer.Core.Services
                     modified = true;
                 }
             }
+            else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
+            {
+                todoTaskNew.AdditionalData = new Dictionary<string, object>();
+                todoTaskNew.AdditionalData["dueDateTime"] = null;
+                modified = true;
+            }
 
             var remindtime = CanvasPreference.GetRemindTime(discussion);
             if (remindtime.HasValue)
@@ -526,9 +603,8 @@ namespace TodoSynchronizer.Core.Services
         #endregion
 
         #region Quizes
-        private void ProcessQuizes(string message_prefix, Course course)
+        private void ProcessQuizes(string message_prefix, Course course, TodoTaskList taskList)
         {
-            return;
             Message = message_prefix;
             try
             {
@@ -544,8 +620,8 @@ namespace TodoSynchronizer.Core.Services
                     ItemCount++;
                     Message = message_prefix + $"测验 {quiz.Title}";
                     TodoTask todoTask = null;
-                    if (dic.ContainsKey(quiz.HtmlUrl))
-                        todoTask = dic[quiz.HtmlUrl];
+                    if (dicUrl.ContainsKey(quiz.HtmlUrl))
+                        todoTask = dicUrl[quiz.HtmlUrl];
                     else
                         todoTask = null;
 
@@ -556,29 +632,21 @@ namespace TodoSynchronizer.Core.Services
                     {
                         if (todoTask is null)
                         {
-                            todoTask = TodoService.AddTask(canvasTaskList.Id.ToString(), todoTaskNew);
-                            TodoService.AddLinkedResource(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = quiz.HtmlUrl, WebUrl = quiz.HtmlUrl, ApplicationName = "Canvas" });
-                            dic.Add(quiz.HtmlUrl, todoTask);
+                            todoTask = TodoService.AddTask(taskList.Id.ToString(), todoTaskNew);
+                            TodoService.AddLinkedResource(taskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = quiz.HtmlUrl, WebUrl = quiz.HtmlUrl, ApplicationName = "Canvas" });
+                            dicUrl.Add(quiz.HtmlUrl, todoTask);
                         }
                         else
                         {
-                            todoTask = TodoService.UpdateTask(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
+                            todoTask = TodoService.UpdateTask(taskList.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
                         }
-                        updated = true;
-                    }
-
-                    //---DueDate---//
-                    if (CanvasPreference.GetDueTime(quiz) == null && todoTask.DueDateTime != null)
-                    {
-                        TodoService.DeleteDueDate(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
-                        todoTask.DueDateTime = null;
                         updated = true;
                     }
 
                     //---Submissions -> CheckItems---//
                     //if (quiz.)
                     //{
-                    //    var links = TodoService.ListCheckItems(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
+                    //    var links = TodoService.ListCheckItems(taskList.Id.ToString(), todoTask.Id.ToString());
                     //    var quizsubmissions = CanvasService.ListQuizSubmissons(course.Id.ToString(), quiz.QuizId.ToString());
                     //    for (int i = 0; i < quizsubmissions.Count; i++)
                     //    {
@@ -594,22 +662,23 @@ namespace TodoSynchronizer.Core.Services
                     //        {
                     //            if (checkitem0 == null)
                     //            {
-                    //                TodoService.AddCheckItem(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
+                    //                TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
                     //            }
                     //            else
                     //            {
-                    //                TodoService.UpdateCheckItem(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
+                    //                TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
                     //            }
                     //            updated = true;
                     //        }
                     //    }
                     //}
+
                     //---Attachments---//
                     var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
                     var file_matches = file_reg.Matches(quiz.Content);
                     if (file_matches.Count > 0)
                     {
-                        var attachments = TodoService.ListAttachments(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
+                        var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
                         foreach (Match match in file_matches)
                         {
                             var filename = match.Groups[1].Value;
@@ -627,7 +696,7 @@ namespace TodoSynchronizer.Core.Services
                                 info.Size = data.Length;
                                 info.Name = filename;
 
-                                TodoService.UploadAttachment(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                                TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
                                 updated = true;
                             }
                         }
@@ -690,6 +759,12 @@ namespace TodoSynchronizer.Core.Services
                     modified = true;
                 }
             }
+            else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
+            {
+                todoTaskNew.AdditionalData = new Dictionary<string, object>();
+                todoTaskNew.AdditionalData["dueDateTime"] = null;
+                modified = true;
+            }
 
             var remindtime = CanvasPreference.GetRemindTime(quiz);
             if (remindtime.HasValue)
@@ -715,7 +790,7 @@ namespace TodoSynchronizer.Core.Services
         #endregion
 
         #region Anouncements
-        private void ProcessAnouncements(string message_prefix, Course course)
+        private void ProcessAnouncements(string message_prefix, Course course, TodoTaskList taskList)
         {
             Message = message_prefix;
             try
@@ -732,8 +807,8 @@ namespace TodoSynchronizer.Core.Services
                     ItemCount++;
                     Message = message_prefix + $"公告 {anouncement.Title}";
                     TodoTask todoTask = null;
-                    if (dic.ContainsKey(anouncement.HtmlUrl))
-                        todoTask = dic[anouncement.HtmlUrl];
+                    if (dicUrl.ContainsKey(anouncement.HtmlUrl))
+                        todoTask = dicUrl[anouncement.HtmlUrl];
                     else
                         todoTask = null;
 
@@ -744,22 +819,14 @@ namespace TodoSynchronizer.Core.Services
                     {
                         if (todoTask is null)
                         {
-                            todoTask = TodoService.AddTask(canvasTaskList.Id.ToString(), todoTaskNew);
-                            TodoService.AddLinkedResource(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = anouncement.HtmlUrl, WebUrl = anouncement.HtmlUrl, ApplicationName = "Canvas" });
-                            dic.Add(anouncement.HtmlUrl, todoTask);
+                            todoTask = TodoService.AddTask(taskList.Id.ToString(), todoTaskNew);
+                            TodoService.AddLinkedResource(taskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = anouncement.HtmlUrl, WebUrl = anouncement.HtmlUrl, ApplicationName = "Canvas" });
+                            dicUrl.Add(anouncement.HtmlUrl, todoTask);
                         }
                         else
                         {
-                            todoTask = TodoService.UpdateTask(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
+                            todoTask = TodoService.UpdateTask(taskList.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
                         }
-                        updated = true;
-                    }
-
-                    //---DueDate---//
-                    if (CanvasPreference.GetDueTime(anouncement) == null && todoTask.DueDateTime != null)
-                    {
-                        TodoService.DeleteDueDate(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
-                        todoTask.DueDateTime = null;
                         updated = true;
                     }
 
@@ -784,7 +851,7 @@ namespace TodoSynchronizer.Core.Services
 
                     if (files.Count > 0)
                     {
-                        var attachments = TodoService.ListAttachments(canvasTaskList.Id.ToString(), todoTask.Id.ToString());
+                        var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
                         foreach (var file in files)
                         {
                             var exist = attachments.Any(x => x.Name == file.DisplayName);
@@ -800,7 +867,7 @@ namespace TodoSynchronizer.Core.Services
                                 info.Size = data.Length;
                                 info.Name = file.DisplayName;
 
-                                TodoService.UploadAttachment(canvasTaskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                                TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
                                 updated = true;
                             }
                         }
@@ -844,6 +911,12 @@ namespace TodoSynchronizer.Core.Services
                     todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
                     modified = true;
                 }
+            }
+            else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
+            {
+                todoTaskNew.AdditionalData = new Dictionary<string, object>();
+                todoTaskNew.AdditionalData["dueDateTime"] = null;
+                modified = true;
             }
 
             var remindtime = CanvasPreference.GetRemindTime(anouncement);

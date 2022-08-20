@@ -31,7 +31,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public DateTime FinishedAt { get; set; }
 
         [JsonProperty("fudge_points")]
-        public long FudgePoints { get; set; }
+        public long? FudgePoints { get; set; }
 
         [JsonProperty("has_seen_results")]
         public bool HasSeenResults { get; set; }

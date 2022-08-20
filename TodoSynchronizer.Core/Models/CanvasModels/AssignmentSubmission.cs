@@ -31,10 +31,10 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public object Course { get; set; }
 
         [JsonProperty("excused")]
-        public bool Excused { get; set; }
+        public bool? Excused { get; set; }
 
         [JsonProperty("extra_attempts")]
-        public long ExtraAttempts { get; set; }
+        public long? ExtraAttempts { get; set; }
 
         [JsonProperty("grade")]
         public string Grade { get; set; }
