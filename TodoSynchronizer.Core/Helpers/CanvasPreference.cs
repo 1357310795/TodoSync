@@ -6,6 +6,24 @@ namespace TodoSynchronizer.Core.Helpers
 {
     public static class CanvasPreference
     {
+        public static DateTime? GetRemindTime(this ICanvasItem item)
+        {
+            if (item is Quiz quiz) return GetRemindTime(quiz);
+            if (item is Assignment assignment) return GetRemindTime(assignment);
+            if (item is Anouncement anouncement) return GetRemindTime(anouncement);
+            if (item is Discussion discussion) return GetRemindTime(discussion);
+            return null;
+        }
+
+        public static DateTime? GetDueTime(this ICanvasItem item)
+        {
+            if (item is Quiz quiz) return GetDueTime(quiz);
+            if (item is Assignment assignment) return GetDueTime(assignment);
+            if (item is Anouncement anouncement) return GetDueTime(anouncement);
+            if (item is Discussion discussion) return GetDueTime(discussion);
+            return null;
+        }
+
         #region Quiz
         public static DateTime? GetRemindTime(this Quiz quiz)
         {

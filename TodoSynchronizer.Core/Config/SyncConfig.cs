@@ -46,7 +46,7 @@ namespace TodoSynchronizer.Core.Config
         Category, Course
     }
 
-    public class AnouncementConfig
+    public class AnouncementConfig : ICanvasItemConfig
     {
         public bool CreateContent { get; set; }
         public bool CreateDueDate { get; set; }
@@ -65,7 +65,7 @@ namespace TodoSynchronizer.Core.Config
         public TimeSpan RemindAfter { get; set; }
     }
 
-    public class AssignmentConfig
+    public class AssignmentConfig : ICanvasItemConfig
     {
         public bool CreateContent { get; set; }
         public bool CreateDueDate { get; set; }
@@ -97,7 +97,7 @@ namespace TodoSynchronizer.Core.Config
         unlock_at, before_due_at, before_lock_at
     }
 
-    public class QuizConfig
+    public class QuizConfig : ICanvasItemConfig
     {
         public bool CreateContent { get; set; }
         public bool CreateDueDate { get; set; }
@@ -120,7 +120,7 @@ namespace TodoSynchronizer.Core.Config
         public TimeSpan BeforeTimeSpan { get; set; }
     }
 
-    public class DiscussionConfig
+    public class DiscussionConfig : ICanvasItemConfig
     {
         public bool CreateContent { get; set; }
         public bool CreateDueDate { get; set; }
@@ -137,5 +137,22 @@ namespace TodoSynchronizer.Core.Config
         public string TitleTemplate { get; set; }
         public bool SetImportance { get; set; }
         public TimeSpan RemindAfter { get; set; }
+    }
+
+    public interface ICanvasItemConfig
+    {
+        public bool CreateContent { get; set; }
+        public bool CreateDueDate { get; set; }
+        public bool CreateRemind { get; set; }
+        public bool CreateImportance { get; set; }
+
+        public bool UpdateTitle { get; set; }
+        public bool UpdateContent { get; set; }
+        public bool UpdateDueDate { get; set; }
+        public bool UpdateRemind { get; set; }
+        public bool UpdateImportance { get; set; }
+
+        public string TitleTemplate { get; set; }
+        public bool SetImportance { get; set; }
     }
 }

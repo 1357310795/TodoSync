@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Models.CanvasModels;
@@ -49,7 +50,15 @@ namespace TodoSynchronizer.Core.Helpers
         {
             return s.Replace("{course.name}", course.Name)
                 .Replace("{course.coursecode}", course.CourseCode)
-                .Replace("{course.originalname}", course.OriginalName);
+                .Replace("{course.coursecodeshort}", ExtractCourseCodeShort(course.CourseCode))
+                .Replace("{course.originalname}", course.OriginalName ?? course.Name);
+        }
+
+        public static string ExtractCourseCodeShort(string s)
+        {
+            var reg = new Regex(@"\(\d{4}-\d{4}-[123]\)-([a-zA-z0-9]+?)-");
+            var match = reg.Match(s);
+            return match.Success ? match.Groups[1].Value : s;
         }
 
         public static string GetContent(ICanvasItem item)

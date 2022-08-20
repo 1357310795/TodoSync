@@ -241,7 +241,7 @@ namespace TodoSynchronizer.Core.Services
 
                     //---Self & LinkedResource---//
                     TodoTask todoTaskNew = new TodoTask();
-                    var res1 = UpdateAssignment(course, assignment, todoTask, todoTaskNew);
+                    var res1 = UpdateCanvasItem(course, assignment, todoTask, todoTaskNew, SyncConfig.Default.AssignmentConfig);
                     if (res1)
                     {
                         if (todoTask is null)
@@ -345,82 +345,6 @@ namespace TodoSynchronizer.Core.Services
                 return;
             }
         }
-
-        private bool UpdateSubmissionInfo<T>(Assignment assignment, T submission, ChecklistItem checklistitemOld, ChecklistItem checklistitemNew, Func<Assignment, T, string> func)
-        {
-            var modified = false;
-            var desc = func(assignment, submission);
-            var check = !desc.Contains("未");
-            checklistitemNew.IsChecked = checklistitemOld.IsChecked;
-            if (checklistitemNew.IsChecked != check)
-            {
-                checklistitemNew.IsChecked = check;
-                modified = true;
-            }
-            if (checklistitemOld == null || checklistitemOld.DisplayName != desc)
-            {
-                checklistitemNew.DisplayName = desc;
-                modified = true;
-            }
-            return modified;
-        }
-
-        public bool UpdateAssignment(Course course, Assignment assignment, TodoTask todoTaskOld, TodoTask todoTaskNew)
-        {
-            var modified = false;
-            var title = CanvasStringTemplateHelper.GetTitle(course, assignment);
-            if (todoTaskOld == null || todoTaskOld.Title == null || title != todoTaskOld.Title)
-            {
-                todoTaskNew.Title = title;
-                modified = true;
-            }
-
-            var content = CanvasStringTemplateHelper.GetContent(assignment);
-            if (todoTaskOld == null || todoTaskOld.Body.Content == null || content != todoTaskOld.Body.Content)
-            {
-                todoTaskNew.Body = new ItemBody() { ContentType = BodyType.Text };
-                todoTaskNew.Body.Content = content;
-                modified = true;
-            }
-
-            var duetime = CanvasPreference.GetDueTime(assignment);
-            if (duetime.HasValue)
-            {
-                var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-                if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
-                {
-                    todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
-                    modified = true;
-                }
-            }
-            else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
-            {
-                todoTaskNew.AdditionalData = new Dictionary<string, object>();
-                todoTaskNew.AdditionalData["dueDateTime"] = null;
-                modified = true;
-            }
-
-            var remindtime = CanvasPreference.GetRemindTime(assignment);
-            if (remindtime.HasValue)
-            {
-                var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-                if (todoTaskOld == null || todoTaskOld.IsReminderOn == false || todoTaskOld.ReminderDateTime == null || date != todoTaskOld.ReminderDateTime.DateTime)
-                {
-                    todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
-                    todoTaskNew.IsReminderOn = true;
-                    modified = true;
-                }
-            }
-
-            //var important = CanvasPreference.GetAssignmentImprotance();
-            //if (todoTaskOld == null || todoTaskOld.Importance.Value != (important ? Importance.High : Importance.Normal))
-            //{
-            //    todoTaskNew.Importance = (important ? Importance.High : Importance.Normal);
-            //    modified = true;
-            //}
-
-            return modified;
-        }
         #endregion
 
         #region Discussions
@@ -448,7 +372,7 @@ namespace TodoSynchronizer.Core.Services
 
                     //---Self & LinkedResource---//
                     TodoTask todoTaskNew = new TodoTask();
-                    var res1 = UpdateDiscussion(course, discussion, todoTask, todoTaskNew);
+                    var res1 = UpdateCanvasItem(course, discussion, todoTask, todoTaskNew, SyncConfig.Default.DiscussionConfig);
                     if (res1)
                     {
                         if (todoTask is null)
@@ -517,62 +441,6 @@ namespace TodoSynchronizer.Core.Services
                 return;
             }
         }
-        public bool UpdateDiscussion(Course course, Discussion discussion, TodoTask todoTaskOld, TodoTask todoTaskNew)
-        {
-            var modified = false;
-            var title = CanvasStringTemplateHelper.GetTitle(course, discussion);
-            if (todoTaskOld == null || todoTaskOld.Title == null || title != todoTaskOld.Title)
-            {
-                todoTaskNew.Title = title;
-                modified = true;
-            }
-
-            var content = CanvasStringTemplateHelper.GetContent(discussion);
-            if (todoTaskOld == null || todoTaskOld.Body.Content == null || content != todoTaskOld.Body.Content)
-            {
-                todoTaskNew.Body = new ItemBody() { ContentType = BodyType.Text };
-                todoTaskNew.Body.Content = content;
-                modified = true;
-            }
-
-            var duetime = CanvasPreference.GetDueTime(discussion);
-            if (duetime.HasValue)
-            {
-                var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-                if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
-                {
-                    todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
-                    modified = true;
-                }
-            }
-            else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
-            {
-                todoTaskNew.AdditionalData = new Dictionary<string, object>();
-                todoTaskNew.AdditionalData["dueDateTime"] = null;
-                modified = true;
-            }
-
-            var remindtime = CanvasPreference.GetRemindTime(discussion);
-            if (remindtime.HasValue)
-            {
-                var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-                if (todoTaskOld == null || todoTaskOld.Status == Microsoft.Graph.TaskStatus.NotStarted)
-                {
-                    todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
-                    todoTaskNew.IsReminderOn = true;
-                    modified = true;
-                }
-            }
-
-            //var important = CanvasPreference.GetAssignmentImprotance();
-            //if (todoTaskOld == null || todoTaskOld.Importance.Value != (important ? Importance.High : Importance.Normal))
-            //{
-            //    todoTaskNew.Importance = (important ? Importance.High : Importance.Normal);
-            //    modified = true;
-            //}
-
-            return modified;
-        }
         #endregion
 
         #region Quizes
@@ -601,7 +469,7 @@ namespace TodoSynchronizer.Core.Services
 
                     //---Self & LinkedResource---//
                     TodoTask todoTaskNew = new TodoTask();
-                    var res1 = UpdateQuiz(course, assignment, todoTask, todoTaskNew);
+                    var res1 = UpdateCanvasItem(course, assignment, todoTask, todoTaskNew, SyncConfig.Default.QuizConfig);
                     if (res1)
                     {
                         if (todoTask is null)
@@ -685,63 +553,6 @@ namespace TodoSynchronizer.Core.Services
                 return;
             }
         }
-
-        public bool UpdateQuiz(Course course, Assignment quiz, TodoTask todoTaskOld, TodoTask todoTaskNew)
-        {
-            var modified = false;
-            var title = CanvasStringTemplateHelper.GetTitle(course, quiz);
-            if (todoTaskOld == null || todoTaskOld.Title == null || title != todoTaskOld.Title)
-            {
-                todoTaskNew.Title = title;
-                modified = true;
-            }
-
-            var content = CanvasStringTemplateHelper.GetContent(quiz);
-            if (todoTaskOld == null || todoTaskOld.Body.Content == null || content != todoTaskOld.Body.Content)
-            {
-                todoTaskNew.Body = new ItemBody() { ContentType = BodyType.Text };
-                todoTaskNew.Body.Content = content;
-                modified = true;
-            }
-
-            var duetime = CanvasPreference.GetDueTime(quiz);
-            if (duetime.HasValue)
-            {
-                var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-                if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
-                {
-                    todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
-                    modified = true;
-                }
-            }
-            else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
-            {
-                todoTaskNew.AdditionalData = new Dictionary<string, object>();
-                todoTaskNew.AdditionalData["dueDateTime"] = null;
-                modified = true;
-            }
-
-            var remindtime = CanvasPreference.GetRemindTime(quiz);
-            if (remindtime.HasValue)
-            {
-                var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-                if (todoTaskOld == null || todoTaskOld.IsReminderOn == false || todoTaskOld.ReminderDateTime == null || date != todoTaskOld.ReminderDateTime.DateTime)
-                {
-                    todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
-                    todoTaskNew.IsReminderOn = true;
-                    modified = true;
-                }
-            }
-
-            //var important = CanvasPreference.GetAssignmentImprotance();
-            //if (todoTaskOld == null || todoTaskOld.Importance.Value != (important ? Importance.High : Importance.Normal))
-            //{
-            //    todoTaskNew.Importance = (important ? Importance.High : Importance.Normal);
-            //    modified = true;
-            //}
-
-            return modified;
-        }
         #endregion
 
         #region Anouncements
@@ -769,7 +580,7 @@ namespace TodoSynchronizer.Core.Services
 
                     //---Self & LinkedResource---//
                     TodoTask todoTaskNew = new TodoTask();
-                    var res1 = UpdateAnouncement(course, anouncement, todoTask, todoTaskNew);
+                    var res1 = UpdateCanvasItem(course, anouncement, todoTask, todoTaskNew, SyncConfig.Default.AnouncementConfig);
                     if (res1)
                     {
                         if (todoTask is null)
@@ -838,60 +649,97 @@ namespace TodoSynchronizer.Core.Services
                 return;
             }
         }
+        #endregion
 
-        public bool UpdateAnouncement(Course course, Anouncement anouncement, TodoTask todoTaskOld, TodoTask todoTaskNew)
+        #region Common
+        private bool UpdateSubmissionInfo<T>(Assignment assignment, T submission, ChecklistItem checklistitemOld, ChecklistItem checklistitemNew, Func<Assignment, T, string> func)
         {
             var modified = false;
-            var title = CanvasStringTemplateHelper.GetTitle(course, anouncement);
-            if (todoTaskOld == null || todoTaskOld.Title == null || title != todoTaskOld.Title)
+            var desc = func(assignment, submission);
+            var check = !desc.Contains("未");
+            checklistitemNew.IsChecked = checklistitemOld.IsChecked;
+            if (checklistitemNew.IsChecked != check)
             {
-                todoTaskNew.Title = title;
+                checklistitemNew.IsChecked = check;
                 modified = true;
             }
-
-            var content = CanvasStringTemplateHelper.GetContent(anouncement);
-            if (todoTaskOld == null || todoTaskOld.Body.Content == null || content != todoTaskOld.Body.Content)
+            if (checklistitemOld == null || checklistitemOld.DisplayName != desc)
             {
-                todoTaskNew.Body = new ItemBody() { ContentType = BodyType.Text };
-                todoTaskNew.Body.Content = content;
+                checklistitemNew.DisplayName = desc;
                 modified = true;
             }
+            return modified;
+        }
+        
+        public bool UpdateCanvasItem(Course course, ICanvasItem item, TodoTask todoTaskOld, TodoTask todoTaskNew, ICanvasItemConfig config)
+        {
+            var modified = false;
 
-            var duetime = CanvasPreference.GetDueTime(anouncement);
-            if (duetime.HasValue)
+            if (todoTaskOld == null || todoTaskOld != null && config.UpdateTitle)
             {
-                var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-                if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
+                var title = CanvasStringTemplateHelper.GetTitle(course, item);
+                if (todoTaskOld == null || todoTaskOld.Title == null || title != todoTaskOld.Title)
                 {
-                    todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
-                    modified = true;
-                }
-            }
-            else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
-            {
-                todoTaskNew.AdditionalData = new Dictionary<string, object>();
-                todoTaskNew.AdditionalData["dueDateTime"] = null;
-                modified = true;
-            }
-
-            var remindtime = CanvasPreference.GetRemindTime(anouncement);
-            if (remindtime.HasValue)
-            {
-                var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-                if (todoTaskOld == null || todoTaskOld.Status == Microsoft.Graph.TaskStatus.NotStarted)
-                {
-                    todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
-                    todoTaskNew.IsReminderOn = true;
+                    todoTaskNew.Title = title;
                     modified = true;
                 }
             }
 
-            //var important = CanvasPreference.GetAssignmentImprotance();
-            //if (todoTaskOld == null || todoTaskOld.Importance.Value != (important ? Importance.High : Importance.Normal))
-            //{
-            //    todoTaskNew.Importance = (important ? Importance.High : Importance.Normal);
-            //    modified = true;
-            //}
+            if (todoTaskOld == null && config.CreateContent || todoTaskOld != null && config.UpdateContent)
+            {
+                var content = CanvasStringTemplateHelper.GetContent(item);
+                if (todoTaskOld == null || todoTaskOld.Body.Content == null || content != todoTaskOld.Body.Content)
+                {
+                    todoTaskNew.Body = new ItemBody() { ContentType = BodyType.Text };
+                    todoTaskNew.Body.Content = content;
+                    modified = true;
+                }
+            }
+
+            if (todoTaskOld == null && config.CreateDueDate || todoTaskOld != null && config.UpdateDueDate)
+            {
+                var duetime = CanvasPreference.GetDueTime(item);
+                if (duetime.HasValue)
+                {
+                    var date = duetime.Value.ToUniversalTime().Date.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                    if (todoTaskOld == null || todoTaskOld.DueDateTime == null || date != todoTaskOld.DueDateTime.DateTime)
+                    {
+                        todoTaskNew.DueDateTime = DateTimeTimeZone.FromDateTime(duetime.Value);
+                        modified = true;
+                    }
+                }
+                else if (todoTaskOld != null && todoTaskOld.DueDateTime != null)
+                {
+                    todoTaskNew.AdditionalData = new Dictionary<string, object>();
+                    todoTaskNew.AdditionalData["dueDateTime"] = null;
+                    modified = true;
+                }
+            }
+                
+            if (todoTaskOld == null && config.CreateRemind || todoTaskOld != null && config.UpdateRemind)
+            {
+                var remindtime = CanvasPreference.GetRemindTime(item);
+                if (remindtime.HasValue)
+                {
+                    var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
+                    if (todoTaskOld == null || todoTaskOld.IsReminderOn == false || todoTaskOld.ReminderDateTime == null || date != todoTaskOld.ReminderDateTime.DateTime)
+                    {
+                        todoTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
+                        todoTaskNew.IsReminderOn = true;
+                        modified = true;
+                    }
+                }
+            }
+
+            if (todoTaskOld == null && config.CreateImportance || todoTaskOld != null && config.UpdateImportance)
+            {
+                var importance = config.SetImportance;
+                if (todoTaskOld == null || todoTaskOld.Importance.Value != (importance ? Importance.High : Importance.Normal))
+                {
+                    todoTaskNew.Importance = (importance ? Importance.High : Importance.Normal);
+                    modified = true;
+                }
+            }
 
             return modified;
         }
