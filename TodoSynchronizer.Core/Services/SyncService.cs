@@ -236,6 +236,9 @@ namespace TodoSynchronizer.Core.Services
                 foreach (var assignment in assignments)
                 {
                     if (assignment.IsQuizAssignment) continue;
+                    if (SyncConfig.Default.IgnoreTooOldItems)
+                        if (assignment?.DueAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
+                            continue;
                     var updated = false;
                     ItemCount++;
                     Message = message_prefix + $"作业 {assignment.Name}";
@@ -359,6 +362,9 @@ namespace TodoSynchronizer.Core.Services
 
                 foreach (var discussion in discussions)
                 {
+                    if (SyncConfig.Default.IgnoreTooOldItems)
+                        if (discussion?.PostedAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
+                            continue;
                     var updated = false;
                     ItemCount++;
                     Message = message_prefix + $"讨论 {discussion.Title}";
@@ -440,6 +446,9 @@ namespace TodoSynchronizer.Core.Services
                 foreach (var assignment in assignments)
                 {
                     if (!assignment.IsQuizAssignment) continue;
+                    if (SyncConfig.Default.IgnoreTooOldItems)
+                        if (assignment?.DueAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
+                            continue;
                     var updated = false;
                     ItemCount++;
                     Message = message_prefix + $"测验 {assignment.Name}";
@@ -543,6 +552,9 @@ namespace TodoSynchronizer.Core.Services
 
                 foreach (var anouncement in anouncements)
                 {
+                    if (SyncConfig.Default.IgnoreTooOldItems)
+                        if (anouncement?.PostedAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
+                            continue;
                     var updated = false;
                     ItemCount++;
                     Message = message_prefix + $"公告 {anouncement.Title}";
