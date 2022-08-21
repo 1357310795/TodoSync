@@ -5,7 +5,6 @@ using TodoSynchronizer.Core.Config;
 using YamlDotNet.Serialization;
 using TodoSynchronizer.Core.Yaml;
 using File = System.IO.File;
-using TodoSynchronizer.Core.Helpers;
 
 namespace TodoSynchronizer.CLI;
 class Program
@@ -48,6 +47,7 @@ class Program
         if (!res1.success)
         {
             Console.WriteLine("Canvas 认证失败！");
+            Console.WriteLine(res1.result);
             Environment.Exit(-1);
         }
         Console.WriteLine($"Canvas 认证成功");
@@ -67,7 +67,8 @@ class Program
             var refreshres = Web.Post("https://login.microsoftonline.com/common/oauth2/v2.0/token", headers, forms, false);
             if (!refreshres.success || refreshres.code != System.Net.HttpStatusCode.OK)
             {
-                Console.WriteLine("获取 Graph Token 认证失败！");
+                Console.WriteLine("获取 Graph Token 失败！");
+                Console.WriteLine(refreshres.result ?? refreshres.message);
                 Environment.Exit(-1);
             }
             RefreshModel refreshModel = JsonConvert.DeserializeObject<RefreshModel>(refreshres.result);

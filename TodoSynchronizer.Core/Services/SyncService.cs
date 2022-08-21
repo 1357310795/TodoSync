@@ -657,7 +657,8 @@ namespace TodoSynchronizer.Core.Services
             var modified = false;
             var desc = func(assignment, submission);
             var check = !desc.Contains("未");
-            checklistitemNew.IsChecked = checklistitemOld.IsChecked;
+
+            checklistitemNew.IsChecked = checklistitemOld?.IsChecked ?? false;
             if (checklistitemNew.IsChecked != check)
             {
                 checklistitemNew.IsChecked = check;
