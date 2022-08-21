@@ -107,3 +107,36 @@ gpg --passphrase "【你的强密码】" --batch -o "graphtoken.asc"  -c --armor
 25. 刷新，可进入 Action 查看详情。Run 步骤下面的内容为程序的执行输出
 
 ![](https://s2.loli.net/2022/08/21/kmUFi2YlMH1xbuK.png)
+
+### Q&A
+#### Fork 的仓库能不能设置为 Private？
+
+对于公开仓库，GitHub Actions 是免费的；而对于私有仓库，GitHub Actions 每个月有 2000 分钟的免费额度，超出会有巨额收费（在[这里](https://github.com/settings/billing)看用量）。本项目每次运行大约需要 4min，也就是说每个月顶多能运行 500 次，属于刚好够用。但是**强烈建议保持仓库为公开状态**。
+
+#### 为什么步骤这么复杂？我的账号、Token 安全吗？
+
+复杂的配置步骤就是为了保证账号和令牌的安全性。Canvas Token 的安全性由 GitHub 保证，Graph Token 的安全性由 AES 算法和您在第 17 步使用的密码保证。
+
+#### 授权 MyTodoApp 有什么风险？如何取消此授权？
+
+正如授权时显示的应用权限所示，“创建、读取、更新和删除你的任务和计划”和“保持对已向 MyTodoApp 授予访问权限的数据的访问权限”是应用正常运行必须的权限，“读取您的个人资料”用于验证登录。程序不会也不可能索要您的敏感信息。在[这里](https://account.live.com/consent/Manage)可以管理连接到 Microsoft 账户的应用。
+
+#### 无法登录微软账号？
+
+换用个人邮箱注册的账号，不要用学校/机构的账号。
+
+#### curl 命令不可用？
+
+请升级您的古老的 Windows 7/XP 系统，或者使用 Postman 代替
+
+#### 找不到 refresh_token？
+
+请再次检查 curl 命令是否输入正确
+
+#### 不知道什么是 Git Bash？没安装 Git？找不到 gpg 命令？
+
+去下载一个 [gpg4win](https://www.gpg4win.org/) 也行。
+
+#### GitHub Action 运行失败？
+
+如果不明白为什么失败，到原仓库提交 issue

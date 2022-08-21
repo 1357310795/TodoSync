@@ -21,7 +21,7 @@ ListNamesForCategory :
   AnouncementListName : "Canvas 公告"
 # 不处理 14 天前过期的项目
 # 如果你是在学期中开始使用本程序，建议设置为 true
-IgnoreTooOldItems : true
+IgnoreTooOldItems : false
 # 遇到错误，程序退出仍返回 0
 # 如果程序总是遇到完全可以忽略的错误，可以设置为 true，防止 GitHub 的邮件轰炸
 IgnoreErrors : false
