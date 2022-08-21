@@ -1,4 +1,4 @@
-name: .NET
+name: TodoSync
 
 on:
   workflow_dispatch:
