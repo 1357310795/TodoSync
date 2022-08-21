@@ -79,6 +79,7 @@ class Program
         catch (Exception ex)
         {
             Console.WriteLine("Graph 认证失败！");
+            Console.WriteLine(ex.ToString());
             Environment.Exit(-1);
         }
         Console.WriteLine("Graph 认证成功");

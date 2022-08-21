@@ -3,14 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models.CanvasModels;
 using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace TodoSynchronizer.Core.Services
 {
@@ -320,32 +318,18 @@ namespace TodoSynchronizer.Core.Services
                     //---Attachments---//
                     if (SyncConfig.Default.AssignmentConfig.CreateAttachments)
                     {
+                        var files = new List<Models.CanvasModels.Attachment>();
                         var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
                         var file_matches = file_reg.Matches(assignment.Content);
-                        if (file_matches.Count > 0)
+                        foreach (Match match in file_matches)
                         {
-                            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-                            foreach (Match match in file_matches)
-                            {
-                                var filename = match.Groups[1].Value;
-                                var filepath = match.Groups[2].Value;
-                                var exist = attachments.Any(x => x.Name == filename);
-                                if (!exist)
-                                {
-                                    WebClient client = new WebClient();
-                                    var data = client.DownloadData(filepath);
-                                    if (data.Length > 25 * 1024 * 1024) continue;
-                                    Stream stream = new MemoryStream(data);
-
-                                    AttachmentInfo info = new AttachmentInfo();
-                                    info.AttachmentType = AttachmentType.File;
-                                    info.Size = data.Length;
-                                    info.Name = filename;
-
-                                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                                    updated = true;
-                                }
-                            }
+                            var filename = match.Groups[1].Value;
+                            var filepath = match.Groups[2].Value;
+                            files.Add(new Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
+                        }
+                        if (files.Count > 0)
+                        {
+                            updated |= UploadAttachments(taskList, todoTask, files);
                         }
                     }
                         
@@ -425,26 +409,7 @@ namespace TodoSynchronizer.Core.Services
 
                         if (files.Count > 0)
                         {
-                            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-                            foreach (var file in files)
-                            {
-                                var exist = attachments.Any(x => x.Name == file.DisplayName);
-                                if (!exist)
-                                {
-                                    WebClient client = new WebClient();
-                                    var data = client.DownloadData(file.Url);
-                                    if (data.Length > 25 * 1024 * 1024) continue;
-                                    Stream stream = new MemoryStream(data);
-
-                                    AttachmentInfo info = new AttachmentInfo();
-                                    info.AttachmentType = AttachmentType.File;
-                                    info.Size = data.Length;
-                                    info.Name = file.DisplayName;
-
-                                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                                    updated = true;
-                                }
-                            }
+                            updated |= UploadAttachments(taskList, todoTask, files);
                         }
                     }
                         
@@ -537,32 +502,18 @@ namespace TodoSynchronizer.Core.Services
                     //---Attachments---//
                     if (SyncConfig.Default.QuizConfig.CreateAttachments)
                     {
+                        var files = new List<Models.CanvasModels.Attachment>();
                         var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
                         var file_matches = file_reg.Matches(assignment.Content);
-                        if (file_matches.Count > 0)
+                        foreach (Match match in file_matches)
                         {
-                            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-                            foreach (Match match in file_matches)
-                            {
-                                var filename = match.Groups[1].Value;
-                                var filepath = match.Groups[2].Value;
-                                var exist = attachments.Any(x => x.Name == filename);
-                                if (!exist)
-                                {
-                                    WebClient client = new WebClient();
-                                    var data = client.DownloadData(filepath);
-                                    if (data.Length > 25 * 1024 * 1024) continue;
-                                    Stream stream = new MemoryStream(data);
-
-                                    AttachmentInfo info = new AttachmentInfo();
-                                    info.AttachmentType = AttachmentType.File;
-                                    info.Size = data.Length;
-                                    info.Name = filename;
-
-                                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                                    updated = true;
-                                }
-                            }
+                            var filename = match.Groups[1].Value;
+                            var filepath = match.Groups[2].Value;
+                            files.Add(new Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
+                        }
+                        if (files.Count > 0)
+                        {
+                            updated |= UploadAttachments(taskList, todoTask, files);
                         }
                     }
                     
@@ -642,26 +593,7 @@ namespace TodoSynchronizer.Core.Services
 
                         if (files.Count > 0)
                         {
-                            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-                            foreach (var file in files)
-                            {
-                                var exist = attachments.Any(x => x.Name == file.DisplayName);
-                                if (!exist)
-                                {
-                                    WebClient client = new WebClient();
-                                    var data = client.DownloadData(file.Url);
-                                    if (data.Length > 25 * 1024 * 1024) continue;
-                                    Stream stream = new MemoryStream(data);
-
-                                    AttachmentInfo info = new AttachmentInfo();
-                                    info.AttachmentType = AttachmentType.File;
-                                    info.Size = data.Length;
-                                    info.Name = file.DisplayName;
-
-                                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                                    updated = true;
-                                }
-                            }
+                            updated |= UploadAttachments(taskList, todoTask, files);
                         }
                     }
                         
@@ -769,6 +701,32 @@ namespace TodoSynchronizer.Core.Services
             }
 
             return modified;
+        }
+
+        private static bool UploadAttachments(TodoTaskList taskList, TodoTask todoTask, List<Models.CanvasModels.Attachment> files)
+        {
+            var updated = false;
+            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
+            foreach (var file in files)
+            {
+                var exist = attachments.Any(x => x.Name == file.DisplayName);
+                if (!exist)
+                {
+                    HttpClient client = new HttpClient();
+                    var data = client.GetByteArrayAsync(file.Url).GetAwaiter().GetResult();
+                    if (data.Length > 25 * 1024 * 1024) continue;
+                    Stream stream = new MemoryStream(data);
+
+                    AttachmentInfo info = new AttachmentInfo();
+                    info.AttachmentType = AttachmentType.File;
+                    info.Size = data.Length;
+                    info.Name = file.DisplayName;
+
+                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                    updated = true;
+                }
+            }
+            return updated;
         }
         #endregion
     }
