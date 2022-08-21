@@ -9,6 +9,7 @@ using File = System.IO.File;
 namespace TodoSynchronizer.CLI;
 class Program
 {
+    static bool error;
     static void Main(string[] args)
     {
         Console.WriteLine("TodoSynchronizer v0.1 beta");
@@ -111,8 +112,12 @@ class Program
         Console.WriteLine(state.Message);
         if (state.State == SyncStateEnum.Finished)
         {
-            Environment.Exit(0);
+            Environment.Exit(error ? -1 : 0);
             //Finish();
+        }
+        if (state.State == SyncStateEnum.Error && !SyncConfig.Default.IgnoreErrors)
+        {
+            error = true;
         }
     }
 
