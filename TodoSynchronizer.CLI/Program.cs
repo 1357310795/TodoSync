@@ -60,7 +60,7 @@ class Program
             headers.Add("Content-Type", "application/x-www-form-urlencoded");
             var forms = new Dictionary<string, string>();
             forms.Add("client_id", "49694ef2-8751-4ac9-8431-8817c27350b4");
-            forms.Add("scope", "Tasks.ReadWrite%20User.Read");
+            forms.Add("scope", "Tasks.ReadWrite%20User.Read%20offline_access");
             forms.Add("refresh_token", graphtoken);
             forms.Add("grant_type", "refresh_token");
 
