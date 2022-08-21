@@ -184,10 +184,14 @@ namespace TodoSynchronizer.Core.Services
                     foreach (var course in courses)
                     {
                         CourseCount++;
-                        ProcessAssignments($"处理课程 {course.Name} ", course, dicCategory["assignment"]);
-                        //ProcessAnouncements($"处理课程 {course.Name} ", course, dicCategory["anouncement"]);
-                        //ProcessQuizes($"处理课程 {course.Name} ", course, dicCategory["quiz"]);
-                        //ProcessDiscussions($"处理课程 {course.Name} ", course, dicCategory["discussion"]);
+                        if (SyncConfig.Default.AssignmentConfig.Enabled)
+                            ProcessAssignments($"处理课程 {course.Name} ", course, dicCategory["assignment"]);
+                        if (SyncConfig.Default.AnouncementConfig.Enabled)
+                            ProcessAnouncements($"处理课程 {course.Name} ", course, dicCategory["anouncement"]);
+                        if (SyncConfig.Default.QuizConfig.Enabled)
+                            ProcessQuizes($"处理课程 {course.Name} ", course, dicCategory["quiz"]);
+                        if (SyncConfig.Default.DiscussionConfig.Enabled)
+                            ProcessDiscussions($"处理课程 {course.Name} ", course, dicCategory["discussion"]);
                     }
                 }
                 else//Course
@@ -195,10 +199,14 @@ namespace TodoSynchronizer.Core.Services
                     foreach (var course in courses)
                     {
                         CourseCount++;
-                        ProcessAssignments($"处理课程 {course.Name} ", course, dicCourse[course]);
-                        //ProcessAnouncements($"处理课程 {course.Name} ", course, dicCourse[course]);
-                        //ProcessQuizes($"处理课程 {course.Name} ", course, dicCourse[course]);
-                        //ProcessDiscussions($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        if (SyncConfig.Default.AssignmentConfig.Enabled)
+                            ProcessAssignments($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        if (SyncConfig.Default.AnouncementConfig.Enabled)
+                            ProcessAnouncements($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        if (SyncConfig.Default.QuizConfig.Enabled)
+                            ProcessQuizes($"处理课程 {course.Name} ", course, dicCourse[course]);
+                        if (SyncConfig.Default.DiscussionConfig.Enabled)
+                            ProcessDiscussions($"处理课程 {course.Name} ", course, dicCourse[course]);
                     }
                 }
             }

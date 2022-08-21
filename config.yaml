@@ -27,6 +27,8 @@ IgnoreTooOldItems : true
 IgnoreErrors : false
 # Canvas 公告 配置
 AnouncementConfig : 
+  # 是否将 Canvas 公告同步到 Todo
+  Enabled : true
   # 若 Todo 列表内无当前的公告，
   # 则在创建的新待办事项的备注中包含公告的内容
   CreateContent : true
@@ -83,6 +85,8 @@ AnouncementConfig :
   RemindAfter : 00:05:00.00
 # Canvas 作业 配置
 AssignmentConfig : 
+  # 是否将 Canvas 作业同步到 Todo
+  Enabled : true
   CreateContent : true
   # 若 Todo 列表内无当前的作业，
   # 则把创建的新待办事项的提醒时间设置为 DueDateMode 指定的值
@@ -111,7 +115,7 @@ AssignmentConfig :
   # {course.coursecodeshort} -> 简化的课程代码
   # {course.originalname} -> 原始课程名
   # {assignment.title} -> 作业标题
-  TitleTemplate : "{course.coursecodeshort} -> {assignment.title}"
+  TitleTemplate : "{course.name} - {assignment.title}"
   SetImportance : false
   # 指定待办事项过期时间的来源
   # 可选值: due_at | lock_at
@@ -135,6 +139,8 @@ AssignmentConfig :
   BeforeTimeSpan : 1.00:00:00.00
 # Canvas 测验 配置
 QuizConfig : 
+  # 是否将 Canvas 测验同步到 Todo
+  Enabled : true
   CreateContent : true
   # 若 Todo 列表内无当前的测验，
   # 则把创建的新待办事项的提醒时间设置为 DueDateMode 指定的值
@@ -171,6 +177,8 @@ QuizConfig :
   BeforeTimeSpan : 12:00:00.00 
 # Canvas 讨论 配置
 DiscussionConfig : 
+  # 是否将 Canvas 讨论同步到 Todo
+  Enabled : true
   CreateContent : true
   # 若 Todo 列表内无当前的讨论，
   # 则把创建的新待办事项的过期时间设置为讨论的发布时间

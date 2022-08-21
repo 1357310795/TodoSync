@@ -48,6 +48,7 @@ namespace TodoSynchronizer.Core.Config
 
     public class AnouncementConfig : ICanvasItemConfig
     {
+        public bool Enabled { get; set; }
         public bool CreateContent { get; set; }
         public bool CreateDueDate { get; set; }
         public bool CreateAttachments { get; set; }
@@ -67,6 +68,7 @@ namespace TodoSynchronizer.Core.Config
 
     public class AssignmentConfig : ICanvasItemConfig
     {
+        public bool Enabled { get; set; }
         public bool CreateContent { get; set; }
         public bool CreateDueDate { get; set; }
         public bool CreateRemind { get; set; }
@@ -99,6 +101,7 @@ namespace TodoSynchronizer.Core.Config
 
     public class QuizConfig : ICanvasItemConfig
     {
+        public bool Enabled { get; set; }
         public bool CreateContent { get; set; }
         public bool CreateDueDate { get; set; }
         public bool CreateRemind { get; set; }
@@ -122,6 +125,7 @@ namespace TodoSynchronizer.Core.Config
 
     public class DiscussionConfig : ICanvasItemConfig
     {
+        public bool Enabled { get; set; }
         public bool CreateContent { get; set; }
         public bool CreateDueDate { get; set; }
         public bool CreateRemind { get; set; }
