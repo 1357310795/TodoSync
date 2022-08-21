@@ -246,6 +246,7 @@ namespace TodoSynchronizer.Core.Services
                         todoTask = dicUrl[assignment.HtmlUrl];
                     else
                         todoTask = null;
+                    var isnew = todoTask == null;
 
                     //---Self & LinkedResource---//
                     TodoTask todoTaskNew = new TodoTask();
@@ -266,6 +267,8 @@ namespace TodoSynchronizer.Core.Services
                     }
 
                     //---Submissions -> CheckItems---//
+                    if (SyncConfig.Default.AssignmentConfig.CreateScoreAndCommit && isnew
+                        || SyncConfig.Default.AssignmentConfig.UpdateScoreAndCommit && !isnew)
                     if (assignment.HasSubmittedSubmissions)
                     {
                         var links = TodoService.ListCheckItems(taskList.Id.ToString(), todoTask.Id.ToString());
@@ -315,34 +318,37 @@ namespace TodoSynchronizer.Core.Services
                         }
                     }
                     //---Attachments---//
-                    var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
-                    var file_matches = file_reg.Matches(assignment.Content);
-                    if (file_matches.Count > 0)
+                    if (SyncConfig.Default.AssignmentConfig.CreateAttachments)
                     {
-                        var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-                        foreach (Match match in file_matches)
+                        var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
+                        var file_matches = file_reg.Matches(assignment.Content);
+                        if (file_matches.Count > 0)
                         {
-                            var filename = match.Groups[1].Value;
-                            var filepath = match.Groups[2].Value;
-                            var exist = attachments.Any(x => x.Name == filename);
-                            if (!exist)
+                            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
+                            foreach (Match match in file_matches)
                             {
-                                WebClient client = new WebClient();
-                                var data = client.DownloadData(filepath);
-                                if (data.Length > 25 * 1024 * 1024) continue;
-                                Stream stream = new MemoryStream(data);
+                                var filename = match.Groups[1].Value;
+                                var filepath = match.Groups[2].Value;
+                                var exist = attachments.Any(x => x.Name == filename);
+                                if (!exist)
+                                {
+                                    WebClient client = new WebClient();
+                                    var data = client.DownloadData(filepath);
+                                    if (data.Length > 25 * 1024 * 1024) continue;
+                                    Stream stream = new MemoryStream(data);
 
-                                AttachmentInfo info = new AttachmentInfo();
-                                info.AttachmentType = AttachmentType.File;
-                                info.Size = data.Length;
-                                info.Name = filename;
+                                    AttachmentInfo info = new AttachmentInfo();
+                                    info.AttachmentType = AttachmentType.File;
+                                    info.Size = data.Length;
+                                    info.Name = filename;
 
-                                TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                                updated = true;
+                                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                                    updated = true;
+                                }
                             }
                         }
                     }
-
+                        
                     if (updated)
                         UpdateCount++;
                 }
@@ -397,48 +403,51 @@ namespace TodoSynchronizer.Core.Services
                     }
 
                     //---Attachments---//
-                    var files = discussion.Attachments;
-                    var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
-                    var file_matches = file_reg.Matches(discussion.Content);
-                    var img_reg = new Regex(@"<img.+?src=""(.+?)"".+?alt=""(.+?)"".+?>");
-                    var img_matches = img_reg.Matches(discussion.Content);
-                    foreach (Match match in file_matches)
+                    if (SyncConfig.Default.DiscussionConfig.CreateAttachments)
                     {
-                        var filename = match.Groups[1].Value;
-                        var filepath = match.Groups[2].Value;
-                        files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                    }
-                    foreach (Match match in img_matches)
-                    {
-                        var filename = match.Groups[2].Value;
-                        var filepath = match.Groups[1].Value;
-                        files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                    }
-
-                    if (files.Count > 0)
-                    {
-                        var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-                        foreach (var file in files)
+                        var files = discussion.Attachments;
+                        var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
+                        var file_matches = file_reg.Matches(discussion.Content);
+                        var img_reg = new Regex(@"<img.+?src=""(.+?)"".+?alt=""(.+?)"".+?>");
+                        var img_matches = img_reg.Matches(discussion.Content);
+                        foreach (Match match in file_matches)
                         {
-                            var exist = attachments.Any(x => x.Name == file.DisplayName);
-                            if (!exist)
+                            var filename = match.Groups[1].Value;
+                            var filepath = match.Groups[2].Value;
+                            files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
+                        }
+                        foreach (Match match in img_matches)
+                        {
+                            var filename = match.Groups[2].Value;
+                            var filepath = match.Groups[1].Value;
+                            files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
+                        }
+
+                        if (files.Count > 0)
+                        {
+                            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
+                            foreach (var file in files)
                             {
-                                WebClient client = new WebClient();
-                                var data = client.DownloadData(file.Url);
-                                if (data.Length > 25 * 1024 * 1024) continue;
-                                Stream stream = new MemoryStream(data);
+                                var exist = attachments.Any(x => x.Name == file.DisplayName);
+                                if (!exist)
+                                {
+                                    WebClient client = new WebClient();
+                                    var data = client.DownloadData(file.Url);
+                                    if (data.Length > 25 * 1024 * 1024) continue;
+                                    Stream stream = new MemoryStream(data);
 
-                                AttachmentInfo info = new AttachmentInfo();
-                                info.AttachmentType = AttachmentType.File;
-                                info.Size = data.Length;
-                                info.Name = file.DisplayName;
+                                    AttachmentInfo info = new AttachmentInfo();
+                                    info.AttachmentType = AttachmentType.File;
+                                    info.Size = data.Length;
+                                    info.Name = file.DisplayName;
 
-                                TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                                updated = true;
+                                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                                    updated = true;
+                                }
                             }
                         }
                     }
-
+                        
                     if (updated)
                         UpdateCount++;
                 }
@@ -474,6 +483,7 @@ namespace TodoSynchronizer.Core.Services
                         todoTask = dicUrl[assignment.HtmlUrl];
                     else
                         todoTask = null;
+                    var isnew = todoTask == null;
 
                     //---Self & LinkedResource---//
                     TodoTask todoTaskNew = new TodoTask();
@@ -494,6 +504,8 @@ namespace TodoSynchronizer.Core.Services
                     }
 
                     //---Submissions -> CheckItems---//
+                    if (SyncConfig.Default.QuizConfig.CreateScoreAndCommit && isnew
+                        || SyncConfig.Default.QuizConfig.UpdateScoreAndCommit && !isnew)
                     if (assignment.HasSubmittedSubmissions)
                     {
                         var links = TodoService.ListCheckItems(taskList.Id.ToString(), todoTask.Id.ToString());
@@ -523,34 +535,37 @@ namespace TodoSynchronizer.Core.Services
                         }
                     }
                     //---Attachments---//
-                    var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
-                    var file_matches = file_reg.Matches(assignment.Content);
-                    if (file_matches.Count > 0)
+                    if (SyncConfig.Default.QuizConfig.CreateAttachments)
                     {
-                        var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-                        foreach (Match match in file_matches)
+                        var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
+                        var file_matches = file_reg.Matches(assignment.Content);
+                        if (file_matches.Count > 0)
                         {
-                            var filename = match.Groups[1].Value;
-                            var filepath = match.Groups[2].Value;
-                            var exist = attachments.Any(x => x.Name == filename);
-                            if (!exist)
+                            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
+                            foreach (Match match in file_matches)
                             {
-                                WebClient client = new WebClient();
-                                var data = client.DownloadData(filepath);
-                                if (data.Length > 25 * 1024 * 1024) continue;
-                                Stream stream = new MemoryStream(data);
+                                var filename = match.Groups[1].Value;
+                                var filepath = match.Groups[2].Value;
+                                var exist = attachments.Any(x => x.Name == filename);
+                                if (!exist)
+                                {
+                                    WebClient client = new WebClient();
+                                    var data = client.DownloadData(filepath);
+                                    if (data.Length > 25 * 1024 * 1024) continue;
+                                    Stream stream = new MemoryStream(data);
 
-                                AttachmentInfo info = new AttachmentInfo();
-                                info.AttachmentType = AttachmentType.File;
-                                info.Size = data.Length;
-                                info.Name = filename;
+                                    AttachmentInfo info = new AttachmentInfo();
+                                    info.AttachmentType = AttachmentType.File;
+                                    info.Size = data.Length;
+                                    info.Name = filename;
 
-                                TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                                updated = true;
+                                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                                    updated = true;
+                                }
                             }
                         }
                     }
-
+                    
                     if (updated)
                         UpdateCount++;
                 }
@@ -605,48 +620,51 @@ namespace TodoSynchronizer.Core.Services
                     }
 
                     //---Attachments---//
-                    var files = anouncement.Attachments;
-                    var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
-                    var file_matches = file_reg.Matches(anouncement.Content);
-                    var img_reg = new Regex(@"<img.+?src=""(.+?)"".+?alt=""(.+?)"".+?>");
-                    var img_matches = img_reg.Matches(anouncement.Content);
-                    foreach (Match match in file_matches)
+                    if (SyncConfig.Default.AnouncementConfig.CreateAttachments)
                     {
-                        var filename = match.Groups[1].Value;
-                        var filepath = match.Groups[2].Value;
-                        files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                    }
-                    foreach (Match match in img_matches)
-                    {
-                        var filename = match.Groups[2].Value;
-                        var filepath = match.Groups[1].Value;
-                        files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                    }
-
-                    if (files.Count > 0)
-                    {
-                        var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-                        foreach (var file in files)
+                        var files = anouncement.Attachments;
+                        var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
+                        var file_matches = file_reg.Matches(anouncement.Content);
+                        var img_reg = new Regex(@"<img.+?src=""(.+?)"".+?alt=""(.+?)"".+?>");
+                        var img_matches = img_reg.Matches(anouncement.Content);
+                        foreach (Match match in file_matches)
                         {
-                            var exist = attachments.Any(x => x.Name == file.DisplayName);
-                            if (!exist)
+                            var filename = match.Groups[1].Value;
+                            var filepath = match.Groups[2].Value;
+                            files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
+                        }
+                        foreach (Match match in img_matches)
+                        {
+                            var filename = match.Groups[2].Value;
+                            var filepath = match.Groups[1].Value;
+                            files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
+                        }
+
+                        if (files.Count > 0)
+                        {
+                            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
+                            foreach (var file in files)
                             {
-                                WebClient client = new WebClient();
-                                var data = client.DownloadData(file.Url);
-                                if (data.Length > 25 * 1024 * 1024) continue;
-                                Stream stream = new MemoryStream(data);
+                                var exist = attachments.Any(x => x.Name == file.DisplayName);
+                                if (!exist)
+                                {
+                                    WebClient client = new WebClient();
+                                    var data = client.DownloadData(file.Url);
+                                    if (data.Length > 25 * 1024 * 1024) continue;
+                                    Stream stream = new MemoryStream(data);
 
-                                AttachmentInfo info = new AttachmentInfo();
-                                info.AttachmentType = AttachmentType.File;
-                                info.Size = data.Length;
-                                info.Name = file.DisplayName;
+                                    AttachmentInfo info = new AttachmentInfo();
+                                    info.AttachmentType = AttachmentType.File;
+                                    info.Size = data.Length;
+                                    info.Name = file.DisplayName;
 
-                                TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                                updated = true;
+                                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                                    updated = true;
+                                }
                             }
                         }
                     }
-
+                        
                     if (updated)
                         UpdateCount++;
                 }
