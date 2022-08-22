@@ -9,6 +9,7 @@ using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models.CanvasModels;
 using Newtonsoft.Json;
 using System.Net.Http;
+using System.Net;
 
 namespace TodoSynchronizer.Core.Services
 {
@@ -724,8 +725,9 @@ namespace TodoSynchronizer.Core.Services
                 var exist = attachments.Any(x => x.Name == file.DisplayName);
                 if (!exist)
                 {
-                    HttpClient client = new HttpClient();
-                    var data = client.GetByteArrayAsync(file.Url).GetAwaiter().GetResult();
+                    WebClient client = new WebClient();
+                    var data = client.DownloadData(file.Url);
+
                     if (data.Length > 25 * 1024 * 1024) continue;
                     Stream stream = new MemoryStream(data);
 
