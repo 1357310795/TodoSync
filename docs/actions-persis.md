@@ -75,6 +75,7 @@ curl -d "client_id=49694ef2-8751-4ac9-8431-8817c27350b4&scope=Tasks.ReadWrite%20
 ```bash
 gpg --passphrase "【你的强密码】" --batch -o "graphtoken.asc"  -c --armor "【输入文件】"
 ```
+![](https://s2.loli.net/2022/08/22/d8KYZ1cqRkMJlFi.png)
 
 18. 打开输出文件，复制内容
 
@@ -108,6 +109,10 @@ gpg --passphrase "【你的强密码】" --batch -o "graphtoken.asc"  -c --armor
 
 ![](https://s2.loli.net/2022/08/21/kmUFi2YlMH1xbuK.png)
 
+26. 编辑仓库根目录下的 `config.yaml` 文件，可以调整程序设置
+
+![](https://s2.loli.net/2022/08/22/mcK5afDhRXSUCVM.png)
+
 ### Q&A
 #### Fork 的仓库能不能设置为 Private？
 
@@ -116,6 +121,10 @@ gpg --passphrase "【你的强密码】" --batch -o "graphtoken.asc"  -c --armor
 #### 为什么步骤这么复杂？我的账号、Token 安全吗？
 
 复杂的配置步骤就是为了保证账号和令牌的安全性。Canvas Token 的安全性由 GitHub 保证，Graph Token 的安全性由 AES 算法和您在第 17 步使用的密码保证。
+
+#### 为什么不直接把 Graph 的 AccessToken/RefreshToken 保存到 Secrets，像 Canvas Token 那样？
+
+AccessToken 的有效期只有 1 小时，RefreshToken 的有效期可能是 90 天（参考[这里](https://docs.microsoft.com/zh-cn/azure/active-directory/develop/active-directory-configurable-token-lifetimes#refresh-and-session-token-lifetime-policy-properties)，我看不明白）。为确保令牌永不过期，需要在每次运行时更新令牌。Secrets 不支持使用 Action 操作更新，故只能将令牌加密后保存到存储库的 graphtoken 分支，密钥保存在 Secrets 内。
 
 #### 授权 MyTodoApp 有什么风险？如何取消此授权？
 
