@@ -184,13 +184,13 @@ namespace TodoSynchronizer.Core.Services
                     {
                         CourseCount++;
                         if (SyncConfig.Default.AssignmentConfig.Enabled)
-                            ProcessAssignments($"处理课程 {course.Name} ", course, dicCategory["assignment"]);
+                            ProcessAssignments(GetCourseMessage(course), course, dicCategory["assignment"]);
                         if (SyncConfig.Default.AnouncementConfig.Enabled)
-                            ProcessAnouncements($"处理课程 {course.Name} ", course, dicCategory["anouncement"]);
+                            ProcessAnouncements(GetCourseMessage(course), course, dicCategory["anouncement"]);
                         if (SyncConfig.Default.QuizConfig.Enabled)
-                            ProcessQuizes($"处理课程 {course.Name} ", course, dicCategory["quiz"]);
+                            ProcessQuizes(GetCourseMessage(course), course, dicCategory["quiz"]);
                         if (SyncConfig.Default.DiscussionConfig.Enabled)
-                            ProcessDiscussions($"处理课程 {course.Name} ", course, dicCategory["discussion"]);
+                            ProcessDiscussions(GetCourseMessage(course), course, dicCategory["discussion"]);
                     }
                 }
                 else//Course
@@ -199,13 +199,13 @@ namespace TodoSynchronizer.Core.Services
                     {
                         CourseCount++;
                         if (SyncConfig.Default.AssignmentConfig.Enabled)
-                            ProcessAssignments($"处理课程 {course.Name} ", course, dicCourse[course]);
+                            ProcessAssignments(GetCourseMessage(course), course, dicCourse[course]);
                         if (SyncConfig.Default.AnouncementConfig.Enabled)
-                            ProcessAnouncements($"处理课程 {course.Name} ", course, dicCourse[course]);
+                            ProcessAnouncements(GetCourseMessage(course), course, dicCourse[course]);
                         if (SyncConfig.Default.QuizConfig.Enabled)
-                            ProcessQuizes($"处理课程 {course.Name} ", course, dicCourse[course]);
+                            ProcessQuizes(GetCourseMessage(course), course, dicCourse[course]);
                         if (SyncConfig.Default.DiscussionConfig.Enabled)
-                            ProcessDiscussions($"处理课程 {course.Name} ", course, dicCourse[course]);
+                            ProcessDiscussions(GetCourseMessage(course), course, dicCourse[course]);
                     }
                 }
             }
@@ -220,6 +220,16 @@ namespace TodoSynchronizer.Core.Services
                 SyncStateEnum.Finished,
                 $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目"
             ));
+        }
+
+        private string GetCourseMessage(Course course)
+        {
+            return $"处理课程 {(SyncConfig.Default.VerboseMode ? course.Name : CourseCount)} ";
+        }
+
+        private string GetItemMessage(ICanvasItem item)
+        {
+            return $"处理{item.GetItemName()} {(SyncConfig.Default.VerboseMode ? item.Title : ItemCount)} ";
         }
 
         #region Assignments
@@ -242,7 +252,7 @@ namespace TodoSynchronizer.Core.Services
                             continue;
                     var updated = false;
                     ItemCount++;
-                    Message = message_prefix + $"作业 {assignment.Name}";
+                    Message = message_prefix + GetItemMessage(assignment);
                     TodoTask todoTask = null;
                     if (dicUrl.ContainsKey(assignment.HtmlUrl))
                         todoTask = dicUrl[assignment.HtmlUrl];
@@ -368,7 +378,7 @@ namespace TodoSynchronizer.Core.Services
                             continue;
                     var updated = false;
                     ItemCount++;
-                    Message = message_prefix + $"讨论 {discussion.Title}";
+                    Message = message_prefix + GetItemMessage(discussion);
                     TodoTask todoTask = null;
                     if (dicUrl.ContainsKey(discussion.HtmlUrl))
                         todoTask = dicUrl[discussion.HtmlUrl];
@@ -452,7 +462,7 @@ namespace TodoSynchronizer.Core.Services
                             continue;
                     var updated = false;
                     ItemCount++;
-                    Message = message_prefix + $"测验 {assignment.Name}";
+                    Message = message_prefix + GetItemMessage(assignment);
                     TodoTask todoTask = null;
                     if (dicUrl.ContainsKey(assignment.HtmlUrl))
                         todoTask = dicUrl[assignment.HtmlUrl];
@@ -558,7 +568,7 @@ namespace TodoSynchronizer.Core.Services
                             continue;
                     var updated = false;
                     ItemCount++;
-                    Message = message_prefix + $"公告 {anouncement.Title}";
+                    Message = message_prefix + GetItemMessage(anouncement);
                     TodoTask todoTask = null;
                     if (dicUrl.ContainsKey(anouncement.HtmlUrl))
                         todoTask = dicUrl[anouncement.HtmlUrl];

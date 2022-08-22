@@ -19,6 +19,7 @@ namespace TodoSynchronizer.Core.Config
         //Global Config
         public bool IgnoreTooOldItems { get; set; }
         public bool IgnoreErrors { get; set; }
+        public bool VerboseMode { get; set; }
 
         //Anouncement
         public AnouncementConfig AnouncementConfig { get; set; }

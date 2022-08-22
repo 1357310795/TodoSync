@@ -87,5 +87,14 @@ namespace TodoSynchronizer.Core.Helpers
         {
             return $"尝试 {submission.Attempt}：{submission.Score}/{submission.QuizPointsPossible}（提交时间：{submission.FinishedAt.ToString("yyyy-MM-dd HH:mm:ss")}）";
         }
+
+        public static string GetItemName(this ICanvasItem item)
+        {
+            if (item is Quiz quiz) return "测验";
+            if (item is Assignment assignment) return "作业";
+            if (item is Anouncement anouncement) return "公告";
+            if (item is Discussion discussion) return "讨论";
+            return null;
+        }
     }
 }
