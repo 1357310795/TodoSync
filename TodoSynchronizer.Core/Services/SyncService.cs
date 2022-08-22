@@ -229,7 +229,7 @@ namespace TodoSynchronizer.Core.Services
 
         private string GetItemMessage(ICanvasItem item)
         {
-            return $"处理{item.GetItemName()} {(SyncConfig.Default.VerboseMode ? item.Title : ItemCount)} ";
+            return $"{item.GetItemName()} {(SyncConfig.Default.VerboseMode ? item.Title : ItemCount)} ";
         }
 
         #region Assignments
