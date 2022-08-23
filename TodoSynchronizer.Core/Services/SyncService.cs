@@ -102,7 +102,7 @@ namespace TodoSynchronizer.Core.Services
                         if (taskList == null)
                             throw new Exception("创建 Todo 列表失败");
                         else
-                            Message = $"找到 Todo 列表：{taskList.DisplayName}";
+                            Message = $"找到 Todo 列表：{(SyncConfig.Default.VerboseMode ?  taskList.DisplayName : taskList.Id.GetHashCode())}";
                         dicCourse.Add(c, taskList);
                     }
                 }
