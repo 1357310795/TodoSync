@@ -234,7 +234,7 @@ namespace TodoSynchronizer.Core.Services
         #region Assignments
         public void ProcessAssignments(string message_prefix, Course course, TodoTaskList taskList)
         {
-            Message = message_prefix;
+            Message = message_prefix + "作业";
             try
             {
                 var assignments = CanvasService.ListAssignments(course.Id.ToString());
@@ -361,7 +361,7 @@ namespace TodoSynchronizer.Core.Services
         #region Discussions
         private void ProcessDiscussions(string message_prefix, Course course, TodoTaskList taskList)
         {
-            Message = message_prefix;
+            Message = message_prefix + "讨论";
             try
             {
                 var discussions = CanvasService.ListDiscussions(course.Id.ToString());
@@ -444,7 +444,7 @@ namespace TodoSynchronizer.Core.Services
         #region Quizes
         private void ProcessQuizes(string message_prefix, Course course, TodoTaskList taskList)
         {
-            Message = message_prefix;
+            Message = message_prefix + "测验";
             try
             {
                 var assignments = CanvasService.ListAssignments(course.Id.ToString());
@@ -551,7 +551,7 @@ namespace TodoSynchronizer.Core.Services
         #region Anouncements
         private void ProcessAnouncements(string message_prefix, Course course, TodoTaskList taskList)
         {
-            Message = message_prefix;
+            Message = message_prefix + "公告";
             try
             {
                 var anouncements = CanvasService.ListAnouncements(course.Id.ToString());
