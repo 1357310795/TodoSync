@@ -729,28 +729,36 @@ namespace TodoSynchronizer.Core.Services
         private static bool UploadAttachments(TodoTaskList taskList, TodoTask todoTask, List<Models.CanvasModels.Attachment> files)
         {
             var updated = false;
-            var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
-            foreach (var file in files)
+            try
             {
-                var exist = attachments.Any(x => x.Name == file.DisplayName);
-                if (!exist)
+                var attachments = TodoService.ListAttachments(taskList.Id.ToString(), todoTask.Id.ToString());
+                foreach (var file in files)
                 {
-                    WebClient client = new WebClient();
-                    var data = client.DownloadData(file.Url);
+                    var exist = attachments.Any(x => x.Name == file.DisplayName);
+                    if (!exist)
+                    {
+                        WebClient client = new WebClient();
+                        var data = client.DownloadData(file.Url);
 
-                    if (data.Length > 25 * 1024 * 1024) continue;
-                    Stream stream = new MemoryStream(data);
+                        if (data.Length > 25 * 1024 * 1024) continue;
+                        Stream stream = new MemoryStream(data);
 
-                    AttachmentInfo info = new AttachmentInfo();
-                    info.AttachmentType = AttachmentType.File;
-                    info.Size = data.Length;
-                    info.Name = file.DisplayName;
+                        AttachmentInfo info = new AttachmentInfo();
+                        info.AttachmentType = AttachmentType.File;
+                        info.Size = data.Length;
+                        info.Name = file.DisplayName;
 
-                    TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
-                    updated = true;
+                        TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                        updated = true;
+                    }
                 }
+                return updated;
             }
-            return updated;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"上传文件失败：{ex.Message}");
+                return false;
+            }
         }
         #endregion
     }

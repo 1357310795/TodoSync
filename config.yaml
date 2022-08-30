@@ -24,6 +24,7 @@ ListNamesForCategory :
 IgnoreTooOldItems : false
 # 遇到错误，程序退出仍返回 0
 # 如果程序总是遇到完全可以忽略的错误，可以设置为 true，防止 GitHub 的邮件轰炸
+# 注：如果附件上传失败，无论 IgnoreErrors 为何值，程序都不会认为遇到了错误
 IgnoreErrors : false
 # 输出详细的课程信息（为保护隐私，建议保持 false）
 # e.g.
