@@ -30,7 +30,7 @@ IgnoreErrors : false
 # e.g.
 # 若为 true，输出“处理课程 高等数学 作业 第一章作业”
 # 若为 false，输出“处理课程 1 作业 3”
-VerboseMode : false
+VerboseMode : true
 # Canvas 公告 配置
 AnouncementConfig : 
   # 是否将 Canvas 公告同步到 Todo
