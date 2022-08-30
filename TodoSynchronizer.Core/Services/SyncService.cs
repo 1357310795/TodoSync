@@ -1,15 +1,14 @@
 ﻿using Microsoft.Graph;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models.CanvasModels;
-using Newtonsoft.Json;
-using System.Net.Http;
-using System.Net;
 
 namespace TodoSynchronizer.Core.Services
 {
@@ -737,8 +736,17 @@ namespace TodoSynchronizer.Core.Services
                     var exist = attachments.Any(x => x.Name == file.DisplayName);
                     if (!exist)
                     {
+                        Uri fulluri;
+                        var isabsolute = Uri.TryCreate(file.Url, UriKind.Absolute, out fulluri);
+                        if (!isabsolute)
+                        {
+                            var res = Uri.TryCreate(new Uri("https://oc.sjtu.edu.cn"), file.Url, out fulluri);
+                            if (!res)
+                                throw new Exception($"Uri无效：{file.Url}");
+                        }
+
                         WebClient client = new WebClient();
-                        var data = client.DownloadData(file.Url);
+                        var data = client.DownloadData(fulluri);
 
                         if (data.Length > 25 * 1024 * 1024) continue;
                         Stream stream = new MemoryStream(data);
