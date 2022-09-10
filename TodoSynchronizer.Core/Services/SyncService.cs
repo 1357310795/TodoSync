@@ -759,7 +759,7 @@ namespace TodoSynchronizer.Core.Services
                         }
                         catch (Exception ex)
                         {
-                            throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n[{(int)res.StatusCode} {res.StatusCode.ToString()}] {res.Content.ReadAsStringAsync().Result}");
+                            throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n{ex.Message}");
                         }
                        
                         if (res.StatusCode != HttpStatusCode.OK)
