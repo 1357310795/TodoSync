@@ -103,7 +103,7 @@ AssignmentConfig :
   # 若 Todo 列表内无当前的作业，
   # 则在创建的新待办事项的步骤里添加提交和分数信息
   CreateScoreAndCommit : true
-  CreateAttachments : false
+  CreateAttachments : true
   CreateImportance : false
   UpdateTitle : true
   UpdateContent : true

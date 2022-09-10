@@ -5,10 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models.CanvasModels;
+using YamlDotNet.Core.Tokens;
 
 namespace TodoSynchronizer.Core.Services
 {
@@ -725,7 +727,7 @@ namespace TodoSynchronizer.Core.Services
             return modified;
         }
 
-        private static bool UploadAttachments(TodoTaskList taskList, TodoTask todoTask, List<Models.CanvasModels.Attachment> files)
+        private bool UploadAttachments(TodoTaskList taskList, TodoTask todoTask, List<Models.CanvasModels.Attachment> files)
         {
             var updated = false;
             try
@@ -740,13 +742,20 @@ namespace TodoSynchronizer.Core.Services
                         var isabsolute = Uri.TryCreate(file.Url, UriKind.Absolute, out fulluri);
                         if (!isabsolute)
                         {
-                            var res = Uri.TryCreate(new Uri("https://oc.sjtu.edu.cn"), file.Url, out fulluri);
-                            if (!res)
+                            var urires = Uri.TryCreate(new Uri("https://oc.sjtu.edu.cn"), file.Url, out fulluri);
+                            if (!urires)
                                 throw new Exception($"Uri无效：{file.Url}");
                         }
 
-                        WebClient client = new WebClient();
-                        var data = client.DownloadData(fulluri);
+                        HttpClient client = new HttpClient();
+                        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {CanvasService.Token}");
+                        var datatask = client.GetAsync(fulluri);
+                        //datatask.RunSynchronously();
+                        datatask.Wait();
+                        var res = datatask.Result;
+                        if (res.StatusCode != HttpStatusCode.OK)
+                            throw new Exception($"[{(int)res.StatusCode} {res.StatusCode.ToString()}] {res.Content.ReadAsStringAsync().Result}");
+                        var data = datatask.Result.Content.ReadAsByteArrayAsync().Result;
 
                         if (data.Length > 25 * 1024 * 1024) continue;
                         Stream stream = new MemoryStream(data);
@@ -764,7 +773,7 @@ namespace TodoSynchronizer.Core.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"上传文件失败：{ex.Message}");
+                OnReportProgress.Invoke(new SyncState(SyncStateEnum.Progress, $"上传文件失败：{ex.Message}"));
                 return false;
             }
         }
