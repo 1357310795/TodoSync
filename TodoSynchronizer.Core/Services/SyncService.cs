@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using TodoSynchronizer.Core.Config;
+using TodoSynchronizer.Core.Extensions;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models.CanvasModels;
 using YamlDotNet.Core.Tokens;
@@ -738,6 +739,7 @@ namespace TodoSynchronizer.Core.Services
                     var exist = attachments.Any(x => x.Name == file.DisplayName);
                     if (!exist)
                     {
+                        file.Url = file.Url.UrlUnescape().EscToHtml();
                         Uri fulluri;
                         var isabsolute = Uri.TryCreate(file.Url, UriKind.Absolute, out fulluri);
                         if (!isabsolute)

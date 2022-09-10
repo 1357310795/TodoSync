@@ -127,7 +127,7 @@ namespace TodoSynchronizer.Core.Service
                 {
                     if (i > 0)
                         builder.Append("&");
-                    builder.AppendFormat("{0}={1}", item.Key, urlencode ? item.Value.UrlEncode() : item.Value);
+                    builder.AppendFormat("{0}={1}", item.Key, urlencode ? item.Value.UrlUnescape() : item.Value);
                     i++;
                 }
             }
