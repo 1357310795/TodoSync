@@ -749,13 +749,22 @@ namespace TodoSynchronizer.Core.Services
 
                         HttpClient client = new HttpClient();
                         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {CanvasService.Token}");
-                        var datatask = client.GetAsync(fulluri);
-                        //datatask.RunSynchronously();
-                        datatask.Wait();
-                        var res = datatask.Result;
+                        HttpResponseMessage res = null;
+                        try
+                        {
+                            var datatask = client.GetAsync(fulluri);
+                            //datatask.RunSynchronously();
+                            datatask.Wait();
+                            res = datatask.Result;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n[{(int)res.StatusCode} {res.StatusCode.ToString()}] {res.Content.ReadAsStringAsync().Result}");
+                        }
+                       
                         if (res.StatusCode != HttpStatusCode.OK)
-                            throw new Exception($"[{(int)res.StatusCode} {res.StatusCode.ToString()}] {res.Content.ReadAsStringAsync().Result}");
-                        var data = datatask.Result.Content.ReadAsByteArrayAsync().Result;
+                            throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n[{(int)res.StatusCode} {res.StatusCode.ToString()}] {res.Content.ReadAsStringAsync().Result}");
+                        var data = res.Content.ReadAsByteArrayAsync().Result;
 
                         if (data.Length > 25 * 1024 * 1024) continue;
                         Stream stream = new MemoryStream(data);
