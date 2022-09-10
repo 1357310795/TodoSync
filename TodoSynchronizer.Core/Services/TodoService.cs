@@ -23,7 +23,7 @@ namespace TodoSynchronizer.Core.Services
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
                 });
 
-                client = new GraphServiceClient("https://graph.microsoft.com/v1.0", authProvider);
+                client = new GraphServiceClient("https://graph.microsoft.com/beta", authProvider);
             }
         }
 

@@ -97,7 +97,7 @@ namespace TodoSynchronizer.Views
 
         private static void ReadConfig()
         {
-            var yml = File.ReadAllText(@"C:\Users\111\Downloads\test.yaml");
+            var yml = File.ReadAllText(@"C:\Users\111\source\repos\TodoSynchronizer\config.yaml");
             var deserializer = new DeserializerBuilder()
                 .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
                 .WithTypeInspector(n => new IgnoreCaseTypeInspector(n))
