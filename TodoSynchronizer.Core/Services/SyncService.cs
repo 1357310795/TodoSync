@@ -806,8 +806,7 @@ namespace TodoSynchronizer.Core.Services
                                 throw new Exception($"Uri无效：{file.Url}");
                         }
 
-                        HttpClient client = new HttpClient();
-                        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {CanvasService.Token}");
+                        HttpClient client = CanvasService.Client;
                         HttpResponseMessage res = null;
                         try
                         {

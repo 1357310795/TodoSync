@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models;
 using TodoSynchronizer.Core.Models.CanvasModels;
 using TodoSynchronizer.Core.Service;
+using YamlDotNet.Core.Tokens;
 
 namespace TodoSynchronizer.Core.Services
 {
@@ -19,13 +21,18 @@ namespace TodoSynchronizer.Core.Services
         public static bool IsLogin { get; set; }
 
         public static UserProfile User { get; set; }
+        
+        public static HttpClient Client { get; set; }
 
         public static CommonResult Login(string token)
         {
-            var headers = new Dictionary<string,string>();
-            headers.Add("Authorization", $"Bearer {token}");
+            Client = new HttpClient()
+            {
+                BaseAddress = new Uri("https://oc.sjtu.edu.cn")
+            };
+            Client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
-            var res = Web.Get("https://oc.sjtu.edu.cn/api/v1/users/self/profile", headers);
+            var res = Web.Get(Client, "/api/v1/users/self/profile");
 
             if (!res.success)
                 return new CommonResult(false, res.message);
@@ -55,54 +62,47 @@ namespace TodoSynchronizer.Core.Services
 
         public static List<Course> ListCourses()
         {
-            var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
             query.Add("enrollment_state", "active");
 
-            return GetAllPageResult<Course>("https://oc.sjtu.edu.cn/api/v1/courses", headers, query);
+            return GetAllPageResult<Course>("/api/v1/courses", query);
         }
 
         public static List<Assignment> ListAssignments(string course_id)
         {
-            var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
 
-            return GetAllPageResult<Assignment>($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/assignments", headers, query);
+            return GetAllPageResult<Assignment>($"/api/v1/courses/{course_id}/assignments", query);
         }
 
         public static List<Quiz> ListQuizes(string course_id)
         {
-            var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
 
-            return GetAllPageResult<Quiz>($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/quizzes", headers, query);
+            return GetAllPageResult<Quiz>($"/api/v1/courses/{course_id}/quizzes", query);
         }
 
         public static List<Anouncement> ListAnouncements(string course_id)
         {
-            var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
             query.Add("only_announcements", "true");
             query.Add("filter_by", "all");
 
-            return GetAllPageResult<Anouncement>($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/discussion_topics", headers, query);
+            return GetAllPageResult<Anouncement>($"/api/v1/courses/{course_id}/discussion_topics", query);
         }
 
         public static List<Discussion> ListDiscussions(string course_id)
         {
-            var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
 
-            return GetAllPageResult<Discussion>($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/discussion_topics", headers, query);
+            return GetAllPageResult<Discussion>($"/api/v1/courses/{course_id}/discussion_topics", query);
         }
 
         public static AssignmentSubmission GetAssignmentSubmisson(string course_id, string assignment_id)
         {
-            var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
-            headers.Add("Authorization", $"Bearer {Token}");
 
-            var res = Web.Get($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/assignments/{assignment_id}/submissions/self", headers, query);
+            var res = Web.Get(Client, $"/api/v1/courses/{course_id}/assignments/{assignment_id}/submissions/self", query);
             if (!res.success)
                 throw new Exception(res.message);
 
@@ -122,13 +122,11 @@ namespace TodoSynchronizer.Core.Services
 
         public static List<QuizSubmission> ListQuizSubmissons(string course_id, string quiz_id)
         {
-            var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
-            headers.Add("Authorization", $"Bearer {Token}");
             query.Add("page", "1");
             query.Add("per_page", "20");
 
-            var res = Web.Get($"https://oc.sjtu.edu.cn/api/v1/courses/{course_id}/quizzes/{quiz_id}/submissions", headers, query);
+            var res = Web.Get(Client, $"/api/v1/courses/{course_id}/quizzes/{quiz_id}/submissions", query);
             if (!res.success)
                 throw new Exception(res.message);
 
@@ -148,11 +146,9 @@ namespace TodoSynchronizer.Core.Services
 
         public static List<Notification> ListNotifications()
         {
-            var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
-            headers.Add("Authorization", $"Bearer {Token}");
 
-            var res = Web.Get($"https://oc.sjtu.edu.cn/api/v1/accounts/self/account_notifications", headers, query);
+            var res = Web.Get(Client, $"/api/v1/accounts/self/account_notifications", query);
             if (!res.success)
                 throw new Exception(res.message);
 
@@ -170,13 +166,12 @@ namespace TodoSynchronizer.Core.Services
             }
         }
 
-        public static List<T> GetAllPageResult<T>(string url, Dictionary<string, string> headers, Dictionary<string, string> query)
+        public static List<T> GetAllPageResult<T>(string url, Dictionary<string, string> query)
         {
-            headers.Add("Authorization", $"Bearer {Token}");
             query.Add("page", "1");
             query.Add("per_page", "10");
 
-            var res = Web.Get(url, headers, query);
+            var res = Web.Get(Client, url, query);
             if (!res.success)
                 throw new Exception(res.message);
 
@@ -186,9 +181,9 @@ namespace TodoSynchronizer.Core.Services
             try
             {
                 var json = JsonConvert.DeserializeObject<List<T>>(res.result);
-                if (res.headers.AllKeys.Contains("Link"))
+                if (res.headers1.Contains("Link"))
                 {
-                    var link = res.headers.Get("Link");
+                    var link = res.headers1.FirstOrDefault(x => x.Key == "Link").Value.FirstOrDefault();
                     var reg = new Regex(@"https:\/\/[.\w\-\@?^=%&/~\+#]+?page=(\d).+?rel=""(\b\w+?\b)""");
                     var matchres = reg.Matches(link);
                     int pagecount = 0;
@@ -200,7 +195,7 @@ namespace TodoSynchronizer.Core.Services
                         for (int i = 2; i <= pagecount; i++)
                         {
                             query["page"] = i.ToString();
-                            var res2 = Web.Get(url, headers, query); ;
+                            var res2 = Web.Get(Client, url, query);
                             if (!res2.success)
                                 throw new Exception(res2.message);
 
