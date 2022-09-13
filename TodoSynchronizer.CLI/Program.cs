@@ -61,7 +61,7 @@ class Program
             //headers.Add("Content-Type", "application/x-www-form-urlencoded");
             var forms = new List<KeyValuePair<string, string>>();
             forms.Add(new KeyValuePair<string, string>("client_id", "49694ef2-8751-4ac9-8431-8817c27350b4"));
-            forms.Add(new KeyValuePair<string, string>("scope", "Tasks.ReadWrite%20User.Read%20offline_access"));
+            forms.Add(new KeyValuePair<string, string>("scope", "Tasks.ReadWrite User.Read offline_access"));
             forms.Add(new KeyValuePair<string, string>("refresh_token", graphtoken));
             forms.Add(new KeyValuePair<string, string>("grant_type", "refresh_token"));
 
