@@ -150,6 +150,7 @@ namespace TodoSynchronizer.Core.Services
         {
             var headers = new Dictionary<string, string>();
             var query = new Dictionary<string, string>();
+            headers.Add("Authorization", $"Bearer {Token}");
 
             var res = Web.Get($"https://oc.sjtu.edu.cn/api/v1/accounts/self/account_notifications", headers, query);
             if (!res.success)

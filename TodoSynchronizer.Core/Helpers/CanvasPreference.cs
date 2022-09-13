@@ -118,7 +118,7 @@ namespace TodoSynchronizer.Core.Helpers
 
         public static DateTime? GetDueTime(this Notification notification)
         {
-            return notification.StartAt;
+            return SyncConfig.Default.NotificationConfig.DueDateMode == DueDateMode.start_at? notification.StartAt : notification.EndAt;
         }
         #endregion
 

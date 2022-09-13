@@ -41,11 +41,13 @@ namespace TodoSynchronizer.Core.Services
 
         public void Go()
         {
+            #region 初始化
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings() { DateTimeZoneHandling = DateTimeZoneHandling.Local };
             CourseCount = 0;
             ItemCount = 0;
             UpdateCount = 0;
             FailedCount = 0;
+            #endregion
 
             #region 读取 Canvas 课程列表
             Message = "读取 Canvas 课程列表";
@@ -184,51 +186,7 @@ namespace TodoSynchronizer.Core.Services
             #region 处理全局通知
             if (SyncConfig.Default.NotificationConfig.Enabled)
             {
-                try
-                {
-                    Message = "处理全局通知";
-
-                    var notifications = CanvasService.ListNotifications();
-                    if (notifications == null)
-                        return;
-                    if (notifications.Count == 0)
-                        return;
-
-                    var notilist = dicCategory["notification"];
-                    var tmplist = TodoService.ListTodoTasks(notilist.Id);
-
-                    foreach (var notification in notifications)
-                    {
-                        var updated = false;
-                        ItemCount++;
-                        Message = "处理全局通知 " + notification.Subject;
-                        TodoTask todoTask = null;
-                        todoTask = tmplist.FirstOrDefault(x => x.Title == notification.Subject);
-
-                        //---Self---//
-                        TodoTask todoTaskNew = new TodoTask();
-                        var res1 = UpdateCanvasItem(null, notification, todoTask, todoTaskNew, SyncConfig.Default.NotificationConfig);
-                        if (res1)
-                        {
-                            if (todoTask is null)
-                            {
-                                todoTask = TodoService.AddTask(notilist.Id.ToString(), todoTaskNew);
-                            }
-                            else
-                            {
-                                todoTask = TodoService.UpdateTask(notilist.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
-                            }
-                            updated = true;
-                        }
-
-                        if (updated)
-                            UpdateCount++;
-                    }
-                }
-                catch(Exception ex)
-                {
-                    OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
-                }
+                ProcessNotifications();
             }
             #endregion
 
@@ -272,21 +230,13 @@ namespace TodoSynchronizer.Core.Services
                 return;
             }
             #endregion
-            
+
+            #region 完成
             OnReportProgress.Invoke(new SyncState(
                 SyncStateEnum.Finished,
                 $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目"
             ));
-        }
-
-        private string GetCourseMessage(Course course)
-        {
-            return $"处理课程 {(SyncConfig.Default.VerboseMode ? course.Name : CourseCount)} ";
-        }
-
-        private string GetItemMessage(ICanvasItem item)
-        {
-            return $"{item.GetItemName()} {(SyncConfig.Default.VerboseMode ? item.Title : ItemCount)} ";
+            #endregion
         }
 
         #region Assignments
@@ -689,6 +639,58 @@ namespace TodoSynchronizer.Core.Services
         }
         #endregion
 
+        #region Notification
+        public void ProcessNotifications()
+        {
+            try
+            {
+                Message = "处理全局通知";
+
+                var notifications = CanvasService.ListNotifications();
+                if (notifications == null)
+                    return;
+                if (notifications.Count == 0)
+                    return;
+
+                var notilist = dicCategory["notification"];
+                var tmplist = TodoService.ListTodoTasks(notilist.Id);
+
+                foreach (var notification in notifications)
+                {
+                    var updated = false;
+                    ItemCount++;
+                    Message = "处理全局通知 " + notification.Subject;
+                    TodoTask todoTask = null;
+                    todoTask = tmplist.FirstOrDefault(x => x.Title == notification.Subject);
+
+                    //---Self---//
+                    TodoTask todoTaskNew = new TodoTask();
+                    var res1 = UpdateCanvasItem(null, notification, todoTask, todoTaskNew, SyncConfig.Default.NotificationConfig);
+                    if (res1)
+                    {
+                        if (todoTask is null)
+                        {
+                            todoTask = TodoService.AddTask(notilist.Id.ToString(), todoTaskNew);
+                        }
+                        else
+                        {
+                            todoTask = TodoService.UpdateTask(notilist.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
+                        }
+                        updated = true;
+                    }
+
+                    if (updated)
+                        UpdateCount++;
+                }
+            }
+            catch (Exception ex)
+            {
+                OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
+                return;
+            }
+        }
+        #endregion
+
         #region Common
         private bool UpdateSubmissionInfo<T>(Assignment assignment, T submission, ChecklistItem checklistitemOld, ChecklistItem checklistitemNew, Func<Assignment, T, string> func)
         {
@@ -842,6 +844,16 @@ namespace TodoSynchronizer.Core.Services
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Progress, $"上传文件失败：{ex.Message}"));
                 return false;
             }
+        }
+
+        private string GetCourseMessage(Course course)
+        {
+            return $"处理课程 {(SyncConfig.Default.VerboseMode ? course.Name : CourseCount)} ";
+        }
+
+        private string GetItemMessage(ICanvasItem item)
+        {
+            return $"{item.GetItemName()} {(SyncConfig.Default.VerboseMode ? item.Title : ItemCount)} ";
         }
         #endregion
     }
