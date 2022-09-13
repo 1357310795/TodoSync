@@ -57,22 +57,28 @@ class Program
         {
             var graphtoken = File.ReadAllText(graphtokenpath);
 
-            var headers = new Dictionary<string, string>();
-            headers.Add("Content-Type", "application/x-www-form-urlencoded");
-            var forms = new Dictionary<string, string>();
-            forms.Add("client_id", "49694ef2-8751-4ac9-8431-8817c27350b4");
-            forms.Add("scope", "Tasks.ReadWrite%20User.Read%20offline_access");
-            forms.Add("refresh_token", graphtoken);
-            forms.Add("grant_type", "refresh_token");
+            //var headers = new Dictionary<string, string>();
+            //headers.Add("Content-Type", "application/x-www-form-urlencoded");
+            var forms = new List<KeyValuePair<string, string>>();
+            forms.Add(new KeyValuePair<string, string>("client_id", "49694ef2-8751-4ac9-8431-8817c27350b4"));
+            forms.Add(new KeyValuePair<string, string>("scope", "Tasks.ReadWrite%20User.Read%20offline_access"));
+            forms.Add(new KeyValuePair<string, string>("refresh_token", graphtoken));
+            forms.Add(new KeyValuePair<string, string>("grant_type", "refresh_token"));
 
-            var refreshres = Web.Post("https://login.microsoftonline.com/common/oauth2/v2.0/token", headers, forms, false);
-            if (!refreshres.success || refreshres.code != System.Net.HttpStatusCode.OK)
+            FormUrlEncodedContent form = new FormUrlEncodedContent(forms);
+
+            HttpClient client = new HttpClient();
+            var posttask = client.PostAsync("https://login.microsoftonline.com/common/oauth2/v2.0/token", form);
+            posttask.Wait();
+            var refreshres = posttask.GetAwaiter().GetResult();
+
+            if (!refreshres.IsSuccessStatusCode)
             {
                 Console.WriteLine("获取 Graph Token 失败！");
-                Console.WriteLine(refreshres.result ?? refreshres.message);
+                Console.WriteLine(refreshres.Content.ReadAsStringAsync().GetAwaiter().GetResult());
                 Environment.Exit(-1);
             }
-            RefreshModel refreshModel = JsonConvert.DeserializeObject<RefreshModel>(refreshres.result);
+            RefreshModel refreshModel = JsonConvert.DeserializeObject<RefreshModel>(refreshres.Content.ReadAsStringAsync().GetAwaiter().GetResult());
             TodoService.Token = refreshModel.AccessToken;
             File.WriteAllText(graphtokenpath, refreshModel.RefreshToken);
             var userinfo = TodoService.GetUserInfo();

@@ -109,22 +109,6 @@ namespace TodoSynchronizer.Core.Services
             return todoTask;
         }
 
-        public static void DeleteDueDate(string tasklistid, string taskid)
-        {
-            var headers = new Dictionary<string, string>();
-            var query = new Dictionary<string, string>();
-            headers.Add("Authorization", $"Bearer {Token}");
-            headers.Add("Content-Type", "application/json");
-
-            string content = "{\"dueDateTime\":null}";
-            var res = Web.Patch($"https://graph.microsoft.com/v1.0/me/todo/lists/{tasklistid}/tasks/{taskid}", headers, query, content);
-            if (!res.success)
-                throw new Exception(res.message);
-
-            if (res.code != System.Net.HttpStatusCode.OK)
-                throw new Exception(res.result);
-        }
-
         public static void DeleteTask(string tasklistid, string taskid)
         {
             client.Me.Todo.Lists[$"{tasklistid}"].Tasks[$"{taskid}"]
