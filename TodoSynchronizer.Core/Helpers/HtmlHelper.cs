@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -64,6 +65,9 @@ namespace TodoSynchronizer.Core.Helpers
         /// <returns>Resulting plain text</returns>
         public string Convert(string html)
         {
+            //Hack <a>
+            var reg = new Regex(@"<a.*?href=""(.+?)"".+?>(.*?)</a>");
+            html = reg.Replace(html, x => $"[{x.Groups[2].Value}]({x.Groups[1].Value})");
             // Initialize state variables
             _text = new TextBuilder();
             _html = html;
@@ -71,7 +75,7 @@ namespace TodoSynchronizer.Core.Helpers
             // Process input
             while (!EndOfText)
             {
-                if (Peek() == '<')
+                if (NextChar() == '<')
                 {
                     // HTML tag
                     bool selfClosing;
@@ -104,17 +108,17 @@ namespace TodoSynchronizer.Core.Helpers
                     if (_ignoreTags.Contains(tag))
                         EatInnerContent(tag);
                 }
-                else if (Char.IsWhiteSpace(Peek()))
+                else if (Char.IsWhiteSpace(NextChar()))
                 {
                     // Whitespace (treat all as space)
-                    _text.Write(_text.Preformatted ? Peek() : ' ');
-                    MoveAhead();
+                    _text.Write(_text.Preformatted ? NextChar() : ' ');
+                    MoveNext();
                 }
                 else
                 {
                     // Other text
-                    _text.Write(Peek());
-                    MoveAhead();
+                    _text.Write(NextChar());
+                    MoveNext();
                 }
             }
             // Return result
@@ -126,31 +130,31 @@ namespace TodoSynchronizer.Core.Helpers
         {
             string tag = String.Empty;
             selfClosing = false;
-            if (Peek() == '<')
+            if (NextChar() == '<')
             {
-                MoveAhead();
+                MoveNext();
                 // Parse tag name
                 EatWhitespace();
                 int start = _pos;
-                if (Peek() == '/')
-                    MoveAhead();
-                while (!EndOfText && !Char.IsWhiteSpace(Peek()) &&
-                  Peek() != '/' && Peek() != '>')
-                    MoveAhead();
+                if (NextChar() == '/')
+                    MoveNext();
+                while (!EndOfText && !Char.IsWhiteSpace(NextChar()) &&
+                  NextChar() != '/' && NextChar() != '>')
+                    MoveNext();
                 tag = _html.Substring(start, _pos - start).ToLower();
                 // Parse rest of tag
-                while (!EndOfText && Peek() != '>')
+                while (!EndOfText && NextChar() != '>')
                 {
-                    if (Peek() == '"' || Peek() == '\'')
+                    if (NextChar() == '"' || NextChar() == '\'')
                         EatQuotedValue();
                     else
                     {
-                        if (Peek() == '/')
+                        if (NextChar() == '/')
                             selfClosing = true;
-                        MoveAhead();
+                        MoveNext();
                     }
                 }
-                MoveAhead();
+                MoveNext();
             }
             return tag;
         }
@@ -160,7 +164,7 @@ namespace TodoSynchronizer.Core.Helpers
             string endTag = "/" + tag;
             while (!EndOfText)
             {
-                if (Peek() == '<')
+                if (NextChar() == '<')
                 {
                     // Consume a tag
                     bool selfClosing;
@@ -170,7 +174,7 @@ namespace TodoSynchronizer.Core.Helpers
                     if (!selfClosing && !tag.StartsWith("/"))
                         EatInnerContent(tag);
                 }
-                else MoveAhead();
+                else MoveNext();
             }
         }
         // Returns true if the current position is at the end of
@@ -180,12 +184,12 @@ namespace TodoSynchronizer.Core.Helpers
             get { return (_pos >= _html.Length); }
         }
         // Safely returns the character at the current position
-        protected char Peek()
+        protected char NextChar()
         {
             return (_pos < _html.Length) ? _html[_pos] : (char)0;
         }
         // Safely advances to current position to the next character
-        protected void MoveAhead()
+        protected void MoveNext()
         {
             _pos = Math.Min(_pos + 1, _html.Length);
         }
@@ -193,18 +197,18 @@ namespace TodoSynchronizer.Core.Helpers
         // character.
         protected void EatWhitespace()
         {
-            while (Char.IsWhiteSpace(Peek()))
-                MoveAhead();
+            while (Char.IsWhiteSpace(NextChar()))
+                MoveNext();
         }
         // Moves the current position to the next non-whitespace
         // character or the start of the next line, whichever
         // comes first
         protected void EatWhitespaceToNextLine()
         {
-            while (Char.IsWhiteSpace(Peek()))
+            while (Char.IsWhiteSpace(NextChar()))
             {
-                char c = Peek();
-                MoveAhead();
+                char c = NextChar();
+                MoveNext();
                 if (c == '\n')
                     break;
             }
@@ -212,18 +216,18 @@ namespace TodoSynchronizer.Core.Helpers
         // Moves the current position past a quoted value
         protected void EatQuotedValue()
         {
-            char c = Peek();
+            char c = NextChar();
             if (c == '"' || c == '\'')
             {
                 // Opening quote
-                MoveAhead();
+                MoveNext();
                 // Find end of value
                 int start = _pos;
                 _pos = _html.IndexOfAny(new char[] { c, '\r', '\n' }, _pos);
                 if (_pos < 0)
                     _pos = _html.Length;
                 else
-                    MoveAhead();  // Closing quote
+                    MoveNext();  // Closing quote
             }
         }
         /// <summary>
