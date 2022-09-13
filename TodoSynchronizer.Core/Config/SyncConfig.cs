@@ -15,6 +15,7 @@ namespace TodoSynchronizer.Core.Config
         public ListNameMode ListNameMode { get; set; }
         public ListNamesForCategory ListNamesForCategory { get; set; }
         public string ListNameTemplateForCourse { get; set; }
+        public string ListNameForNotification { get; set; }
 
         //Global Config
         public bool IgnoreTooOldItems { get; set; }
@@ -32,6 +33,9 @@ namespace TodoSynchronizer.Core.Config
 
         //Discussion
         public DiscussionConfig DiscussionConfig { get; set; }
+
+        //Notification
+        public NotificationConfig NotificationConfig { get; set; }
     }
 
     public class ListNamesForCategory
@@ -92,7 +96,7 @@ namespace TodoSynchronizer.Core.Config
     }
     public enum DueDateMode
     {
-        due_at, lock_at
+        due_at, lock_at, start_at, end_at
     }
 
     public enum RemindMode
@@ -141,6 +145,26 @@ namespace TodoSynchronizer.Core.Config
 
         public string TitleTemplate { get; set; }
         public bool SetImportance { get; set; }
+        public TimeSpan RemindAfter { get; set; }
+    }
+
+    public class NotificationConfig : ICanvasItemConfig
+    {
+        public bool Enabled { get; set; }
+        public bool CreateContent { get; set; }
+        public bool CreateDueDate { get; set; }
+        public bool CreateRemind { get; set; }
+        public bool CreateImportance { get; set; }
+
+        public bool UpdateTitle { get; set; }
+        public bool UpdateContent { get; set; }
+        public bool UpdateDueDate { get; set; }
+        public bool UpdateRemind { get; set; }
+        public bool UpdateImportance { get; set; }
+
+        public string TitleTemplate { get; set; }
+        public bool SetImportance { get; set; }
+        public DueDateMode DueDateMode { get; set; }
         public TimeSpan RemindAfter { get; set; }
     }
 

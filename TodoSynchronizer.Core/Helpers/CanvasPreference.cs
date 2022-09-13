@@ -12,6 +12,7 @@ namespace TodoSynchronizer.Core.Helpers
             if (item is Assignment assignment) return GetRemindTime(assignment);
             if (item is Anouncement anouncement) return GetRemindTime(anouncement);
             if (item is Discussion discussion) return GetRemindTime(discussion);
+            if (item is Notification notification) return GetRemindTime(notification);
             return null;
         }
 
@@ -21,6 +22,7 @@ namespace TodoSynchronizer.Core.Helpers
             if (item is Assignment assignment) return GetDueTime(assignment);
             if (item is Anouncement anouncement) return GetDueTime(anouncement);
             if (item is Discussion discussion) return GetDueTime(discussion);
+            if (item is Notification notification) return GetDueTime(notification);
             return null;
         }
 
@@ -107,6 +109,18 @@ namespace TodoSynchronizer.Core.Helpers
             return discussion.PostedAt;
         }
         #endregion
-        
+
+        #region Notification
+        public static DateTime? GetRemindTime(this Notification notification)
+        {
+            return DateTime.Now + SyncConfig.Default.NotificationConfig.RemindAfter;
+        }
+
+        public static DateTime? GetDueTime(this Notification notification)
+        {
+            return notification.StartAt;
+        }
+        #endregion
+
     }
 }

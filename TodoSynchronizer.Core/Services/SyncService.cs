@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -65,24 +66,30 @@ namespace TodoSynchronizer.Core.Services
             Message = "检查 Todo 列表";
             try
             {
+                dicCategory = new Dictionary<string, TodoTaskList>();
+                dicCourse = new Dictionary<Course, TodoTaskList>();
+                var todoTaskLists = TodoService.ListLists();
+
+                void FindList(string cat, string name)
+                {
+                    var taskList = todoTaskLists.Find(x => x.DisplayName == name);
+
+                    if (taskList == null)
+                        taskList = TodoService.AddTaskList(new TodoTaskList() { DisplayName = name });
+
+                    if (taskList == null)
+                        throw new Exception("创建 Todo 列表失败");
+                    else
+                        Message = $"找到 Todo 列表：{taskList.DisplayName}";
+                    dicCategory.Add(cat, taskList);
+                }
+
+                if (SyncConfig.Default.NotificationConfig.Enabled)
+                    FindList("notification", CanvasStringTemplateHelper.GetNotificationListName());
+
                 if (SyncConfig.Default.ListNameMode == ListNameMode.Category)
                 {
-                    dicCategory = new Dictionary<string, TodoTaskList>();
-                    var todoTaskLists = TodoService.ListLists();
-
-                    void FindList(string cat, string name)
-                    {
-                        var taskList = todoTaskLists.Find(x => x.DisplayName == name);
-
-                        if (taskList == null)
-                            taskList = TodoService.AddTaskList(new TodoTaskList() { DisplayName = name });
-
-                        if (taskList == null)
-                            throw new Exception("创建 Todo 列表失败");
-                        else
-                            Message = $"找到 Todo 列表：{taskList.DisplayName}";
-                        dicCategory.Add(cat, taskList);
-                    }
+                    
                     FindList("quiz", SyncConfig.Default.ListNamesForCategory.QuizListName);
                     FindList("discussion", SyncConfig.Default.ListNamesForCategory.DiscussionListName);
                     FindList("assignment", SyncConfig.Default.ListNamesForCategory.AssignmentListName);
@@ -90,9 +97,6 @@ namespace TodoSynchronizer.Core.Services
                 }
                 else
                 {
-                    dicCourse = new Dictionary<Course, TodoTaskList>();
-                    var todoTaskLists = TodoService.ListLists();
-
                     foreach(var c in courses)
                     {
                         var name = CanvasStringTemplateHelper.GetListNameForCourse(c);
@@ -174,6 +178,57 @@ namespace TodoSynchronizer.Core.Services
             {
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
                 return;
+            }
+            #endregion
+
+            #region 处理全局通知
+            if (SyncConfig.Default.NotificationConfig.Enabled)
+            {
+                try
+                {
+                    Message = "处理全局通知";
+
+                    var notifications = CanvasService.ListNotifications();
+                    if (notifications == null)
+                        return;
+                    if (notifications.Count == 0)
+                        return;
+
+                    var notilist = dicCategory["notification"];
+                    var tmplist = TodoService.ListTodoTasks(notilist.Id);
+
+                    foreach (var notification in notifications)
+                    {
+                        var updated = false;
+                        ItemCount++;
+                        Message = "处理全局通知 " + notification.Subject;
+                        TodoTask todoTask = null;
+                        todoTask = tmplist.FirstOrDefault(x => x.Title == notification.Subject);
+
+                        //---Self---//
+                        TodoTask todoTaskNew = new TodoTask();
+                        var res1 = UpdateCanvasItem(null, notification, todoTask, todoTaskNew, SyncConfig.Default.NotificationConfig);
+                        if (res1)
+                        {
+                            if (todoTask is null)
+                            {
+                                todoTask = TodoService.AddTask(notilist.Id.ToString(), todoTaskNew);
+                            }
+                            else
+                            {
+                                todoTask = TodoService.UpdateTask(notilist.Id.ToString(), todoTask.Id.ToString(), todoTaskNew);
+                            }
+                            updated = true;
+                        }
+
+                        if (updated)
+                            UpdateCount++;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
+                }
             }
             #endregion
 

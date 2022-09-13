@@ -146,6 +146,29 @@ namespace TodoSynchronizer.Core.Services
             }
         }
 
+        public static List<Notification> ListNotifications()
+        {
+            var headers = new Dictionary<string, string>();
+            var query = new Dictionary<string, string>();
+
+            var res = Web.Get($"https://oc.sjtu.edu.cn/api/v1/accounts/self/account_notifications", headers, query);
+            if (!res.success)
+                throw new Exception(res.message);
+
+            if (res.code != System.Net.HttpStatusCode.OK)
+                return null;
+
+            try
+            {
+                var json = JsonConvert.DeserializeObject<List<Notification>>(res.result);
+                return json;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public static List<T> GetAllPageResult<T>(string url, Dictionary<string, string> headers, Dictionary<string, string> query)
         {
             headers.Add("Authorization", $"Bearer {Token}");

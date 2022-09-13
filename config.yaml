@@ -13,6 +13,8 @@ ListNameMode : Category
 # {course.coursecodeshort} -> 简化的课程代码（e.g.PHY1251）
 # {course.originalname} -> 原始课程名（你可以在 Canvas 上随意修改课程名，但改不掉原始课程名）
 ListNameTemplateForCourse : "Canvas - {course.name}"
+# Canvas 全局通知的 Todo 列表名称
+ListNameForNotification : "Canvas 通知"
 # 若 ListNameMode 为 Category，则可指定创建 Todo 列表的名称
 ListNamesForCategory : 
   QuizListName : "Canvas 测验"
@@ -215,6 +217,28 @@ DiscussionConfig :
   # {discussion.title} -> 讨论标题
   TitleTemplate : "{course.name} - {discussion.title}"
   SetImportance : false
+  RemindAfter : 00:05:00.00
+NotificationConfig : 
+  # 是否将全局通知（控制面板顶部出现的横幅）同步到 Todo
+  Enabled : true
+  CreateContent : true
+  CreateDueDate : true
+  CreateRemind : true
+  CreateImportance : false
+  UpdateTitle : false
+  UpdateContent : false
+  UpdateDueDate : false
+  UpdateRemind : false
+  UpdateImportance : false
+  # 可用的替换参数：
+  # {notification.title} -> 通知标题
+  TitleTemplate : "{notification.title}"
+  SetImportance : true
+  # 指定待办事项提醒时间的来源
+  # 可选值: start_at | end_at
+  # start_at 表示将通知的发布时间作为待办事项的提醒时间
+  # end_at 表示将通知的自动消失时间作为待办事项的提醒时间
+  DueDateMode : start_at
   RemindAfter : 00:05:00.00
 
 ## ------Q&A------

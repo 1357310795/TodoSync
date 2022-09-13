@@ -38,12 +38,22 @@ namespace TodoSynchronizer.Core.Helpers
                     .ReplaceCourse(course)
                     .Replace("{discussion.title}", discussion.Title);
             }
+            if (item is Notification notification)
+            {
+                return SyncConfig.Default.NotificationConfig.TitleTemplate
+                    .Replace("{notification.title}", notification.Subject);
+            }
             return "Error";
         }
 
         public static string GetListNameForCourse(Course course)
         {
             return SyncConfig.Default.ListNameTemplateForCourse.ReplaceCourse(course);
+        }
+
+        public static string GetNotificationListName()
+        {
+            return SyncConfig.Default.ListNameForNotification;
         }
 
         public static string ReplaceCourse(this string s, Course course)
@@ -65,6 +75,12 @@ namespace TodoSynchronizer.Core.Helpers
         {
             HtmlHelper convert = new HtmlHelper();
             return convert.Convert(item.Content);
+        }
+
+        public static string GetContent(string content)
+        {
+            HtmlHelper convert = new HtmlHelper();
+            return convert.Convert(content);
         }
 
         public static string GetSubmissionDesc(Assignment assignment, AssignmentSubmission submission)
