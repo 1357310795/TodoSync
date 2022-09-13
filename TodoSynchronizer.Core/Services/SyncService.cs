@@ -806,34 +806,44 @@ namespace TodoSynchronizer.Core.Services
                                 throw new Exception($"Uri无效：{file.Url}");
                         }
 
-                        HttpClient client = new HttpClient();
-                        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {CanvasService.Token}");
-                        HttpResponseMessage res = null;
-                        try
-                        {
-                            var datatask = client.GetAsync(fulluri);
-                            //datatask.RunSynchronously();
-                            datatask.Wait();
-                            res = datatask.Result;
-                        }
-                        catch (Exception ex)
-                        {
-                            throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n{ex.Message}");
-                        }
-                       
-                        if (res.StatusCode != HttpStatusCode.OK)
-                            throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n[{(int)res.StatusCode} {res.StatusCode.ToString()}] {res.Content.ReadAsStringAsync().Result}");
-                        var data = res.Content.ReadAsByteArrayAsync().Result;
+                        //HttpClient client = new HttpClient();
+                        //client.DefaultRequestHeaders.Add("Authorization", $"Bearer {CanvasService.Token}");
+                        //HttpResponseMessage res = null;
+                        //try
+                        //{
+                        //    var datatask = client.GetAsync(fulluri);
+                        //    //datatask.RunSynchronously();
+                        //    datatask.Wait();
+                        //    res = datatask.Result;
+                        //}
+                        //catch (Exception ex)
+                        //{
+                        //    throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n{ex.Message}");
+                        //}
 
-                        if (data.Length > 25 * 1024 * 1024) continue;
-                        Stream stream = new MemoryStream(data);
+                        //if (res.StatusCode != HttpStatusCode.OK)
+                        //    throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n[{(int)res.StatusCode} {res.StatusCode.ToString()}] {res.Content.ReadAsStringAsync().Result}");
+                        //var data = res.Content.ReadAsByteArrayAsync().Result;
+
+                        //if (data.Length > 25 * 1024 * 1024) continue;
+                        //Stream stream = new MemoryStream(data);
+
+                        HttpWebRequest req = (HttpWebRequest)WebRequest.Create(fulluri);
+                        req.Method = "GET";
+                        HttpWebResponse resp = null;
+                        resp = (HttpWebResponse)req.GetResponse();
+                        Stream stream = null;
+                        stream = resp.GetResponseStream();
+                        MemoryStream ms = new MemoryStream();
+                        stream.CopyTo(ms);
+                        var data = StreamToBytes(ms);
 
                         AttachmentInfo info = new AttachmentInfo();
                         info.AttachmentType = AttachmentType.File;
                         info.Size = data.Length;
                         info.Name = file.DisplayName;
 
-                        TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, stream);
+                        TodoService.UploadAttachment(taskList.Id.ToString(), todoTask.Id.ToString(), info, ms);
                         updated = true;
                     }
                 }
@@ -854,6 +864,15 @@ namespace TodoSynchronizer.Core.Services
         private string GetItemMessage(ICanvasItem item)
         {
             return $"{item.GetItemName()} {(SyncConfig.Default.VerboseMode ? item.Title : ItemCount)} ";
+        }
+
+        public static byte[] StreamToBytes(Stream stream)
+        {
+
+            byte[] bytes = new byte[stream.Length];
+            stream.Read(bytes, 0, bytes.Length);
+            stream.Seek(0, SeekOrigin.Begin);
+            return bytes;
         }
         #endregion
     }
