@@ -2,6 +2,8 @@ name: TodoSync
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 7-23/1 * * *'
 
 jobs:
   sync:
