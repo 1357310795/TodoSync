@@ -91,7 +91,7 @@ class Program
             TodoService.Token = refreshModel.AccessToken;
 
             graphtokenenc = AesHelper.Encrypt(graphtokenkey, refreshModel.RefreshToken);
-            File.WriteAllText(graphtokenpath, refreshModel.RefreshToken);
+            File.WriteAllText(graphtokenpath, graphtokenenc);
             var userinfo = TodoService.GetUserInfo();
         }
         catch (Exception ex)
