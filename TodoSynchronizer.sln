@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoSynchronizer.Core", "To
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TodoSynchronizer.CLI", "TodoSynchronizer.CLI\TodoSynchronizer.CLI.csproj", "{5762C101-EF4C-47FF-AC75-E859F09AEFF2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TodoSynchronizer.QuickTool", "TodoSynchronizer.QuickTool\TodoSynchronizer.QuickTool.csproj", "{3D34DEAA-BF5A-4C05-9425-9BEF1CD8F501}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{5762C101-EF4C-47FF-AC75-E859F09AEFF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5762C101-EF4C-47FF-AC75-E859F09AEFF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5762C101-EF4C-47FF-AC75-E859F09AEFF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D34DEAA-BF5A-4C05-9425-9BEF1CD8F501}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D34DEAA-BF5A-4C05-9425-9BEF1CD8F501}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D34DEAA-BF5A-4C05-9425-9BEF1CD8F501}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D34DEAA-BF5A-4C05-9425-9BEF1CD8F501}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

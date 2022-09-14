@@ -15,7 +15,7 @@ class Program
         Console.WriteLine("TodoSynchronizer v0.1 beta");
 
         string canvastoken = "", graphtokenpath = "";
-        string configpath = "";
+        string configpath = "", graphtokenkey = "";
         for(int i = 0; i < args.Length; i++)
         {
             if (args[i] == "-canvastoken")
@@ -27,6 +27,9 @@ class Program
             if (args[i] == "-configfile")
                 if (i + 1 < args.Length)
                     configpath = args[i + 1];
+            if (args[i] == "-graphtokenkey")
+                if (i + 1 < args.Length)
+                    graphtokenkey = args[i + 1];
         }
 
         if (canvastoken == "")
@@ -44,6 +47,11 @@ class Program
             Console.WriteLine("未指定配置文件！");
             Environment.Exit(-1);
         }
+        if (graphtokenkey == "")
+        {
+            Console.WriteLine("未指定 Graph Token 秘钥！");
+            Environment.Exit(-1);
+        }
         var res1 = CanvasService.Login(canvastoken);
         if (!res1.success)
         {
@@ -55,7 +63,8 @@ class Program
 
         try
         {
-            var graphtoken = File.ReadAllText(graphtokenpath);
+            var graphtokenenc = File.ReadAllText(graphtokenpath);
+            var graphtoken = AesHelper.Decrypt(graphtokenkey, graphtokenenc);
 
             //var headers = new Dictionary<string, string>();
             //headers.Add("Content-Type", "application/x-www-form-urlencoded");
@@ -80,6 +89,8 @@ class Program
             }
             RefreshModel refreshModel = JsonConvert.DeserializeObject<RefreshModel>(refreshres.Content.ReadAsStringAsync().GetAwaiter().GetResult());
             TodoService.Token = refreshModel.AccessToken;
+
+            graphtokenenc = AesHelper.Encrypt(graphtokenkey, refreshModel.RefreshToken);
             File.WriteAllText(graphtokenpath, refreshModel.RefreshToken);
             var userinfo = TodoService.GetUserInfo();
         }

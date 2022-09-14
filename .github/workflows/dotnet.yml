@@ -17,8 +17,6 @@ jobs:
       with:
         branch: graphtoken
         path: graphtoken.asc
-    - name: Setup Keystore File
-      run: gpg -d --passphrase "${{ secrets.PASSWORD }}" --batch graphtoken.asc > graphtoken.txt
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
@@ -28,8 +26,4 @@ jobs:
     - name: Build
       run: dotnet build .\TodoSynchronizer.CLI\TodoSynchronizer.CLI.csproj --no-restore -c Release
     - name: Run
-      run: .\TodoSynchronizer.CLI\bin\Release\net6.0\TodoSynchronizer.CLI.exe -canvastoken ${{ secrets.CANVAS_TOKEN }} -graphtokenfile graphtoken.txt -configfile config.yaml
-    - name: Update Graph RefreshToken
-      run: |
-        del graphtoken.asc
-        gpg --passphrase "${{ secrets.PASSWORD }}" --batch -o "graphtoken.asc"  -c --armor "graphtoken.txt"
+      run: .\TodoSynchronizer.CLI\bin\Release\net6.0\TodoSynchronizer.CLI.exe -canvastoken ${{ secrets.CANVAS_TOKEN }} -graphtokenfile graphtoken.asc -configfile config.yaml -graphtokenkey ${{ secrets.KEY }}
