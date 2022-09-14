@@ -4,6 +4,14 @@
              xmlns:local="clr-namespace:TodoSynchronizer.QuickTool"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <DrawingImage x:Key="keyDrawingImage">
+                <DrawingImage.Drawing>
+                    <DrawingGroup ClipGeometry="M0,0 V32 H32 V0 H0 Z">
+                        <GeometryDrawing Brush="#FF000000" Geometry="F1 M32,32z M0,0z M20,3C15.054688,3 11,7.054688 11,12 11,12.519531 11.085938,12.976563 11.15625,13.4375L3.28125,21.28125 3,21.59375 3,29 10,29 10,26 13,26 13,23 16,23 16,20.03125C17.179688,20.609375 18.554688,21 20,21 24.945313,21 29,16.945313 29,12 29,7.054688 24.945313,3 20,3z M20,5C23.855469,5 27,8.144531 27,12 27,15.855469 23.855469,19 20,19 18.789063,19 17.542969,18.644531 16.59375,18.125L16.34375,18 14,18 14,21 11,21 11,24 8,24 8,27 5,27 5,22.4375 12.90625,14.5 13.28125,14.15625 13.1875,13.625C13.085938,13.023438 13,12.488281 13,12 13,8.144531 16.144531,5 20,5z M22,8C20.894531,8 20,8.894531 20,10 20,11.105469 20.894531,12 22,12 23.105469,12 24,11.105469 24,10 24,8.894531 23.105469,8 22,8z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

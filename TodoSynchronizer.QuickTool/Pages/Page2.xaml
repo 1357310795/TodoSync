@@ -1,0 +1,21 @@
+﻿<Page x:Class="TodoSynchronizer.QuickTool.Pages.Page2"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:TodoSynchronizer.QuickTool.Pages"
+      mc:Ignorable="d" d:Background="White"  Loaded="Page_Loaded"
+      d:DesignHeight="450" d:DesignWidth="500"
+      Title="Page2">
+
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="{Binding Head}" HorizontalAlignment="Center" FontSize="36" Margin="0,10"/>
+        <TextBlock Grid.Row="1" Text="{Binding Message}" HorizontalAlignment="Center" FontSize="24" Margin="10,10" TextWrapping="Wrap" />
+        <TextBlock Grid.Row="2" Text="" HorizontalAlignment="Center" FontSize="24" Margin="0,10"/>
+    </Grid>
+</Page>

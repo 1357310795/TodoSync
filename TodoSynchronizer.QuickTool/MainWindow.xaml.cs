@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Identity.Client.Platforms.Shared.Desktop.OsBrowser;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,6 +14,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TodoSynchronizer.QuickTool.Pages;
+using TodoSynchronizer.QuickTool.Services;
 
 namespace TodoSynchronizer.QuickTool
 {
@@ -24,11 +27,13 @@ namespace TodoSynchronizer.QuickTool
         public MainWindow()
         {
             InitializeComponent();
+            NaviService.SetFrame(RootFrame);
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine(AesHelper.Encrypt("123456", "123456"));
+            NaviService.Navigate(new Page1());
         }
     }
 }
