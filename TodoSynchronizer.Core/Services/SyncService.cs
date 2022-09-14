@@ -502,29 +502,34 @@ namespace TodoSynchronizer.Core.Services
                     {
                         var links = TodoService.ListCheckItems(taskList.Id.ToString(), todoTask.Id.ToString());
                         var quizsubmissions = CanvasService.ListQuizSubmissons(course.Id.ToString(), assignment.QuizId.ToString());
-                        for (int i = 0; i < quizsubmissions.Count; i++)
-                        {
-                            ChecklistItem checkitem0 = null;
-                            if (links.Count >= i + 1)
-                                checkitem0 = links[i];
-                            else
-                                checkitem0 = null;
 
-                            ChecklistItem checkitem0New = new ChecklistItem();
-                            var res4 = UpdateSubmissionInfo(assignment, quizsubmissions[i], checkitem0, checkitem0New, CanvasStringTemplateHelper.GetSubmissionDesc);
-                            if (res4)
+                        if (quizsubmissions != null)
+                        {
+                            for (int i = 0; i < quizsubmissions.Count; i++)
                             {
-                                if (checkitem0 == null)
-                                {
-                                    TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
-                                }
+                                ChecklistItem checkitem0 = null;
+                                if (links.Count >= i + 1)
+                                    checkitem0 = links[i];
                                 else
+                                    checkitem0 = null;
+
+                                ChecklistItem checkitem0New = new ChecklistItem();
+                                var res4 = UpdateSubmissionInfo(assignment, quizsubmissions[i], checkitem0, checkitem0New, CanvasStringTemplateHelper.GetSubmissionDesc);
+                                if (res4)
                                 {
-                                    TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
+                                    if (checkitem0 == null)
+                                    {
+                                        TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0New);
+                                    }
+                                    else
+                                    {
+                                        TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem0.Id.ToString(), checkitem0New);
+                                    }
+                                    updated = true;
                                 }
-                                updated = true;
                             }
                         }
+                        
                     }
                     //---Attachments---//
                     if (SyncConfig.Default.QuizConfig.CreateAttachments)

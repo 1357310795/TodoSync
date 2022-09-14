@@ -73,7 +73,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public QuizPermissions Permissions { get; set; }
 
         [JsonProperty("points_possible")]
-        public long PointsPossible { get; set; }
+        public long? PointsPossible { get; set; }
 
         [JsonProperty("preview_url")]
         public string PreviewUrl { get; set; }

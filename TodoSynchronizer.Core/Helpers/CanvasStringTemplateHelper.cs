@@ -94,7 +94,7 @@ namespace TodoSynchronizer.Core.Helpers
         public static string GetGradeDesc(Assignment assignment, AssignmentSubmission submission)
         {
             if (submission.Grade != null)
-                return $"已评分：{submission.Grade}/{assignment.PointsPossible}（评分时间：{submission.GradedAt.Value.ToString("yyyy-MM-dd HH:mm:ss")}）";
+                return $"已评分：{submission.Grade}/{assignment.PointsPossible??0}（评分时间：{submission.GradedAt.Value.ToString("yyyy-MM-dd HH:mm:ss")}）";
             else
                 return "未评分";
         }

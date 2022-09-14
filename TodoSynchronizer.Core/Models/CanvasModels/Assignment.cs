@@ -172,7 +172,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public string PeerReviewsAssignAt { get; set; }
 
         [JsonProperty("points_possible")]
-        public long PointsPossible { get; set; }
+        public long? PointsPossible { get; set; }
 
         [JsonProperty("position")]
         public long Position { get; set; }

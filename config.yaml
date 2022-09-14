@@ -36,7 +36,7 @@ VerboseMode : true
 # Canvas 公告 配置
 AnouncementConfig : 
   # 是否将 Canvas 公告同步到 Todo
-  Enabled : true
+  Enabled : false
   # 若 Todo 列表内无当前的公告，
   # 则在创建的新待办事项的备注中包含公告的内容
   CreateContent : true
@@ -186,7 +186,7 @@ QuizConfig :
 # Canvas 讨论 配置
 DiscussionConfig : 
   # 是否将 Canvas 讨论同步到 Todo
-  Enabled : true
+  Enabled : false
   CreateContent : true
   # 若 Todo 列表内无当前的讨论，
   # 则把创建的新待办事项的过期时间设置为讨论的发布时间
