@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TodoSynchronizer.QuickTool.Helpers;
 using TodoSynchronizer.QuickTool.Services;
 
 namespace TodoSynchronizer.QuickTool.Pages
@@ -26,6 +27,7 @@ namespace TodoSynchronizer.QuickTool.Pages
         {
             InitializeComponent();
             this.DataContext = this;
+            Password = WordHelper.GetRandomChinese(10);
         }
 
         private string password;
@@ -46,12 +48,23 @@ namespace TodoSynchronizer.QuickTool.Pages
             if (Password == string.Empty || Password == "")
             {
                 MessageBox.Show("密钥不能为空！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (!Password.Any(check))
+            {
+                MessageBox.Show("为确保安全，密钥必须包含中文字符！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
             }
             var token = DataService.GetData<string>("token");
             var enc = AesHelper.Encrypt(Password, token);
 
             DataService.SetData("tokenenc", enc);
             NaviService.Navigate(new Page4());
+        }
+
+        public bool check(char c)
+        {
+            return ((int)c) > 127;
         }
 
         #region INotifyPropertyChanged members
