@@ -7,6 +7,6 @@
         mc:Ignorable="d" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded"
         Title="TodoSync - Graph 认证辅助工具" Height="450" Width="500">
     <Grid>
-        <Frame x:Name="RootFrame" NavigationUIVisibility="Hidden"/>
+        <Frame Focusable="False" x:Name="RootFrame" NavigationUIVisibility="Hidden"/>
     </Grid>
 </Window>

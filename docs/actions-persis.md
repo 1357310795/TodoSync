@@ -1,7 +1,7 @@
 ## 配置步骤
 ### 一、配置 Canvas Token
 
-1. 点击右上角的 “fork” 复制这个仓库，注意**取消勾选**“Copy the master branch only”
+1. 点击右上角的 “fork” 复制这个仓库，注意**取消勾选**“Copy the master branch only”（若没注册过 GitHub 账号，按照指示注册一个）
 
 ![](https://s2.loli.net/2022/08/21/STBVjWhLsU6Dib1.png)
 
@@ -51,10 +51,10 @@
 
 13. 完成后，回到程序，输入密钥以保护用户凭证
 
-![](https://s2.loli.net/2022/09/14/EJFyfOw1AK6HL2P.png)
+![](https://s2.loli.net/2022/09/15/FH8TxICgpovdhs7.png)
 ![](https://s2.loli.net/2022/09/14/Em9aWxLCMkZf23H.png)
 
-14. 在自己 fork 的仓库，切换到 graphtoken 分支
+1.  在自己 fork 的仓库，切换到 graphtoken 分支
 
 ![](https://s2.loli.net/2022/08/21/NzJRe4E5LSlYVGb.png)
 
@@ -76,7 +76,7 @@
 
 ![](https://s2.loli.net/2022/08/21/qtCnKdpPWRFNbgM.png)
 
-19. 左侧选择“TodoSync”，右侧点击“Run workflow”
+19. 左侧选择“TodoSync”或者“TodoSync - Linux”（一个就行，推荐用 Linux 的那个），右侧点击“Run workflow”
 
 ![](https://s2.loli.net/2022/08/21/2kcXUByTOaoLIiv.png)
 
