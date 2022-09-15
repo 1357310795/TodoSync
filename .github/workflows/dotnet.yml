@@ -3,7 +3,7 @@ name: TodoSync
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 7-23/1 * * *'
+    - cron: '0 0-14/1,22,23 * * *'
 
 jobs:
   sync:

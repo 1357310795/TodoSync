@@ -41,11 +41,11 @@
 
 下面以 Windows 系统为例，借助“Graph 认证辅助工具”（在本仓库开源）进行配置。如有其它需求，可参考[手动配置 Graph Token](./graph-token-manually.md)
 
-10. 在 [Releases](https://github.com/1357310795/TodoSynchronizer/releases) 页面下载“TodoSynchronizer.QuickTool.exe”，打开。
+1.  在 [Releases](../../../releases) 页面下载“TodoSynchronizer.QuickTool.exe”，打开。
 
-11. 点击“获取 Graph 认证”，跳转到浏览器
+2.  点击“获取 Graph 认证”，跳转到浏览器
 
-12. 授权 MyTodoApp（务必核对权限是否与图中一致）
+3.  授权 MyTodoApp（务必核对权限是否与图中一致）
 
 ![](https://s2.loli.net/2022/08/21/JiYnCMUPshc5RGd.png)
 

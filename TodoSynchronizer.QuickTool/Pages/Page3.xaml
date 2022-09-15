@@ -14,13 +14,15 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Image Source="{StaticResource keyDrawingImage}" Width="72" Margin="0,0,10,0"/>
-        <TextBlock Grid.Row="1" Text="请输入密钥以保护您的凭证" HorizontalAlignment="Center" FontSize="24" Margin="0,20,0,20"/>
-        <StackPanel Grid.Row="2" Orientation="Horizontal">
+        <TextBlock Grid.Row="1" Text="请输入密钥以保护您的凭证" HorizontalAlignment="Center" FontSize="24" Margin="0,20,0,0"/>
+        <TextBlock Grid.Row="2" Text="（已为您自动生成强密钥）" HorizontalAlignment="Center" FontSize="12" Margin="0,5,0,20"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal">
             <TextBox Width="300" FontSize="20" Text="{Binding Password}"/>
         </StackPanel>
-        <Button Content="确定" Click="Button_Click" Grid.Row="3" Margin="0,30" Width="160" Height="50" FontSize="16"/>
+        <Button Content="确定" Click="Button_Click" Grid.Row="4" Margin="0,30" Width="160" Height="50" FontSize="16"/>
     </Grid>
 </Page>
