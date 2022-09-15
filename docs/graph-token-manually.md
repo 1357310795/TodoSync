@@ -30,7 +30,7 @@ curl -d "client_id=49694ef2-8751-4ac9-8431-8817c27350b4&scope=Tasks.ReadWrite%20
 
 ![](https://s2.loli.net/2022/09/14/hAugaKWXm6YPUnb.png)
 
-8. 左侧搜索“MD5”，拖到“配方”里面，并在右上角的输入框输入用于保护凭证的密钥（随便搞个密码就行，不用记住的）
+8. 左侧搜索“MD5”，拖到“配方”里面，并在右上角的输入框输入用于保护凭证的密钥（强烈建议在密钥中包含中文，密钥无需记忆）
 
 ![](https://s2.loli.net/2022/09/14/hAWxOm2p5yI4Vz1.png)
 
