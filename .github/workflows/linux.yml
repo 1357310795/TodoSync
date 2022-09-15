@@ -22,7 +22,7 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj
     - name: Build
       run: dotnet build ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj --no-restore -c Release
     - name: Run
