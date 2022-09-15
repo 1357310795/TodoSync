@@ -41,11 +41,11 @@
 
 下面以 Windows 系统为例，借助“Graph 认证辅助工具”（在本仓库开源）进行配置。如有其它需求，可参考[手动配置 Graph Token](./graph-token-manually.md)
 
-1.  在 [Releases](../../../releases) 页面下载“TodoSynchronizer.QuickTool.exe”，打开。
+10.  在 [Releases](../../../releases) 页面下载“TodoSynchronizer.QuickTool.exe”，打开。
 
-2.  点击“获取 Graph 认证”，跳转到浏览器
+11.  点击“获取 Graph 认证”，跳转到浏览器
 
-3.  授权 MyTodoApp（务必核对权限是否与图中一致）
+12.  授权 MyTodoApp（务必核对权限是否与图中一致）
 
 ![](https://s2.loli.net/2022/08/21/JiYnCMUPshc5RGd.png)
 
@@ -66,7 +66,7 @@
 
 ![](https://s2.loli.net/2022/08/21/fdGqptNy4FZc9Vz.png)
 
-17. 再次到“Secrets”里，创建一个新条目，“Name”为“KEY”，“Value”为刚才输入的密钥
+17. 再次到“Secrets”里，创建一个新条目，“Name”为“KEY”，“Value”为刚才输入的密钥（什么？忘记复制随机密钥了？回到第 10 步再来一次吧……）
 
 ![](https://s2.loli.net/2022/09/14/4akGQOzVLH7nYvC.png)
 
@@ -112,3 +112,7 @@ AccessToken 的有效期只有 1 小时，RefreshToken 的有效期可能是 90 
 #### GitHub Action 运行失败？
 
 如果不明白为什么失败，到原仓库提交 issue
+
+#### 如果仓库设置为 Public，如何隐藏我的课程信息？
+
+编辑`config.yaml`文件，把`VerboseMode`改成`false`
