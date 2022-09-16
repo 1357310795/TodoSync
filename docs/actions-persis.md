@@ -66,7 +66,7 @@
 
 ![](https://s2.loli.net/2022/08/21/fdGqptNy4FZc9Vz.png)
 
-17. 再次到“Secrets”里，创建一个新条目，“Name”为“KEY”，“Value”为刚才输入的密钥（什么？忘记复制随机密钥了？回到第 10 步再来一次吧……）
+17. 再次到“Secrets”里，创建一个新条目，“Name”为“KEY”，“Value”为刚才输入的密钥
 
 ![](https://s2.loli.net/2022/09/14/4akGQOzVLH7nYvC.png)
 
@@ -76,7 +76,7 @@
 
 ![](https://s2.loli.net/2022/08/21/qtCnKdpPWRFNbgM.png)
 
-19. 左侧选择“TodoSync”或者“TodoSync - Linux”（一个就行，推荐用 Linux 的那个），右侧点击“Run workflow”
+19. 左侧选择“TodoSync”，右侧点击“Run workflow”
 
 ![](https://s2.loli.net/2022/08/21/2kcXUByTOaoLIiv.png)
 
@@ -91,7 +91,7 @@
 ### Q&A
 #### Fork 的仓库能不能设置为 Private？
 
-对于公开仓库，GitHub Actions 是免费的；而对于私有仓库，GitHub Actions 每个月有 2000 分钟的免费额度，超出会有巨额收费（在[这里](https://github.com/settings/billing)看用量）。本项目每次运行大约需要 4min，也就是说每个月顶多能运行 500 次，不够用。**强烈建议保持仓库为公开状态**。
+对于公开仓库，GitHub Actions 是免费的；而对于私有仓库，GitHub Actions 每个月有 2000 分钟的免费额度，超出会有巨额收费（在[这里](https://github.com/settings/billing)看用量）。本项目每次运行大约需要 2min，也就是说每个月顶多能运行 1000 次，可能不够用。**强烈建议保持仓库为公开状态**。
 
 #### 为什么步骤这么复杂？我的账号、Token 安全吗？
 

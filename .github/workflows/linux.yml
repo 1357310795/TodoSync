@@ -1,4 +1,4 @@
-name: TodoSync - Linux
+name: TodoSync
 
 on:
   workflow_dispatch:
