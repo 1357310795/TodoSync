@@ -40,6 +40,19 @@ namespace TodoSynchronizer.QuickTool.Pages
             }
         }
 
+        private string password;
+
+        public string Password
+        {
+            get { return password; }
+            set
+            {
+                password = value;
+                this.RaisePropertyChanged("Password");
+            }
+        }
+
+
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
@@ -65,7 +78,8 @@ namespace TodoSynchronizer.QuickTool.Pages
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             Token = DataService.GetData<string>("tokenenc");
-            Clipboard.SetText(Token);
+            Password = DataService.GetData<string>("password");
+            //Clipboard.SetText(Token);
         }
     }
 }

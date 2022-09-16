@@ -59,6 +59,7 @@ namespace TodoSynchronizer.QuickTool.Pages
             var enc = AesHelper.Encrypt(Password, token);
 
             DataService.SetData("tokenenc", enc);
+            DataService.SetData("password", Password);
             NaviService.Navigate(new Page4());
         }
 
