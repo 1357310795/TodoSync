@@ -12,9 +12,6 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         [JsonProperty("asset_string")]
         public string? AssetString { get; set; }
 
-        [JsonProperty("context_module")]
-        public string? ContextModule { get; set; }
-
         [JsonProperty("lock_at")]
         public string? LockAt { get; set; }
 
