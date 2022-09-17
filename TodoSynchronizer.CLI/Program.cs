@@ -20,16 +20,16 @@ class Program
         {
             if (args[i] == "-canvastoken")
                 if (i + 1 < args.Length)
-                    canvastoken = args[i + 1];
+                    canvastoken = args[i + 1].Trim();
             if (args[i] == "-graphtokenfile")
                 if (i + 1 < args.Length)
-                    graphtokenpath = args[i + 1];
+                    graphtokenpath = args[i + 1].Trim();
             if (args[i] == "-configfile")
                 if (i + 1 < args.Length)
-                    configpath = args[i + 1];
+                    configpath = args[i + 1].Trim();
             if (args[i] == "-graphtokenkey")
                 if (i + 1 < args.Length)
-                    graphtokenkey = args[i + 1];
+                    graphtokenkey = args[i + 1].Trim();
         }
 
         if (canvastoken == "")
