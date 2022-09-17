@@ -65,6 +65,8 @@ namespace TodoSynchronizer.Core.Helpers
         /// <returns>Resulting plain text</returns>
         public string Convert(string html)
         {
+            if (html == null)
+                return "";
             //Hack <a>
             var reg = new Regex(@"<a.*?href=""(.+?)"".+?>(.*?)</a>");
             html = reg.Replace(html, x => $"[{x.Groups[2].Value}]({x.Groups[1].Value})");
