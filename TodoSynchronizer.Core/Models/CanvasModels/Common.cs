@@ -10,19 +10,19 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
     public class LockInfo
     {
         [JsonProperty("asset_string")]
-        public string AssetString { get; set; }
+        public string? AssetString { get; set; }
 
         [JsonProperty("context_module")]
-        public string ContextModule { get; set; }
+        public string? ContextModule { get; set; }
 
         [JsonProperty("lock_at")]
-        public string LockAt { get; set; }
+        public string? LockAt { get; set; }
 
         [JsonProperty("manually_locked")]
-        public bool ManuallyLocked { get; set; }
+        public bool? ManuallyLocked { get; set; }
 
         [JsonProperty("unlock_at")]
-        public string UnlockAt { get; set; }
+        public string? UnlockAt { get; set; }
     }
 
     public class Author
