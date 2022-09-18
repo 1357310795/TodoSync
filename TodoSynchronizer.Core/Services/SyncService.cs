@@ -675,8 +675,20 @@ namespace TodoSynchronizer.Core.Services
                 if (notifications.Count == 0)
                     return;
 
+                
                 var notilist = dicCategory["notification"];
                 var tmplist = TodoService.ListTodoTasks(notilist.Id);
+                var dic = new Dictionary<string, TodoTask>();
+
+                foreach (var todoTask in tmplist)
+                {
+                    if (todoTask.LinkedResources != null)
+                        if (todoTask.LinkedResources.Count > 0)
+                        {
+                            var url = todoTask.LinkedResources.First().DisplayName;
+                            dic.Add(url, todoTask);
+                        }
+                }
 
                 foreach (var notification in notifications)
                 {
@@ -686,14 +698,22 @@ namespace TodoSynchronizer.Core.Services
                     TodoTask todoTask = null;
                     todoTask = tmplist.FirstOrDefault(x => x.Title == notification.Subject);
 
+                    if (dic.ContainsKey(notification.Id.ToString()))
+                        todoTask = dic[notification.Id.ToString()];
+                    else
+                        todoTask = null;
+
                     //---Self---//
                     TodoTask todoTaskNew = new TodoTask();
                     var res1 = UpdateCanvasItem(null, notification, todoTask, todoTaskNew, SyncConfig.Default.NotificationConfig);
+
                     if (res1)
                     {
                         if (todoTask is null)
                         {
                             todoTask = TodoService.AddTask(notilist.Id.ToString(), todoTaskNew);
+                            TodoService.AddLinkedResource(notilist.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { ApplicationName = notification.Icon.ToString(), DisplayName = notification.Id.ToString() });
+                            dic.Add(notification.Id.ToString(), todoTask);
                         }
                         else
                         {

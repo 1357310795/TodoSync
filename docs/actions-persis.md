@@ -62,7 +62,7 @@
 
 ![](https://s2.loli.net/2022/09/14/6DLgz7mHQdVSnZ2.png)
 
-16. 粘贴刚才复制的内容，直接提交
+16. 粘贴刚才复制的内容（把原先的**覆盖**掉，注意不要有多余的换行），直接提交
 
 ![](https://s2.loli.net/2022/08/21/fdGqptNy4FZc9Vz.png)
 
