@@ -92,11 +92,14 @@ namespace TodoSynchronizer.Core.Services
 
                 if (SyncConfig.Default.ListNameMode == ListNameMode.Category)
                 {
-                    
-                    FindList("quiz", SyncConfig.Default.ListNamesForCategory.QuizListName);
-                    FindList("discussion", SyncConfig.Default.ListNamesForCategory.DiscussionListName);
-                    FindList("assignment", SyncConfig.Default.ListNamesForCategory.AssignmentListName);
-                    FindList("anouncement", SyncConfig.Default.ListNamesForCategory.AnouncementListName);
+                    if (SyncConfig.Default.QuizConfig.Enabled)
+                        FindList("quiz", SyncConfig.Default.ListNamesForCategory.QuizListName);
+                    if (SyncConfig.Default.DiscussionConfig.Enabled)
+                        FindList("discussion", SyncConfig.Default.ListNamesForCategory.DiscussionListName);
+                    if (SyncConfig.Default.AssignmentConfig.Enabled)
+                        FindList("assignment", SyncConfig.Default.ListNamesForCategory.AssignmentListName);
+                    if (SyncConfig.Default.AnouncementConfig.Enabled)
+                        FindList("anouncement", SyncConfig.Default.ListNamesForCategory.AnouncementListName);
                 }
                 else
                 {
