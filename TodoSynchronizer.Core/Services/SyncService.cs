@@ -75,7 +75,7 @@ namespace TodoSynchronizer.Core.Services
 
                 void FindList(string cat, string name)
                 {
-                    var taskList = todoTaskLists.Find(x => x.DisplayName == name);
+                    var taskList = todoTaskLists.Find(x => x.DisplayName.CleanEmoji() == name);
 
                     if (taskList == null)
                         taskList = TodoService.AddTaskList(new TodoTaskList() { DisplayName = name });
