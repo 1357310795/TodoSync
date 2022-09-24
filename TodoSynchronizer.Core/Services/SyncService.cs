@@ -43,7 +43,7 @@ namespace TodoSynchronizer.Core.Services
         public void Go()
         {
             #region 初始化
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings() { DateTimeZoneHandling = DateTimeZoneHandling.Local };
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings() { DateTimeZoneHandling = DateTimeZoneHandling.Utc };
             CourseCount = 0;
             ItemCount = 0;
             UpdateCount = 0;
