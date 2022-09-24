@@ -41,7 +41,7 @@ namespace TodoSynchronizer.Core.Extensions
                    sb.Append(a);
 
             }
-            return str.Trim();
+            return sb.ToString();
         }
     }
 }
