@@ -74,14 +74,29 @@ namespace TodoSynchronizer.Core.Helpers
 
         public static DateTime? GetDueTime(this Assignment assignment)
         {
-            switch (SyncConfig.Default.AssignmentConfig.DueDateMode)
+            if (SyncConfig.Default.AssignmentConfig.DueDateModeFallback)
             {
-                case DueDateMode.due_at:
-                    return assignment.DueAt;
-                case DueDateMode.lock_at:
-                    return assignment.LockAt;
-                default:
-                    return null;
+                switch (SyncConfig.Default.AssignmentConfig.DueDateMode)
+                {
+                    case DueDateMode.due_at:
+                        return assignment.DueAt ?? assignment.LockAt;
+                    case DueDateMode.lock_at:
+                        return assignment.LockAt ?? assignment.DueAt;
+                    default:
+                        return null;
+                }
+            }
+            else
+            {
+                switch (SyncConfig.Default.AssignmentConfig.DueDateMode)
+                {
+                    case DueDateMode.due_at:
+                        return assignment.DueAt;
+                    case DueDateMode.lock_at:
+                        return assignment.LockAt;
+                    default:
+                        return null;
+                }
             }
         }
         #endregion

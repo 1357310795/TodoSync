@@ -93,6 +93,8 @@ namespace TodoSynchronizer.Core.Config
         public DueDateMode DueDateMode { get; set; }
         public RemindMode RemindMode { get; set; }
         public TimeSpan BeforeTimeSpan { get; set; }
+
+        public bool DueDateModeFallback { get; set; }
     }
     public enum DueDateMode
     {
