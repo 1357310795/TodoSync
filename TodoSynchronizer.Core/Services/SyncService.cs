@@ -765,7 +765,7 @@ namespace TodoSynchronizer.Core.Services
             if (todoTaskOld == null || todoTaskOld != null && config.UpdateTitle)
             {
                 var title = CanvasStringTemplateHelper.GetTitle(course, item);
-                if (todoTaskOld == null || todoTaskOld.Title == null || title != todoTaskOld.Title)
+                if (todoTaskOld == null || todoTaskOld.Title == null || title.Trim() != todoTaskOld.Title.Trim())
                 {
                     todoTaskNew.Title = title;
                     modified = true;
@@ -775,7 +775,7 @@ namespace TodoSynchronizer.Core.Services
             if (todoTaskOld == null && config.CreateContent || todoTaskOld != null && config.UpdateContent)
             {
                 var content = CanvasStringTemplateHelper.GetContent(item);
-                if (todoTaskOld == null || todoTaskOld.Body.Content == null || content != todoTaskOld.Body.Content)
+                if (todoTaskOld == null || todoTaskOld.Body.Content == null || content.Trim() != todoTaskOld.Body.Content.Trim())
                 {
                     todoTaskNew.Body = new ItemBody() { ContentType = BodyType.Text };
                     todoTaskNew.Body.Content = content;
