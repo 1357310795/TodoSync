@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -12,8 +11,6 @@ using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Extensions;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models.CanvasModels;
-using YamlDotNet.Core.Tokens;
-using static System.Net.WebRequestMethods;
 
 namespace TodoSynchronizer.Core.Services
 {
@@ -742,7 +739,7 @@ namespace TodoSynchronizer.Core.Services
         {
             var modified = false;
             var desc = func(assignment, submission);
-            var check = !desc.Contains("未");
+            var check = !desc.Contains("未") && !desc.Contains("正在");
 
             checklistitemNew.IsChecked = checklistitemOld?.IsChecked ?? false;
             if (checklistitemNew.IsChecked != check)

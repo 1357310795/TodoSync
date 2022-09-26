@@ -101,7 +101,12 @@ namespace TodoSynchronizer.Core.Helpers
 
         public static string GetSubmissionDesc(Assignment assignment, QuizSubmission submission)
         {
-            return $"尝试 {submission.Attempt}：{submission.Score}/{submission.QuizPointsPossible}（提交时间：{submission.FinishedAt.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss")}）";
+            if (submission.WorkflowState == "untaken")
+                return $"尝试 {submission.Attempt}：{submission.Score}/{submission.QuizPointsPossible}（提交时间：{submission.FinishedAt.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss")}）";
+            else if (submission.WorkflowState == "complete")
+                return $"正在进行测验（开始时间：{submission.StartedAt.Value.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss")}）";
+            else
+                return $"无法识别的尝试";
         }
 
         public static string GetItemName(this ICanvasItem item)
