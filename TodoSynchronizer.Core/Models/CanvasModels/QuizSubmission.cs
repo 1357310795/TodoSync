@@ -28,7 +28,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public long? ExtraTime { get; set; }
 
         [JsonProperty("finished_at")]
-        public DateTime FinishedAt { get; set; }
+        public DateTime? FinishedAt { get; set; }
 
         [JsonProperty("fudge_points")]
         public long? FudgePoints { get; set; }
@@ -40,7 +40,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public long Id { get; set; }
 
         [JsonProperty("kept_score")]
-        public long KeptScore { get; set; }
+        public long? KeptScore { get; set; }
 
         [JsonProperty("manually_unlocked")]
         public bool? ManuallyUnlocked { get; set; }
@@ -52,10 +52,10 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public long QuizId { get; set; }
 
         [JsonProperty("quiz_points_possible")]
-        public long QuizPointsPossible { get; set; }
+        public long? QuizPointsPossible { get; set; }
 
         [JsonProperty("score")]
-        public long Score { get; set; }
+        public long? Score { get; set; }
 
         [JsonProperty("score_before_regrade")]
         public long? ScoreBeforeRegrade { get; set; }
@@ -67,7 +67,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public long SubmissionId { get; set; }
 
         [JsonProperty("time_spent")]
-        public long TimeSpent { get; set; }
+        public long? TimeSpent { get; set; }
 
         [JsonProperty("user_id")]
         public long UserId { get; set; }
