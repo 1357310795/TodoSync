@@ -341,16 +341,10 @@ namespace TodoSynchronizer.Core.Services
                     if (SyncConfig.Default.AssignmentConfig.CreateAttachments)
                     {
                         var files = new List<Models.CanvasModels.Attachment>();
-                        var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
+
                         if (assignment.Content != null)
                         {
-                            var file_matches = file_reg.Matches(assignment.Content);
-                            foreach (Match match in file_matches)
-                            {
-                                var filename = match.Groups[1].Value;
-                                var filepath = match.Groups[2].Value;
-                                files.Add(new Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                            }
+                            CheckAttachments(assignment.Content, files);
                         }
 
                         if (files.Count > 0)
@@ -367,6 +361,26 @@ namespace TodoSynchronizer.Core.Services
             {
                 OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
                 return;
+            }
+        }
+
+        private static void CheckAttachments(string content, List<Models.CanvasModels.Attachment> files)
+        {
+            var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
+            var file_matches = file_reg.Matches(content);
+            var img_reg = new Regex(@"<img.+?src=""(.+?)"".+?alt=""(.+?)"".+?>");
+            var img_matches = img_reg.Matches(content);
+            foreach (Match match in file_matches)
+            {
+                var filename = match.Groups[1].Value;
+                var filepath = match.Groups[2].Value;
+                files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
+            }
+            foreach (Match match in img_matches)
+            {
+                var filename = match.Groups[2].Value;
+                var filepath = match.Groups[1].Value;
+                files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
             }
         }
         #endregion
@@ -419,25 +433,10 @@ namespace TodoSynchronizer.Core.Services
                     if (SyncConfig.Default.DiscussionConfig.CreateAttachments)
                     {
                         var files = discussion.Attachments;
-                        var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
-
+                        
                         if (discussion.Content != null)
                         {
-                            var file_matches = file_reg.Matches(discussion.Content);
-                            var img_reg = new Regex(@"<img.+?src=""(.+?)"".+?alt=""(.+?)"".+?>");
-                            var img_matches = img_reg.Matches(discussion.Content);
-                            foreach (Match match in file_matches)
-                            {
-                                var filename = match.Groups[1].Value;
-                                var filepath = match.Groups[2].Value;
-                                files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                            }
-                            foreach (Match match in img_matches)
-                            {
-                                var filename = match.Groups[2].Value;
-                                var filepath = match.Groups[1].Value;
-                                files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                            }
+                            CheckAttachments(discussion.Content, files);
                         }
 
                         if (files.Count > 0)
@@ -544,17 +543,10 @@ namespace TodoSynchronizer.Core.Services
                     if (SyncConfig.Default.QuizConfig.CreateAttachments)
                     {
                         var files = new List<Models.CanvasModels.Attachment>();
-                        var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
 
                         if (assignment.Content != null)
                         {
-                            var file_matches = file_reg.Matches(assignment.Content);
-                            foreach (Match match in file_matches)
-                            {
-                                var filename = match.Groups[1].Value;
-                                var filepath = match.Groups[2].Value;
-                                files.Add(new Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                            }
+                            CheckAttachments(assignment.Content, files);
                         }
                         
                         if (files.Count > 0)
@@ -627,21 +619,7 @@ namespace TodoSynchronizer.Core.Services
 
                         if (anouncement.Content != null)
                         {
-                            var file_matches = file_reg.Matches(anouncement.Content);
-                            var img_reg = new Regex(@"<img.+?src=""(.+?)"".+?alt=""(.+?)"".+?>");
-                            var img_matches = img_reg.Matches(anouncement.Content);
-                            foreach (Match match in file_matches)
-                            {
-                                var filename = match.Groups[1].Value;
-                                var filepath = match.Groups[2].Value;
-                                files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                            }
-                            foreach (Match match in img_matches)
-                            {
-                                var filename = match.Groups[2].Value;
-                                var filepath = match.Groups[1].Value;
-                                files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-                            }
+                            CheckAttachments(anouncement.Content, files);
                         }
                         
                         if (files.Count > 0)
