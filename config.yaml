@@ -107,6 +107,8 @@ AssignmentConfig :
   CreateScoreAndCommit : true
   CreateAttachments : true
   CreateImportance : false
+  # 同步助教和老师的评论
+  CreateComments : true
   UpdateTitle : true
   UpdateContent : true
   UpdateDueDate : false
@@ -116,6 +118,7 @@ AssignmentConfig :
   # 则更新已存在待办事项的提交和分数信息
   UpdateScoreAndCommit : true
   UpdateImportance : false
+  UpdateComments : true
   # 指定待办事项的标题模板
   # 可用的替换参数：
   # {course.name} -> 课程名

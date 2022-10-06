@@ -91,6 +91,11 @@ namespace TodoSynchronizer.Core.Helpers
                 return "未提交";
         }
 
+        public static string GetSubmissionComment(SubmissionComment comment)
+        {
+            return $"{comment.AuthorName} 评论：{comment.Comment}";
+        }
+
         public static string GetGradeDesc(Assignment assignment, AssignmentSubmission submission)
         {
             if (submission.Grade != null)

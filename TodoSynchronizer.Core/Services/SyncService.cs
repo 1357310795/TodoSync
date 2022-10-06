@@ -336,7 +336,42 @@ namespace TodoSynchronizer.Core.Services
                             }
                             updated = true;
                         }
+
+                        //---Comments---//
+                        if (SyncConfig.Default.AssignmentConfig.CreateComments && isnew
+                            || SyncConfig.Default.AssignmentConfig.UpdateComments && !isnew)
+                        {
+                                if (submission.SubmissionComments?.Count > 0)
+                                {
+                                    int i = 2;
+                                    foreach (var comment in submission.SubmissionComments)
+                                    {
+                                        ChecklistItem checkitem3 = null;
+                                        if (links.Count >= i + 1)
+                                            checkitem3 = links[i];
+                                        else
+                                            checkitem3 = null;
+                                        i++;
+
+                                        ChecklistItem checkitem3New = new ChecklistItem();
+                                        var res4 = UpdateSubmissionComment(comment, checkitem3, checkitem3New);
+                                        if (res4)
+                                        {
+                                            if (checkitem3 == null)
+                                            {
+                                                TodoService.AddCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem3New);
+                                            }
+                                            else
+                                            {
+                                                TodoService.UpdateCheckItem(taskList.Id.ToString(), todoTask.Id.ToString(), checkitem3.Id.ToString(), checkitem3New);
+                                            }
+                                            updated = true;
+                                        }
+                                    }
+                                }
+                        }
                     }
+
                     //---Attachments---//
                     if (SyncConfig.Default.AssignmentConfig.CreateAttachments)
                     {
@@ -732,7 +767,27 @@ namespace TodoSynchronizer.Core.Services
             }
             return modified;
         }
-        
+
+        private bool UpdateSubmissionComment(SubmissionComment comment, ChecklistItem checklistitemOld, ChecklistItem checklistitemNew)
+        {
+            var modified = false;
+            var desc = CanvasStringTemplateHelper.GetSubmissionComment(comment);
+            var check = true;
+
+            checklistitemNew.IsChecked = checklistitemOld?.IsChecked ?? false;
+            if (checklistitemNew.IsChecked != check)
+            {
+                checklistitemNew.IsChecked = check;
+                modified = true;
+            }
+            if (checklistitemOld == null || checklistitemOld.DisplayName != desc)
+            {
+                checklistitemNew.DisplayName = desc;
+                modified = true;
+            }
+            return modified;
+        }
+
         public bool UpdateCanvasItem(Course course, ICanvasItem item, TodoTask todoTaskOld, TodoTask todoTaskNew, ICanvasItemConfig config)
         {
             var modified = false;

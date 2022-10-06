@@ -101,6 +101,7 @@ namespace TodoSynchronizer.Core.Services
         public static AssignmentSubmission GetAssignmentSubmisson(string course_id, string assignment_id)
         {
             var query = new Dictionary<string, string>();
+            query.Add("include[]", "submission_comments");
 
             var res = Web.Get(Client, $"/api/v1/courses/{course_id}/assignments/{assignment_id}/submissions/self", query);
             if (!res.success)

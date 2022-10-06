@@ -82,7 +82,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public long SecondsLate { get; set; }
 
         [JsonProperty("submission_comments")]
-        public object SubmissionComments { get; set; }
+        public List<SubmissionComment> SubmissionComments { get; set; }
 
         [JsonProperty("submission_type")]
         public string SubmissionType { get; set; }
