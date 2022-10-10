@@ -34,7 +34,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public string HtmlUrl { get; set; }
 
         [JsonProperty("id")]
-        public long Id { get; set; }
+        public long? Id { get; set; }
     }
 
     public class Calendar

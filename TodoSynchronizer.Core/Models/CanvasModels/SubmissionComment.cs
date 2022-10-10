@@ -13,7 +13,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public Author Author { get; set; }
 
         [JsonProperty("author_id")]
-        public long AuthorId { get; set; }
+        public long? AuthorId { get; set; }
 
         [JsonProperty("author_name")]
         public string AuthorName { get; set; }
@@ -31,6 +31,6 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public DateTime? EditedAt { get; set; }
 
         [JsonProperty("id")]
-        public long Id { get; set; }
+        public long? Id { get; set; }
     }
 }
