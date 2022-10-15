@@ -5,6 +5,7 @@ using TodoSynchronizer.Core.Config;
 using YamlDotNet.Serialization;
 using TodoSynchronizer.Core.Yaml;
 using File = System.IO.File;
+using TodoSynchronizer.Core.Models;
 
 namespace TodoSynchronizer.CLI;
 class Program

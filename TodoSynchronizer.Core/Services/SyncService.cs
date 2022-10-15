@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Extensions;
 using TodoSynchronizer.Core.Helpers;
+using TodoSynchronizer.Core.Models;
 using TodoSynchronizer.Core.Models.CanvasModels;
 
 namespace TodoSynchronizer.Core.Services
@@ -950,22 +951,5 @@ namespace TodoSynchronizer.Core.Services
             return bytes;
         }
         #endregion
-    }
-
-    public class SyncState
-    {
-        public SyncState(SyncStateEnum state, string message)
-        {
-            State = state;
-            Message = message;
-        }
-
-        public SyncStateEnum State { get; set; }
-        public string Message { get; set; }
-    }
-
-    public enum SyncStateEnum
-    {
-        Finished, Error, Progress
     }
 }

@@ -31,6 +31,12 @@ namespace TodoSynchronizer.Core.Service
             task.Wait();
             return GetFinalResult(task.GetAwaiter().GetResult());
         }
+        public static WebResult Post(HttpClient client, string url, string content)
+        {
+            var task = client.PostAsync(url, new StringContent(content));
+            task.Wait();
+            return GetFinalResult(task.GetAwaiter().GetResult());
+        }
 
         public static void ProcessHeaders(HttpClient client, Dictionary<string, string> headers)
         {

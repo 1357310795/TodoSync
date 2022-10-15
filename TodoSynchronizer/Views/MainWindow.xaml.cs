@@ -13,6 +13,7 @@ using System.Threading;
 using System.Windows;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Helpers;
+using TodoSynchronizer.Core.Models;
 using TodoSynchronizer.Core.Models.CanvasModels;
 using TodoSynchronizer.Core.Services;
 using TodoSynchronizer.Core.Yaml;
