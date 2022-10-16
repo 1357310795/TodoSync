@@ -11,9 +11,12 @@ namespace TodoSynchronizer.CLI;
 class Program
 {
     static bool error;
+    static ISimpleLogger logger;
     static void Main(string[] args)
     {
-        Console.WriteLine("TodoSynchronizer v0.1 beta");
+        var logfilepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{DateTime.Now.ToString("yyyyMMdd")}.log");
+        logger = new LogFileAdapter(logfilepath);
+        Log("TodoSynchronizer v0.1 beta");
 
         string canvastoken = "", graphtokenpath = "";
         string configpath = "", graphtokenkey = "", offlinetokenfile = "";
@@ -42,17 +45,17 @@ class Program
         {
             if (canvastoken == "")
             {
-                Console.WriteLine("未指定 Canvas Token！");
+                Log("未指定 Canvas Token！");
                 Environment.Exit(-1);
             }
             if (graphtokenpath == "")
             {
-                Console.WriteLine("未指定 Graph Token 文件！");
+                Log("未指定 Graph Token 文件！");
                 Environment.Exit(-1);
             }
             if (graphtokenkey == "")
             {
-                Console.WriteLine("未指定 Graph Token 秘钥！");
+                Log("未指定 Graph Token 秘钥！");
                 Environment.Exit(-1);
             }
         }
@@ -64,18 +67,18 @@ class Program
         
         if (configpath == "")
         {
-            Console.WriteLine("未指定配置文件！");
+            Log("未指定配置文件！");
             Environment.Exit(-1);
         }
         
         var res1 = CanvasService.Login(canvastoken);
         if (!res1.success)
         {
-            Console.WriteLine("Canvas 认证失败！");
-            Console.WriteLine(res1.result);
+            Log("Canvas 认证失败！");
+            Log(res1.result);
             Environment.Exit(-1);
         }
-        Console.WriteLine($"Canvas 认证成功");
+        Log($"Canvas 认证成功");
 
         try
         {
@@ -107,8 +110,8 @@ class Program
 
             if (!refreshres.IsSuccessStatusCode)
             {
-                Console.WriteLine("获取 Graph Token 失败！");
-                Console.WriteLine(refreshres.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+                Log("获取 Graph Token 失败！");
+                Log(refreshres.Content.ReadAsStringAsync().GetAwaiter().GetResult());
                 Environment.Exit(-1);
             }
             RefreshModel refreshModel = JsonConvert.DeserializeObject<RefreshModel>(refreshres.Content.ReadAsStringAsync().GetAwaiter().GetResult());
@@ -128,11 +131,11 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Graph 认证失败！");
-            Console.WriteLine(ex.ToString());
+            Log("Graph 认证失败！");
+            Log(ex.ToString());
             Environment.Exit(-1);
         }
-        Console.WriteLine("Graph 认证成功");
+        Log("Graph 认证成功");
 
         try
         {
@@ -141,8 +144,8 @@ class Program
         }
         catch(Exception ex)
         {
-            Console.WriteLine("更新 Graph Token失败！请检查是否有文件的写入权限！");
-            Console.WriteLine(ex.ToString());
+            Log("更新 Graph Token失败！请检查是否有文件的写入权限！");
+            Log(ex.ToString());
             Environment.Exit(-1);
         }
 
@@ -158,10 +161,10 @@ class Program
         }
         catch(Exception ex)
         {
-            Console.WriteLine($"读取配置失败：{ex.Message}");
+            Log($"读取配置失败：{ex.Message}");
             Environment.Exit(-1);
         }
-        Console.WriteLine("读取配置成功");
+        Log("读取配置成功");
 
         SyncService sync = new SyncService();
         sync.OnReportProgress += OnReportProgress;
@@ -170,7 +173,7 @@ class Program
 
     private static void OnReportProgress(SyncState state)
     {
-        Console.WriteLine(state.Message);
+        Log(state.Message);
         if (state.State == SyncStateEnum.Finished)
         {
             Environment.Exit(error ? -1 : 0);
@@ -180,6 +183,11 @@ class Program
         {
             error = true;
         }
+    }
+
+    private static void Log(string message)
+    {
+        logger.Log(message);
     }
 
     public partial class RefreshModel
