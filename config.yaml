@@ -111,7 +111,7 @@ AssignmentConfig :
   CreateComments : true
   UpdateTitle : true
   UpdateContent : true
-  UpdateDueDate : false
+  UpdateDueDate : true
   UpdateRemind : true
   # 若 Todo 列表内已存在当前的公告，
   # 且已存在待办事项的提交和分数信息与最新的不一致，
@@ -236,7 +236,7 @@ NotificationConfig :
   CreateImportance : false
   UpdateTitle : false
   UpdateContent : false
-  UpdateDueDate : false
+  UpdateDueDate : true
   UpdateRemind : false
   UpdateImportance : false
   # 可用的替换参数：

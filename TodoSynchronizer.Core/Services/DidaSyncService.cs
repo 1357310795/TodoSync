@@ -235,8 +235,12 @@ namespace TodoSynchronizer.Core.Services
                     if (dicUrl.ContainsKey(assignment.HtmlUrl))
                         didaTask = dicUrl[assignment.HtmlUrl];
                     else
-                        didaTask = null;
-                    var isnew = didaTask == null;
+                        didaTask = new DidaTask()
+                        {
+                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
+                            ProjectId = taskList.Id,
+                        };
+                    var isnew = didaTask.Creator is null;
 
                     //---Self & LinkedResource---//
                     var res1 = UpdateCanvasItem(course, assignment, didaTask, SyncConfig.Default.AssignmentConfig);
@@ -378,7 +382,7 @@ namespace TodoSynchronizer.Core.Services
                     else
                         didaTask = new DidaTask()
                         {
-                            Id = Common.GetRandomString(24, true, true, false, false, ""),
+                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
                             ProjectId = taskList.Id,
                         };
 
@@ -454,7 +458,7 @@ namespace TodoSynchronizer.Core.Services
                     else
                         didaTask = new DidaTask()
                         {
-                            Id = Common.GetRandomString(24, true, true, false, false, ""),
+                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
                             ProjectId = taskList.Id,
                         };
                     var isnew = didaTask == null;
@@ -481,6 +485,8 @@ namespace TodoSynchronizer.Core.Services
                         || SyncConfig.Default.QuizConfig.UpdateScoreAndCommit && !isnew)
                         if (assignment.HasSubmittedSubmissions)
                         {
+                            if (didaTask.Items == null)
+                                didaTask.Items = new List<DidaCheckItem>();
                             var links = didaTask.Items;
                             var quizsubmissions = CanvasService.ListQuizSubmissons(course.Id.ToString(), assignment.QuizId.ToString());
 
@@ -561,7 +567,7 @@ namespace TodoSynchronizer.Core.Services
                     else
                         didaTask = new DidaTask()
                         {
-                            Id = Common.GetRandomString(24, true, true, false, false, ""),
+                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
                             ProjectId = taskList.Id,
                         };
 
@@ -652,7 +658,7 @@ namespace TodoSynchronizer.Core.Services
                     else
                         didaTask = new DidaTask()
                         {
-                            Id = Common.GetRandomString(24, true, true, false, false, ""),
+                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
                             ProjectId = notilist.Id,
                         };
 

@@ -30,6 +30,10 @@
                        Content="Go"
                        Appearance="Primary" Click="Button_Click" />
             <ui:Button Width="200" Height="40"
+                       Margin="10" x:Name="DidaGoButton"
+                       Content="Go Dida"
+                       Appearance="Primary" Click="ButtonDida_Click" />
+            <ui:Button Width="200" Height="40"
                        Margin="10"
                        Content="Test"
                        Appearance="Primary" Click="ButtonTest_Click" />

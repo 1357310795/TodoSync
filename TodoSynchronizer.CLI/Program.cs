@@ -16,8 +16,10 @@ class Program
         Console.WriteLine("TodoSynchronizer v0.1 beta");
 
         string canvastoken = "", graphtokenpath = "";
-        string configpath = "", graphtokenkey = "";
-        for(int i = 0; i < args.Length; i++)
+        string configpath = "", graphtokenkey = "", offlinetokenfile = "";
+        OfflineTokenDto offlineToken = null;
+
+        for (int i = 0; i < args.Length; i++)
         {
             if (args[i] == "-canvastoken")
                 if (i + 1 < args.Length)
@@ -31,28 +33,41 @@ class Program
             if (args[i] == "-graphtokenkey")
                 if (i + 1 < args.Length)
                     graphtokenkey = args[i + 1].Trim();
+            if (args[i] == "-tokenfile")
+                if (i + 1 < args.Length)
+                    offlinetokenfile = args[i + 1].Trim();
         }
 
-        if (canvastoken == "")
+        if (offlinetokenfile == "")
         {
-            Console.WriteLine("未指定 Canvas Token！");
-            Environment.Exit(-1);
+            if (canvastoken == "")
+            {
+                Console.WriteLine("未指定 Canvas Token！");
+                Environment.Exit(-1);
+            }
+            if (graphtokenpath == "")
+            {
+                Console.WriteLine("未指定 Graph Token 文件！");
+                Environment.Exit(-1);
+            }
+            if (graphtokenkey == "")
+            {
+                Console.WriteLine("未指定 Graph Token 秘钥！");
+                Environment.Exit(-1);
+            }
         }
-        if (graphtokenpath == "")
+        else
         {
-            Console.WriteLine("未指定 Graph Token 文件！");
-            Environment.Exit(-1);
+            offlineToken = JsonConvert.DeserializeObject<OfflineTokenDto>(File.ReadAllText(offlinetokenfile));
+            canvastoken = offlineToken.CanvasToken;
         }
+        
         if (configpath == "")
         {
             Console.WriteLine("未指定配置文件！");
             Environment.Exit(-1);
         }
-        if (graphtokenkey == "")
-        {
-            Console.WriteLine("未指定 Graph Token 秘钥！");
-            Environment.Exit(-1);
-        }
+        
         var res1 = CanvasService.Login(canvastoken);
         if (!res1.success)
         {
@@ -64,9 +79,17 @@ class Program
 
         try
         {
-            var graphtokenenc = File.ReadAllText(graphtokenpath);
-            var graphtoken = AesHelper.Decrypt(graphtokenkey, graphtokenenc);
-
+            string graphtokenenc = "", graphtoken = "";
+            if (offlineToken != null)
+            {
+                graphtoken = offlineToken.GraphToken;
+            }
+            else
+            {
+                graphtokenenc = File.ReadAllText(graphtokenpath);
+                graphtoken = AesHelper.Decrypt(graphtokenkey, graphtokenenc);
+            }
+            
             //var headers = new Dictionary<string, string>();
             //headers.Add("Content-Type", "application/x-www-form-urlencoded");
             var forms = new List<KeyValuePair<string, string>>();
@@ -91,8 +114,16 @@ class Program
             RefreshModel refreshModel = JsonConvert.DeserializeObject<RefreshModel>(refreshres.Content.ReadAsStringAsync().GetAwaiter().GetResult());
             TodoService.Token = refreshModel.AccessToken;
 
-            graphtokenenc = AesHelper.Encrypt(graphtokenkey, refreshModel.RefreshToken);
-            File.WriteAllText(graphtokenpath, graphtokenenc);
+            if (offlineToken != null)
+            {
+                offlineToken.GraphToken = refreshModel.RefreshToken;
+            }
+            else
+            {
+                graphtokenenc = AesHelper.Encrypt(graphtokenkey, refreshModel.RefreshToken);
+                File.WriteAllText(graphtokenpath, graphtokenenc);
+            }
+            
             var userinfo = TodoService.GetUserInfo();
         }
         catch (Exception ex)
@@ -102,6 +133,18 @@ class Program
             Environment.Exit(-1);
         }
         Console.WriteLine("Graph 认证成功");
+
+        try
+        {
+            var offlineTokenDto = JsonConvert.SerializeObject(offlineToken);
+            File.WriteAllText(offlinetokenfile, offlineTokenDto);
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("更新 Graph Token失败！请检查是否有文件的写入权限！");
+            Console.WriteLine(ex.ToString());
+            Environment.Exit(-1);
+        }
 
         try
         {

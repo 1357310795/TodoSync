@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models;
 using TodoSynchronizer.Core.Models.CanvasModels;
 using TodoSynchronizer.Core.Models.DidaModels;
@@ -72,7 +73,7 @@ namespace TodoSynchronizer.Core.Services
         public static DidaTaskList AddTaskList(string name)
         {
             var query = new Dictionary<string, string>();
-            var postjson = string.Format("{\"name\":\"{0}\"}", name);
+            var postjson = "{\"name\":\"{1}\"}".Replace("{1}", name);
 
             var res = Web.Post(Client, $"/api/v2/project", postjson);
             if (!res.success)
@@ -96,7 +97,7 @@ namespace TodoSynchronizer.Core.Services
         {
             var query = new Dictionary<string, string>();
 
-            var res = Web.Get(Client, $"/v2/project/{listid}/tasks", query);
+            var res = Web.Get(Client, $"/api/v2/project/{listid}/tasks", query);
             if (!res.success)
                 throw new Exception(res.message);
 
@@ -120,7 +121,7 @@ namespace TodoSynchronizer.Core.Services
             var batchdto = new DidaBatchDto();
             batchdto.add.Add(task);
 
-            var res = Web.Post(Client, $"/v2/batch/task", JsonConvert.SerializeObject(batchdto));
+            var res = Web.Post(Client, $"/api/v2/batch/task", JsonConvert.SerializeObject(batchdto));
             if (!res.success)
                 throw new Exception(res.message);
 
@@ -145,7 +146,7 @@ namespace TodoSynchronizer.Core.Services
             var batchdto = new DidaBatchDto();
             batchdto.update.Add(task);
 
-            var res = Web.Post(Client, $"/v2/batch/task", JsonConvert.SerializeObject(batchdto));
+            var res = Web.Post(Client, $"/api/v2/batch/task", JsonConvert.SerializeObject(batchdto));
             if (!res.success)
                 throw new Exception(res.message);
 
@@ -194,6 +195,7 @@ namespace TodoSynchronizer.Core.Services
             comment.ProjectId = listid;
             comment.IsNew = true;
             comment.Title = content;
+            comment.Id = Common.GetRandomString(24, true, false, false, false, "abcdef");
             comment.UserProfile = new Models.DidaModels.UserProfile() { IsMyself = true };
 
             var res = Web.Post(Client, $"/api/v2/project/{listid}/task/{taskid}/comment", JsonConvert.SerializeObject(comment));

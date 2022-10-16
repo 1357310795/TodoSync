@@ -33,7 +33,9 @@ namespace TodoSynchronizer.Core.Service
         }
         public static WebResult Post(HttpClient client, string url, string content)
         {
-            var task = client.PostAsync(url, new StringContent(content));
+            var httpcontent = new StringContent(content);
+            httpcontent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            var task = client.PostAsync(url, httpcontent);
             task.Wait();
             return GetFinalResult(task.GetAwaiter().GetResult());
         }

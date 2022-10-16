@@ -15,6 +15,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Image Source="{StaticResource keyDrawingImage}" Width="72" Margin="0,0,10,0"/>
@@ -23,6 +24,7 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal">
             <TextBox Width="300" FontSize="20" Text="{Binding Password}"/>
         </StackPanel>
-        <Button Content="确定" Click="Button_Click" Grid.Row="4" Margin="0,30" Width="160" Height="50" FontSize="16"/>
+        <Button Content="确定" Click="Button_Click" Grid.Row="4" Margin="0,30,0,10" Width="160" Height="50" FontSize="16"/>
+        <TextBlock Grid.Row="5" Text="直接复制 Token" HorizontalAlignment="Center" FontSize="14" TextDecorations="Underline" Foreground="Blue" MouseDown="TextBlock_MouseDown"/>
     </Grid>
 </Page>

@@ -83,5 +83,12 @@ namespace TodoSynchronizer.QuickTool.Pages
         }
 
         #endregion
+
+        private void TextBlock_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var token = DataService.GetData<string>("token");
+            Clipboard.SetText(token);
+            MessageBox.Show("复制成功！");
+        }
     }
 }
