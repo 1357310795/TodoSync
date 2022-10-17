@@ -33,12 +33,17 @@
 
 ![](https://s2.loli.net/2022/10/16/xh9iu23F1lvjftD.png)
 
-### 三、创建本地 Token 存储文件
-9. 在合适的位置新建一个文本文件（要求 TodoSync 程序可读写此文件）
+### 三、更新本地 Token 存储文件
+9. 在 Releases 界面下载对应系统（Windows/Linux）的本地运行版本程序包。
+
+
+10. 解压程序包到合适的位置（要求程序可读写此位置）
+
+11. 使用**文本编辑器**打开程序包目录下的 `token.json` 文件
 
 ![](https://s2.loli.net/2022/10/16/sulWqNQSCxMVD3j.png)
 
-10. 输入以下内容，并填上前面获取的两个令牌
+12. 填上前面获取的两个令牌
 ```
 {"CanvasToken":"这里填上你的 Canvas 令牌","GraphToken":"这里填上你的 Graph 令牌"}
 ```
@@ -46,21 +51,24 @@
 
 ### 四、配置定时任务
 #### Windows
-11. 搜索“任务计划程序”，打开
+13. 搜索“任务计划程序”，打开
 
 ![](https://s2.loli.net/2022/10/16/7eg1TNXORzpkds4.png)
 
-12. 在“任务计划程序库”或其任一子文件夹内**创建任务**（注意不是“创建基本任务”）
+14. 在“任务计划程序库”或其任一子文件夹内**创建任务**（注意不是“创建基本任务”）
 
 ![](https://s2.loli.net/2022/10/16/UCWtBlhPgapVFvI.png)
 
-13. 按图中配置
+15. 按图中配置
 
 ![](https://s2.loli.net/2022/10/16/AjFl7RwaMiV6SWg.png)
-![](https://s2.loli.net/2022/10/16/HXPyeEQ75K3TRtM.png)
-![](https://s2.loli.net/2022/10/16/1jZAh4k5wFsDzVO.png)
+![](https://s2.loli.net/2022/10/17/37nD4mpM6NabzeW.png)
+![](https://s2.loli.net/2022/10/17/Cjl3nehm2VvFGcR.png)
 
-其中程序为从 Releases 界面下载的 TodoSynchronizer.CLI.exe，参数如下
+其中程序名称为 `wscript.exe`，参数为程序包中 `TodoSync.vbs` 的路径，例如
 ```
--configfile 你的config文件路径 -tokenfile 你的token文件路径
+"C:\Users\Public\Download\TodoSync.Local\TodoSync.vbs"
 ```
+（建议包含引号）
+
+#### Linux

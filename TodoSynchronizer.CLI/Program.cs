@@ -14,12 +14,9 @@ class Program
     static ISimpleLogger logger;
     static void Main(string[] args)
     {
-        var logfilepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{DateTime.Now.ToString("yyyyMMdd")}.log");
-        logger = new LogFileAdapter(logfilepath);
-        Log("TodoSynchronizer v0.1 beta");
-
         string canvastoken = "", graphtokenpath = "";
         string configpath = "", graphtokenkey = "", offlinetokenfile = "";
+        bool local = false;
         OfflineTokenDto offlineToken = null;
 
         for (int i = 0; i < args.Length; i++)
@@ -36,13 +33,16 @@ class Program
             if (args[i] == "-graphtokenkey")
                 if (i + 1 < args.Length)
                     graphtokenkey = args[i + 1].Trim();
-            if (args[i] == "-tokenfile")
-                if (i + 1 < args.Length)
-                    offlinetokenfile = args[i + 1].Trim();
+            if (args[i] == "-local")
+                local = true;
         }
 
-        if (offlinetokenfile == "")
+        if (!local)
         {
+            logger = new ConsoleAdapter();
+            Log("TodoSynchronizer v0.1 beta");
+            Log(DateTime.Now.ToString("G"));
+
             if (canvastoken == "")
             {
                 Log("未指定 Canvas Token！");
@@ -61,6 +61,13 @@ class Program
         }
         else
         {
+            var logfilepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{DateTime.Now.ToString("yyyyMMdd")}.log");
+            logger = new LogFileAdapter(logfilepath);
+            Log("TodoSynchronizer v0.1 beta");
+            Log(DateTime.Now.ToString("G"));
+
+            configpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"config.yaml");
+            offlinetokenfile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"token.json");
             offlineToken = JsonConvert.DeserializeObject<OfflineTokenDto>(File.ReadAllText(offlinetokenfile));
             canvastoken = offlineToken.CanvasToken;
         }
@@ -188,23 +195,5 @@ class Program
     private static void Log(string message)
     {
         logger.Log(message);
-    }
-
-    public partial class RefreshModel
-    {
-        [JsonProperty("access_token")]
-        public string AccessToken { get; set; }
-
-        [JsonProperty("expires_in")]
-        public long ExpiresIn { get; set; }
-
-        [JsonProperty("refresh_token")]
-        public string RefreshToken { get; set; }
-
-        [JsonProperty("scope")]
-        public string Scope { get; set; }
-
-        [JsonProperty("token_type")]
-        public string TokenType { get; set; }
     }
 }
