@@ -18,8 +18,8 @@
 ![](https://s2.loli.net/2022/08/21/Eyej95vY3cCsVZT.png)
 
 ### 二、获取 Graph 令牌
-
-下面以 Windows 系统为例，借助“Graph 认证辅助工具”（在本仓库开源）进行配置。如有其它需求，可参考[手动配置 Graph Token](./graph-token-manually.md)
+#### Windows
+推荐借助“Graph 认证辅助工具”（在本仓库开源）进行配置。
 
 5.  在 [Releases](../../../releases) 页面下载“TodoSynchronizer.QuickTool.exe”，打开。
 
@@ -32,6 +32,9 @@
 8. 完成后，回到程序，**点击下面的蓝色的“直接复制 Token”**
 
 ![](https://s2.loli.net/2022/10/16/xh9iu23F1lvjftD.png)
+
+#### Linux 
+Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（到第六步为止！！！只需要 refresh_token ！！！不用加密！！！）**
 
 ### 三、更新本地 Token 存储文件
 9. 在 Releases 界面下载对应系统（Windows/Linux）的本地运行版本程序包。
@@ -72,3 +75,19 @@
 （建议包含引号）
 
 #### Linux
+下面以 crontab 服务为例展示 Linux 配置定时任务
+
+16. 终端运行命令 `crontab -e`，打开文本编辑器
+
+17. 光标移动到新的一行，输入
+```
+0 * * * * /path_to_your_program/TodoSyncronizer.CLI -local
+```
+
+![](https://s2.loli.net/2022/10/17/tzHrZnBcJ94TQVF.png)
+
+18. 按提示保存退出，输入 `crontab -l` 检查是否正确保存
+
+![](https://s2.loli.net/2022/10/17/7BKLxnOj5gtIrol.png)
+
+19. 定时任务配置完毕，定时任务将在每小时的第零分钟执行。建议第一次时检查程序目录下的 `.log` 文件查看是否成功执行（若没有 `.log` 文件，则可能配置有误）
