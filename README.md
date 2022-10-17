@@ -6,7 +6,8 @@
 ![todosync-main.png](https://s2.loli.net/2022/09/14/J8WMPXCvjw34ZOq.png)
 
 ## 使用方法
-详见[部署指南](/docs/actions-persis.md)
+- GitHub Actions 方式：[部署指南](/docs/actions-persis.md)
+- 本地运行方式：[部署指南](/docs/local.md)
 
 ## 特别感谢
 - [microsoftgraph/msgraph-sdk-dotnet](https://github.com/microsoftgraph/msgraph-sdk-dotnet)
