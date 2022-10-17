@@ -37,8 +37,9 @@
 Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（到第六步为止！！！只需要 refresh_token ！！！不用加密！！！）**
 
 ### 三、更新本地 Token 存储文件
-9. 在 Releases 界面下载对应系统（Windows/Linux）的本地运行版本程序包。
+9. 在 [Releases](../../../releases) 界面下载对应系统（Windows/Linux）的本地运行版本程序包。
 
+![](https://s2.loli.net/2022/10/17/JZVb7oAkfF6veUj.png)
 
 10. 解压程序包到合适的位置（要求程序可读写此位置）
 
