@@ -37,7 +37,7 @@
 
 ![](https://s2.loli.net/2022/08/21/kULpJbrxvgEGzCQ.png)
 
-### 二、配置 Graph Token
+### 二、配置 Graph Token（若要同步到 Microsoft Todo）
 
 下面以 Windows 系统为例，借助“Graph 认证辅助工具”（在本仓库开源）进行配置。如有其它需求，可参考[手动配置 Graph Token](./graph-token-manually.md)
 
@@ -70,21 +70,42 @@
 
 ![](https://s2.loli.net/2022/09/14/4akGQOzVLH7nYvC.png)
 
+### 三、配置滴答清单登录信息（若要同步到 滴答清单）
+18. 在**自己 fork 的仓库**，进入“Settings”
+
+![](https://s2.loli.net/2022/08/21/BuWYEbml4QsVUXq.png)
+
+19. 选择“Secrets - Actions”，点击“New repository secret”
+
+![](https://s2.loli.net/2022/08/21/FavMKjp4lGYIh6g.png)
+
+20. “Name”为“DIDA_CREDENTIAL”，“Value”按照下面的格式填写
+```
+{"phone":"你的手机号","password":"你的密码"}
+```
+
+![](https://s2.loli.net/2022/10/20/xpQGq6kPLMfOcX9.png)
+
+21. 添加滴答清单登录信息完成
+
+![](https://s2.loli.net/2022/10/20/rNOifXCEohvn2VH.png)
+
+
 ### 三、启动定时任务
 
-18. 点击“Actions”选项卡，点击按钮启用
+22. 点击“Actions”选项卡，点击按钮启用
 
 ![](https://s2.loli.net/2022/08/21/qtCnKdpPWRFNbgM.png)
 
-19. 左侧选择“TodoSync”，右侧点击“Run workflow”
+23. 左侧选择合适的项目，右侧点击“Run workflow”
 
 ![](https://s2.loli.net/2022/08/21/2kcXUByTOaoLIiv.png)
 
-20. 刷新，可进入 Action 查看详情。Run 步骤下面的内容为程序的执行输出
+24. 刷新，可进入 Action 查看详情。Run 步骤下面的内容为程序的执行输出
 
 ![](https://s2.loli.net/2022/08/21/kmUFi2YlMH1xbuK.png)
 
-21. 编辑仓库根目录下的 `config.yaml` 文件，可以调整同步程序设置
+25. 编辑仓库根目录下的 `config.yaml` 文件，可以调整同步程序设置
 
 ![](https://s2.loli.net/2022/08/22/mcK5afDhRXSUCVM.png)
 

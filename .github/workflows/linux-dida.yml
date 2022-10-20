@@ -1,4 +1,4 @@
-name: 同步到 MS Todo
+name: 同步到滴答清单
 
 on:
   workflow_dispatch:
@@ -12,11 +12,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Branch Filestorage Action
-      uses: moonrailgun/branch-filestorage-action@v1.2.2
-      with:
-        branch: graphtoken
-        path: graphtoken.asc
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
@@ -25,5 +20,7 @@ jobs:
       run: dotnet restore ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj
     - name: Build
       run: dotnet build ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj --no-restore -c Release
+    - name: Write Dida Credential
+      run: echo ${{ secrets.DIDA_CREDENTIAL }} > dida.json
     - name: Run
-      run: ./TodoSynchronizer.CLI/bin/Release/net6.0/TodoSynchronizer.CLI -canvastoken ${{ secrets.CANVAS_TOKEN }} -graphtokenfile graphtoken.asc -configfile config.yaml -graphtokenkey ${{ secrets.KEY }}
+      run: ./TodoSynchronizer.CLI/bin/Release/net6.0/TodoSynchronizer.CLI -canvastoken ${{ secrets.CANVAS_TOKEN }} -configfile config.yaml -didacredentialfile dida.json
