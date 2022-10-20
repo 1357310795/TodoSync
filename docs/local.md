@@ -45,7 +45,7 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 
 11. 使用**文本编辑器**打开程序包目录下的 `token.json` 文件
 
-![](https://s2.loli.net/2022/10/16/sulWqNQSCxMVD3j.png)
+![](https://s2.loli.net/2022/10/20/Re58q2uTV1MaPB4.png)
 
 12. 填上前面获取的令牌
 - 若要同步到 Microsoft Todo，按以下格式填写
