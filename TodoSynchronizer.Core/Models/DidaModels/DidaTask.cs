@@ -72,11 +72,14 @@ namespace TodoSynchronizer.Core.Models.DidaModels
         [JsonProperty("projectId")]
         public string ProjectId { get; set; }
 
+        [JsonProperty("repeatFirstDate")]
+        public DateTime? RepeatFirstDate { get; set; }
+
         [JsonProperty("reminder")]
         public string Reminder { get; set; }
 
         [JsonProperty("reminders")]
-        public System.Collections.Generic.List<string> Reminders { get; set; }
+        public System.Collections.Generic.List<Reminder> Reminders { get; set; }
 
         [JsonProperty("sortOrder")]
         public long? SortOrder { get; set; }
@@ -94,4 +97,13 @@ namespace TodoSynchronizer.Core.Models.DidaModels
         public string Title { get; set; }
     }
 
+
+    public class Reminder
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("trigger")]
+        public string Trigger { get; set; }
+    }
 }

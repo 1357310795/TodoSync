@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Graph.TermStore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,6 +24,7 @@ namespace TodoSynchronizer.Core.Services
         public Dictionary<Course, DidaTaskList> dicCourse = null;
         public List<DidaTask> canvasTasks = null;
         public List<Course> courses = null;
+        public DidaBatchCheckDto batchCheckDto = null;
         public int CourseCount, ItemCount, UpdateCount, FailedCount;
 
         private string message;
@@ -42,7 +44,7 @@ namespace TodoSynchronizer.Core.Services
         public void Go()
         {
             #region 初始化
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings() { DateTimeZoneHandling = DateTimeZoneHandling.Utc, NullValueHandling = NullValueHandling.Ignore };
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings() { DateTimeZoneHandling = DateTimeZoneHandling.Utc, NullValueHandling = NullValueHandling.Ignore, DateFormatString = "yyyy-MM-ddTHH:mm:ss.fff+0000" };
             CourseCount = 0;
             ItemCount = 0;
             UpdateCount = 0;
@@ -70,11 +72,13 @@ namespace TodoSynchronizer.Core.Services
             {
                 dicCategory = new Dictionary<string, DidaTaskList>();
                 dicCourse = new Dictionary<Course, DidaTaskList>();
-                var didaTaskLists = DidaService.ListLists();
+                batchCheckDto = DidaService.BatchCheck();
+                if (batchCheckDto.ProjectProfiles == null || batchCheckDto.ProjectProfiles.Count == 0)
+                    throw new Exception("清单 ProjectProfiles 为空");
 
                 void FindList(string cat, string name)
                 {
-                    var taskList = didaTaskLists.Find(x => x.Name.CleanEmoji() == name);
+                    var taskList = batchCheckDto.ProjectProfiles.Find(x => x.Name.CleanEmoji() == name);
 
                     if (taskList == null)
                         taskList = DidaService.AddTaskList(name);
@@ -115,23 +119,20 @@ namespace TodoSynchronizer.Core.Services
             {
                 IEnumerable<DidaTask> ListDidaTasksInternal()
                 {
-                    if (SyncConfig.Default.ListNameMode == ListNameMode.Category)
+                    var lists = new HashSet<string>();
+                    foreach (var item in dicCategory)
+                        lists.Add(item.Value.Id);
+
+                    var tmplist = batchCheckDto.SyncTaskBean.Update;
+                    foreach (var task in tmplist)
+                        if (lists.Contains(task.ProjectId))
+                            yield return task;
+
+                    foreach (var item in dicCategory)
                     {
-                        foreach(var item in dicCategory)
-                        {
-                            var tmplist = DidaService.ListTasks(item.Value.Id);
-                            foreach (var task in tmplist)
-                                yield return task;
-                        }
-                    }
-                    else
-                    {
-                        foreach (var item in dicCourse)
-                        {
-                            var tmplist = DidaService.ListTasks(item.Value.Id);
-                            foreach (var task in tmplist)
-                                yield return task;
-                        }
+                        tmplist = DidaService.GetCompleted(item.Value.Id);
+                        foreach (var task in tmplist)
+                            yield return task;
                     }
                 }
                 canvasTasks = ListDidaTasksInternal().ToList();
@@ -276,7 +277,7 @@ namespace TodoSynchronizer.Core.Services
                                 checkitem1 = links[0];
                             else
                             {
-                                links.Add(new DidaCheckItem());
+                                links.Add(new DidaCheckItem() { Id= Common.GetRandomString(24, true, false, false, false, "abcdef")});
                                 checkitem1 = links[0];
                             }
                                 
@@ -285,10 +286,10 @@ namespace TodoSynchronizer.Core.Services
                             
                             DidaCheckItem checkitem2 = null;
                             if (links.Count >= 2)
-                                checkitem1 = links[1];
+                                checkitem2 = links[1];
                             else
                             {
-                                links.Add(new DidaCheckItem());
+                                links.Add(new DidaCheckItem() { Id = Common.GetRandomString(24, true, false, false, false, "abcdef") });
                                 checkitem2 = links[1];
                             }
 
@@ -309,7 +310,7 @@ namespace TodoSynchronizer.Core.Services
                                             checkitem3 = links[i];
                                         else
                                         {
-                                            links.Add(new DidaCheckItem());
+                                            links.Add(new DidaCheckItem() { Id = Common.GetRandomString(24, true, false, false, false, "abcdef") });
                                             checkitem3 = links[i];
                                         }
                                         i++;
@@ -353,7 +354,6 @@ namespace TodoSynchronizer.Core.Services
                 return;
             }
         }
-
         #endregion
 
         #region Discussions
@@ -499,7 +499,7 @@ namespace TodoSynchronizer.Core.Services
                                         checkitem0 = links[i];
                                     else
                                     {
-                                        links.Add(new DidaCheckItem());
+                                        links.Add(new DidaCheckItem() { Id = Common.GetRandomString(24, true, false, false, false, "abcdef") });
                                         checkitem0 = links[i];
                                     }
 
@@ -632,7 +632,20 @@ namespace TodoSynchronizer.Core.Services
 
                 
                 var notilist = dicCategory["notification"];
-                var tmplist = DidaService.ListTasks(notilist.Id);
+
+                IEnumerable<DidaTask> ListDidaTasksInternal(string listid)
+                {
+                    var tmplist2 = batchCheckDto.SyncTaskBean.Update;
+                    foreach (var task in tmplist2)
+                        if (task.ProjectId == listid)
+                            yield return task;
+
+                    tmplist2 = DidaService.GetCompleted(listid);
+                    foreach (var task in tmplist2)
+                        yield return task;
+                }
+
+                var tmplist = ListDidaTasksInternal(notilist.Id).ToList();
                 var dic = new Dictionary<string, DidaTask>();
 
                 foreach (var didaTask in tmplist)
@@ -748,9 +761,9 @@ namespace TodoSynchronizer.Core.Services
             if (didaTask == null && config.CreateContent || didaTask != null && config.UpdateContent)
             {
                 var content = CanvasStringTemplateHelper.GetContent(item);
-                if (didaTask == null || didaTask.Content == null || content.Trim() != didaTask.Content.Trim())
+                if (didaTask == null || didaTask.Desc == null || content.Trim() != didaTask.Desc.Trim())
                 {
-                    didaTask.Content = content;
+                    didaTask.Desc = content;
                     modified = true;
                 }
             }
@@ -763,34 +776,33 @@ namespace TodoSynchronizer.Core.Services
                     var date = duetime.Value.ToUniversalTime();
                     if (didaTask == null || didaTask.DueDate == null || date != didaTask.DueDate)
                     {
-                        didaTask.DueDate = date;
+                        didaTask.DueDate = didaTask.StartDate = didaTask.RepeatFirstDate = date;
+                        didaTask.TimeZone = "Asia/Shanghai";
                         modified = true;
                     }
                 }
-                //Todo：去除 DueDate
-                //else if (didaTaskOld != null && didaTaskOld.DueDate != null)
-                //{
-                //    didaTaskNew.AdditionalData = new Dictionary<string, object>();
-                //    didaTaskNew.AdditionalData["dueDateTime"] = null;
-                //    modified = true;
-                //}
+                else if (didaTask != null && didaTask.DueDate != null)
+                {
+                    didaTask.DueDate = didaTask.StartDate = null;
+                    modified = true;
+                }
             }
 
-            //Todo：提醒时间
-            //if (didaTaskOld == null && config.CreateRemind || didaTaskOld != null && config.UpdateRemind)
-            //{
-            //    var remindtime = CanvasPreference.GetRemindTime(item);
-            //    if (remindtime.HasValue)
-            //    {
-            //        var date = remindtime.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffffff", System.Globalization.CultureInfo.InvariantCulture);
-            //        if (didaTaskOld == null || didaTaskOld.IsReminderOn == false || didaTaskOld.re == null || date != didaTaskOld.ReminderDateTime.DateTime)
-            //        {
-            //            didaTaskNew.ReminderDateTime = DateTimeTimeZone.FromDateTime(remindtime.Value);
-            //            didaTaskNew.IsReminderOn = true;
-            //            modified = true;
-            //        }
-            //    }
-            //}
+            if (didaTask == null && config.CreateRemind || didaTask != null && config.UpdateRemind)
+            {
+                var remindtime = CanvasPreference.GetRemindBefore(config);
+                if (remindtime.HasValue && didaTask.RepeatFirstDate != null)
+                {
+                    var trigger = CanvasStringTemplateHelper.GetTrigger(remindtime.Value);
+                    if (didaTask == null || didaTask.Reminders == null || didaTask.Reminders.Count == 0 || didaTask.Reminders[0].Trigger != trigger)
+                    {
+                        didaTask.Reminders = new List<Reminder>();
+                        didaTask.Reminders.Add(new Reminder() { Id = Common.GetRandomString(24, true, false, false, false, "abcdef"), Trigger = trigger });
+
+                        modified = true;
+                    }
+                }
+            }
 
             if (didaTask == null && config.CreateImportance || didaTask != null && config.UpdateImportance)
             {

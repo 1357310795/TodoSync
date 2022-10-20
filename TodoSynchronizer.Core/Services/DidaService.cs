@@ -48,27 +48,27 @@ namespace TodoSynchronizer.Core.Services
             }
         }
 
-        public static List<DidaTaskList> ListLists()
-        {
-            var query = new Dictionary<string, string>();
+        //public static List<DidaTaskList> ListLists()
+        //{
+        //    var query = new Dictionary<string, string>();
 
-            var res = Web.Get(Client, $"/api/v2/projects", query);
-            if (!res.success)
-                throw new Exception(res.message);
+        //    var res = Web.Get(Client, $"/api/v2/projects", query);
+        //    if (!res.success)
+        //        throw new Exception(res.message);
 
-            if (res.code != System.Net.HttpStatusCode.OK)
-                return null;
+        //    if (res.code != System.Net.HttpStatusCode.OK)
+        //        return null;
 
-            try
-            {
-                var json = JsonConvert.DeserializeObject<List<DidaTaskList>>(res.result);
-                return json;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
+        //    try
+        //    {
+        //        var json = JsonConvert.DeserializeObject<List<DidaTaskList>>(res.result);
+        //        return json;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception(ex.Message);
+        //    }
+        //}
 
         public static DidaTaskList AddTaskList(string name)
         {
@@ -93,11 +93,34 @@ namespace TodoSynchronizer.Core.Services
             }
         }
 
-        public static List<DidaTask> ListTasks(string listid)
+        public static DidaBatchCheckDto BatchCheck()
         {
             var query = new Dictionary<string, string>();
 
-            var res = Web.Get(Client, $"/api/v2/project/{listid}/tasks", query);
+            var res = Web.Get(Client, $"/api/v2/batch/check/0", query);
+            if (!res.success)
+                throw new Exception(res.message);
+
+            if (res.code != System.Net.HttpStatusCode.OK)
+                return null;
+
+            try
+            {
+                var json = JsonConvert.DeserializeObject<DidaBatchCheckDto>(res.result);
+                return json;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public static List<DidaTask> GetCompleted(string listid)
+        {
+            var query = new Dictionary<string, string>();
+            query.Add("limit", "9999");
+
+            var res = Web.Get(Client, $"/api/v2/project/{listid}/completed/", query);
             if (!res.success)
                 throw new Exception(res.message);
 

@@ -10,5 +10,12 @@ namespace TodoSynchronizer.CLI
     {
         public string CanvasToken { get; set; }
         public string GraphToken { get; set; }
+        public DidaCredential DidaCredential { get; set; }
+    }
+
+    public class DidaCredential
+    {
+        public string phone { get; set; }
+        public string password { get; set; }
     }
 }

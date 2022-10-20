@@ -14,10 +14,11 @@ class Program
     static ISimpleLogger logger;
     static void Main(string[] args)
     {
-        string canvastoken = "", graphtokenpath = "";
+        string canvastoken = "", graphtokenpath = "", didacredentialfile = "";
         string configpath = "", graphtokenkey = "", offlinetokenfile = "";
         bool local = false;
         OfflineTokenDto offlineToken = null;
+        DidaCredential didaCredential = null;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -33,6 +34,9 @@ class Program
             if (args[i] == "-graphtokenkey")
                 if (i + 1 < args.Length)
                     graphtokenkey = args[i + 1].Trim();
+            if (args[i] == "-didacredentialfile")
+                if (i + 1 < args.Length)
+                    didacredentialfile = args[i + 1].Trim();
             if (args[i] == "-local")
                 local = true;
         }
@@ -48,15 +52,22 @@ class Program
                 Log("未指定 Canvas Token！");
                 Environment.Exit(-1);
             }
-            if (graphtokenpath == "")
+            if (didacredentialfile == "")
             {
-                Log("未指定 Graph Token 文件！");
-                Environment.Exit(-1);
+                if (graphtokenpath == "")
+                {
+                    Log("未指定 Graph Token 文件！");
+                    Environment.Exit(-1);
+                }
+                if (graphtokenkey == "")
+                {
+                    Log("未指定 Graph Token 秘钥！");
+                    Environment.Exit(-1);
+                }
             }
-            if (graphtokenkey == "")
+            else
             {
-                Log("未指定 Graph Token 秘钥！");
-                Environment.Exit(-1);
+                didaCredential = JsonConvert.DeserializeObject<DidaCredential>(File.ReadAllText(didacredentialfile));
             }
         }
         else
@@ -67,17 +78,82 @@ class Program
             Log(DateTime.Now.ToString("G"));
 
             configpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"config.yaml");
+
             offlinetokenfile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"token.json");
             offlineToken = JsonConvert.DeserializeObject<OfflineTokenDto>(File.ReadAllText(offlinetokenfile));
             canvastoken = offlineToken.CanvasToken;
+            didaCredential = offlineToken.DidaCredential;
         }
-        
+
+        ReadConfig(configpath);
+
+        CanvasLogin(canvastoken);
+
+        if (didacredentialfile == "")
+        {
+            GraphLogin(graphtokenpath, graphtokenkey, offlinetokenfile, offlineToken);
+
+            SyncService sync = new SyncService();
+            sync.OnReportProgress += OnReportProgress;
+            sync.Go();
+        }
+        else
+        {
+            DidaLogin(didaCredential);
+
+            DidaSyncService sync = new DidaSyncService();
+            sync.OnReportProgress += OnReportProgress;
+            sync.Go();
+        }
+    }
+
+    private static void DidaLogin(DidaCredential didaCredential)
+    {
+        try
+        {
+            var res = DidaService.Login(JsonConvert.SerializeObject(didaCredential));
+            if (!res.success)
+            {
+                Log("滴答清单 认证失败！");
+                Log(res.result);
+                Environment.Exit(-1);
+            }
+        }
+        catch (Exception ex)
+        {
+            Log("滴答清单 认证失败！");
+            Log(ex.ToString());
+            Environment.Exit(-1);
+        }
+    }
+
+    private static void ReadConfig(string configpath)
+    {
         if (configpath == "")
         {
             Log("未指定配置文件！");
             Environment.Exit(-1);
         }
-        
+        try
+        {
+            var yml = File.ReadAllText(configpath);
+            var deserializer = new DeserializerBuilder()
+                .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
+                .WithTypeInspector(n => new IgnoreCaseTypeInspector(n))
+                .IgnoreUnmatchedProperties()
+                .Build();
+            SyncConfig.Default = deserializer.Deserialize<SyncConfig>(yml);
+        }
+        catch (Exception ex)
+        {
+            Log($"读取配置失败：{ex.Message}");
+            Environment.Exit(-1);
+        }
+        Log("读取配置成功");
+    }
+
+    private static void CanvasLogin(string canvastoken)
+    {
         var res1 = CanvasService.Login(canvastoken);
         if (!res1.success)
         {
@@ -86,7 +162,10 @@ class Program
             Environment.Exit(-1);
         }
         Log($"Canvas 认证成功");
+    }
 
+    private static void GraphLogin(string graphtokenpath, string graphtokenkey, string offlinetokenfile, OfflineTokenDto offlineToken)
+    {
         try
         {
             string graphtokenenc = "", graphtoken = "";
@@ -99,7 +178,7 @@ class Program
                 graphtokenenc = File.ReadAllText(graphtokenpath);
                 graphtoken = AesHelper.Decrypt(graphtokenkey, graphtokenenc);
             }
-            
+
             //var headers = new Dictionary<string, string>();
             //headers.Add("Content-Type", "application/x-www-form-urlencoded");
             var forms = new List<KeyValuePair<string, string>>();
@@ -133,7 +212,7 @@ class Program
                 graphtokenenc = AesHelper.Encrypt(graphtokenkey, refreshModel.RefreshToken);
                 File.WriteAllText(graphtokenpath, graphtokenenc);
             }
-            
+
             var userinfo = TodoService.GetUserInfo();
         }
         catch (Exception ex)
@@ -149,33 +228,12 @@ class Program
             var offlineTokenDto = JsonConvert.SerializeObject(offlineToken);
             File.WriteAllText(offlinetokenfile, offlineTokenDto);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Log("更新 Graph Token失败！请检查是否有文件的写入权限！");
             Log(ex.ToString());
             Environment.Exit(-1);
         }
-
-        try
-        {
-            var yml = File.ReadAllText(configpath);
-            var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(YamlDotNet.Serialization.NamingConventions.CamelCaseNamingConvention.Instance)
-                .WithTypeInspector(n => new IgnoreCaseTypeInspector(n))
-                .IgnoreUnmatchedProperties()
-                .Build();
-            SyncConfig.Default = deserializer.Deserialize<SyncConfig>(yml);
-        }
-        catch(Exception ex)
-        {
-            Log($"读取配置失败：{ex.Message}");
-            Environment.Exit(-1);
-        }
-        Log("读取配置成功");
-
-        SyncService sync = new SyncService();
-        sync.OnReportProgress += OnReportProgress;
-        sync.Go();
     }
 
     private static void OnReportProgress(SyncState state)

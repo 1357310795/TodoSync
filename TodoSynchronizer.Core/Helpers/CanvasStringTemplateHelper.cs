@@ -11,6 +11,11 @@ namespace TodoSynchronizer.Core.Helpers
 {
     public static class CanvasStringTemplateHelper
     {
+        public static string GetTrigger(double time)
+        {
+            return $"TRIGGER:-PT{((int)time)}M";
+        }
+
         public static string GetTitle(Course course, ICanvasItem item)
         {
             if (item is Assignment assignment)

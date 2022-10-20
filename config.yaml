@@ -83,7 +83,7 @@ AnouncementConfig :
   TitleTemplate : "{course.name} - {anouncement.title}"
   # 指定待办事项的重要性：true 为重要
   SetImportance : false
-  # 指定延后提醒的时间间隔
+  # 指定延后提醒的时间间隔（此选项对滴答清单无效）
   # 格式：[d.]hh:mm:ss[.fffffff]
   # d 可选天数，不带前导零。
   # hh 小时数，范围从“00”到“23”。
@@ -226,6 +226,7 @@ DiscussionConfig :
   # {discussion.title} -> 讨论标题
   TitleTemplate : "{course.name} - {discussion.title}"
   SetImportance : false
+  # （此选项对滴答清单无效）
   RemindAfter : 00:05:00.00
 NotificationConfig : 
   # 是否将全局通知（控制面板顶部出现的横幅）同步到 Todo
@@ -248,6 +249,7 @@ NotificationConfig :
   # start_at 表示将通知的发布时间作为待办事项的提醒时间
   # end_at 表示将通知的自动消失时间作为待办事项的提醒时间
   DueDateMode : start_at
+  # （此选项对滴答清单无效）
   RemindAfter : 00:05:00.00
 
 ## ------Q&A------
