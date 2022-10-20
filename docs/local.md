@@ -17,7 +17,7 @@
 
 ![](https://s2.loli.net/2022/08/21/Eyej95vY3cCsVZT.png)
 
-### 二、获取 Graph 令牌
+### 二、获取 Graph 令牌（若要同步到 Microsoft Todo）
 #### Windows
 推荐借助“Graph 认证辅助工具”（在本仓库开源）进行配置。
 
@@ -47,10 +47,17 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 
 ![](https://s2.loli.net/2022/10/16/sulWqNQSCxMVD3j.png)
 
-12. 填上前面获取的两个令牌
+12. 填上前面获取的令牌
+- 若要同步到 Microsoft Todo，按以下格式填写
 ```
 {"CanvasToken":"这里填上你的 Canvas 令牌","GraphToken":"这里填上你的 Graph 令牌"}
 ```
+
+- 若要同步到滴答清单，按以下格式填写
+```
+{"CanvasToken":"这里填上你的 Canvas 令牌","DidaCredential":{"phone":"这里填上你的滴答清单登录手机号","password":"这里填上你的滴答清单登录密码"}}
+```
+
 ![](https://s2.loli.net/2022/10/16/B2V95rqDgX7UAR3.png)
 
 ### 四、配置定时任务
@@ -69,20 +76,28 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 ![](https://s2.loli.net/2022/10/17/37nD4mpM6NabzeW.png)
 ![](https://s2.loli.net/2022/10/17/Cjl3nehm2VvFGcR.png)
 
-其中程序名称为 `wscript.exe`，参数为程序包中 `TodoSync.vbs` 的路径，例如
+其中程序名称为 `wscript.exe`，参数为程序包中 vbs 文件的路径（建议包含引号），例如
+- 同步到 Microsoft Todo
 ```
-"C:\Users\Public\Download\TodoSync.Local\TodoSync.vbs"
+"C:\Users\Public\Download\TodoSync.Local\TodoSync-Todo.vbs"
 ```
-（建议包含引号）
-
+- 同步到 滴答清单
+```
+"C:\Users\Public\Download\TodoSync.Local\TodoSync-Dida.vbs"
+```
 #### Linux
 下面以 crontab 服务为例展示 Linux 配置定时任务
 
 16. 终端运行命令 `crontab -e`，打开文本编辑器
 
 17. 光标移动到新的一行，输入
+- 同步到 Microsoft Todo
 ```
 0 * * * * /path_to_your_program/TodoSyncronizer.CLI -local
+```
+- 同步到 滴答清单
+```
+0 * * * * /path_to_your_program/TodoSyncronizer.CLI -local -didacredentialfile 114514
 ```
 
 ![](https://s2.loli.net/2022/10/17/tzHrZnBcJ94TQVF.png)

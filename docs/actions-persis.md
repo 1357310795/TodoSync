@@ -99,6 +99,7 @@
 
 23. 左侧选择合适的项目，右侧点击“Run workflow”
 
+![](https://s2.loli.net/2022/10/20/1D8hUHvlxX9qVI2.png)
 ![](https://s2.loli.net/2022/08/21/2kcXUByTOaoLIiv.png)
 
 24. 刷新，可进入 Action 查看详情。Run 步骤下面的内容为程序的执行输出
