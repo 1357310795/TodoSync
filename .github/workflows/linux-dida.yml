@@ -21,6 +21,6 @@ jobs:
     - name: Build
       run: dotnet build ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj --no-restore -c Release
     - name: Write Dida Credential
-      run: echo "${{ secrets.DIDA_CREDENTIAL }}" > dida.json
+      run: echo '${{ secrets.DIDA_CREDENTIAL }}' > dida.json
     - name: Run
       run: ./TodoSynchronizer.CLI/bin/Release/net6.0/TodoSynchronizer.CLI -canvastoken ${{ secrets.CANVAS_TOKEN }} -configfile config.yaml -didacredentialfile dida.json
