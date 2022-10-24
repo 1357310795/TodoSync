@@ -74,6 +74,7 @@ class Program
         {
             var logfilepath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{DateTime.Now.ToString("yyyyMMdd")}.log");
             logger = new LogFileAdapter(logfilepath);
+            //logger = new ConsoleAdapter();
             Log("TodoSynchronizer v0.1 beta");
             Log(DateTime.Now.ToString("G"));
 
@@ -203,16 +204,27 @@ class Program
             RefreshModel refreshModel = JsonConvert.DeserializeObject<RefreshModel>(refreshres.Content.ReadAsStringAsync().GetAwaiter().GetResult());
             TodoService.Token = refreshModel.AccessToken;
 
-            if (offlineToken != null)
+            try
             {
-                offlineToken.GraphToken = refreshModel.RefreshToken;
+                if (offlineToken != null)
+                {
+                    offlineToken.GraphToken = refreshModel.RefreshToken;
+                    var offlineTokenDto = JsonConvert.SerializeObject(offlineToken);
+                    File.WriteAllText(offlinetokenfile, offlineTokenDto);
+                }
+                else
+                {
+                    graphtokenenc = AesHelper.Encrypt(graphtokenkey, refreshModel.RefreshToken);
+                    File.WriteAllText(graphtokenpath, graphtokenenc);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                graphtokenenc = AesHelper.Encrypt(graphtokenkey, refreshModel.RefreshToken);
-                File.WriteAllText(graphtokenpath, graphtokenenc);
+                Log("更新 Graph Token失败！请检查是否有文件的写入权限！");
+                Log(ex.ToString());
+                Environment.Exit(-1);
             }
-
+            
             var userinfo = TodoService.GetUserInfo();
         }
         catch (Exception ex)
@@ -222,18 +234,6 @@ class Program
             Environment.Exit(-1);
         }
         Log("Graph 认证成功");
-
-        try
-        {
-            var offlineTokenDto = JsonConvert.SerializeObject(offlineToken);
-            File.WriteAllText(offlinetokenfile, offlineTokenDto);
-        }
-        catch (Exception ex)
-        {
-            Log("更新 Graph Token失败！请检查是否有文件的写入权限！");
-            Log(ex.ToString());
-            Environment.Exit(-1);
-        }
     }
 
     private static void OnReportProgress(SyncState state)

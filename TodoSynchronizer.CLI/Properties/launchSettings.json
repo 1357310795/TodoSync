@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TodoSynchronizer.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "-local"
+    }
+  }
+}
