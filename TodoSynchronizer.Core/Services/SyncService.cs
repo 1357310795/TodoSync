@@ -296,6 +296,9 @@ namespace TodoSynchronizer.Core.Services
                         
                         var submission = CanvasService.GetAssignmentSubmisson(course.Id.ToString(), assignment.Id.ToString());
 
+                        if (submission == null)
+                           throw new Exception("获取 submission 失败");
+
                         ChecklistItem checkitem1 = null;
                         if (links.Count >= 1)
                             checkitem1 = links[0];

@@ -119,6 +119,7 @@ class Program
                 Log(res.result);
                 Environment.Exit(-1);
             }
+            Log("滴答清单 认证成功！");
         }
         catch (Exception ex)
         {
