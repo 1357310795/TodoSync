@@ -52,7 +52,7 @@ namespace TodoSynchronizer.Core.Services
             Message = "读取 Canvas 课程列表";
             try
             {
-                courses = CanvasService.ListCourses();
+                courses = CanvasService.ListCourses().Shuffle();
                 if (courses == null)
                     throw new Exception("Canvas 课程列表为空");
             }
