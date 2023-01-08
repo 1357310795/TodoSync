@@ -115,6 +115,8 @@ namespace TodoSynchronizer.Core.Helpers
                 return $"正在进行测验（开始时间：{submission.StartedAt.Value.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss")}）";
             else if (submission.WorkflowState == "complete")
                 return $"尝试 {submission.Attempt}：{submission.Score}/{submission.QuizPointsPossible}（提交时间：{submission.FinishedAt.Value.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss")}）";
+            else if (submission.WorkflowState == "pending_review")
+                return $"尝试 {submission.Attempt}：{submission.Score}/{submission.QuizPointsPossible}（提交时间：{submission.FinishedAt.Value.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss")}）（*有些问题尚未计分）";
             else
                 return $"无法识别的尝试";
         }

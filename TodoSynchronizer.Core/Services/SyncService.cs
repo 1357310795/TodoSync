@@ -199,7 +199,7 @@ namespace TodoSynchronizer.Core.Services
                 {
                     foreach (var course in courses)
                     {
-                        CourseCount++;
+                            CourseCount++;
                         if (SyncConfig.Default.AssignmentConfig.Enabled)
                             ProcessAssignments(GetCourseMessage(course), course, dicCategory["assignment"]);
                         if (SyncConfig.Default.AnouncementConfig.Enabled)
