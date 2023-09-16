@@ -34,7 +34,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           dotnet restore TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj
-          dotnet build TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj -c Release -f net6.0 -a linux-arm64 --no-restore
+          dotnet build TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj -c Release -f net6.0 -a arm64 --no-restore
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3.1.0
