@@ -42,4 +42,4 @@ jobs:
           name: ${{ matrix.os }}
           if-no-files-found: error
           path: |
-            TodoSynchronizer.CLI/bin/*.*
+            TodoSynchronizer.CLI/bin
