@@ -18,17 +18,23 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-      - name: Build for Windows
+      - name: Build for Windows x86/x64
         if: matrix.os == 'windows-latest'
         run: |
           dotnet restore TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj
           dotnet build TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj -c Release -f net6.0 --no-restore
       
-      - name: Build for Linux
+      - name: Build for Linux x86/x64
         if: matrix.os == 'ubuntu-latest'
         run: |
           dotnet restore TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj
           dotnet build TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj -c Release -f net6.0 --no-restore
+
+      - name: Build for Linux ARM
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet restore TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj
+          dotnet build TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj -c Release -f net6.0 -a arm64 --no-restore
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3.1.0
@@ -36,4 +42,4 @@ jobs:
           name: ${{ matrix.os }}
           if-no-files-found: error
           path: |
-            TodoSynchronizer.CLI/bin/Release/*.*
+            TodoSynchronizer.CLI/bin
