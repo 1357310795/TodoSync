@@ -133,7 +133,7 @@ AssignmentConfig :
   # due_at 表示将作业的过期时间作为待办事项的过期时间
   # lock_at 表示将作业的锁定时间作为待办事项的过期时间
   # 过期和锁定的区别：https://community.canvaslms.com/t5/Instructor-Guide/What-is-the-difference-between-assignment-due-dates-and/ta-p/897
-  DueDateMode : lock_at
+  DueDateMode : due_at
   # 启用待办事项过期时间 Fallback
   # 若为 true，则 DueDateMode 的设置不再是绝对的，
   # 如果 DueDateMode 设置的来源为空，则自动切换到另一个
