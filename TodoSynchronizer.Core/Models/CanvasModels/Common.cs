@@ -58,7 +58,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public string Filename { get; set; }
 
         [JsonProperty("folder_id")]
-        public long FolderId { get; set; }
+        public long? FolderId { get; set; }
 
         [JsonProperty("hidden")]
         public bool Hidden { get; set; }
@@ -88,7 +88,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public string ModifiedAt { get; set; }
 
         [JsonProperty("size")]
-        public long Size { get; set; }
+        public long? Size { get; set; }
 
         [JsonProperty("thumbnail_url")]
         public object ThumbnailUrl { get; set; }
