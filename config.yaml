@@ -20,7 +20,7 @@ ListNamesForCategory :
   QuizListName : "Canvas 测验"
   DiscussionListName : "Canvas 讨论"
   AssignmentListName : "Canvas 作业"
-  AnouncementListName : "Canvas 公告"
+  AnnouncementListName : "Canvas 公告"
 # 不处理 14 天前过期的项目
 # 如果你是在学期中开始使用本程序，建议设置为 true
 IgnoreTooOldItems : false
@@ -34,7 +34,7 @@ IgnoreErrors : false
 # 若为 false，输出“处理课程 1 作业 3”
 VerboseMode : true
 # Canvas 公告 配置
-AnouncementConfig : 
+AnnouncementConfig : 
   # 是否将 Canvas 公告同步到 Todo
   Enabled : true
   # 若 Todo 列表内无当前的公告，
@@ -78,9 +78,9 @@ AnouncementConfig :
   # {course.coursecode} -> 课程代码
   # {course.coursecodeshort} -> 简化的课程代码
   # {course.originalname} -> 原始课程名
-  # {anouncement.title} -> 公告标题
-  # {anouncement.author} -> 公告发布者
-  TitleTemplate : "{course.name} - {anouncement.title}"
+  # {announcement.title} -> 公告标题
+  # {announcement.author} -> 公告发布者
+  TitleTemplate : "{course.name} - {announcement.title}"
   # 指定待办事项的重要性：true 为重要
   SetImportance : false
   # 指定延后提醒的时间间隔（此选项对滴答清单无效）

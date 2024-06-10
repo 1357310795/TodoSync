@@ -62,8 +62,8 @@
                             Click="ButtonListAssignments_Click" />
                     <Button Height="40"
                             Margin="5,5,5,0"
-                            Content="List anouncements"
-                            Click="ButtonListAnouncements_Click" />
+                            Content="List announcements"
+                            Click="ButtonListAnnouncements_Click" />
                     <Button Height="40"
                             Margin="5,5,5,0"
                             Content="List quizzes"
@@ -110,7 +110,7 @@
                                                      QuizTemplate="{StaticResource QuizTemplate}"
                                                      DiscussionTemplate="{StaticResource DiscussionTemplate}"
                                                      AssignmentTemplate="{StaticResource AssignmentTemplate}"
-                                                     AnouncementTemplate="{StaticResource AnouncementTemplate}" />
+                                                     AnnouncementTemplate="{StaticResource AnnouncementTemplate}" />
                 </ListBox.ItemTemplateSelector>
             </ListBox>
         </DockPanel>

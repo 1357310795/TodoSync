@@ -10,7 +10,7 @@ namespace TodoSynchronizer.Core.Helpers
         {
             if (item is Quiz quiz) return GetRemindTime(quiz);
             if (item is Assignment assignment) return GetRemindTime(assignment);
-            if (item is Anouncement anouncement) return GetRemindTime(anouncement);
+            if (item is Announcement announcement) return GetRemindTime(announcement);
             if (item is Discussion discussion) return GetRemindTime(discussion);
             if (item is Notification notification) return GetRemindTime(notification);
             return null;
@@ -27,7 +27,7 @@ namespace TodoSynchronizer.Core.Helpers
         {
             if (item is Quiz quiz) return GetDueTime(quiz);
             if (item is Assignment assignment) return GetDueTime(assignment);
-            if (item is Anouncement anouncement) return GetDueTime(anouncement);
+            if (item is Announcement announcement) return GetDueTime(announcement);
             if (item is Discussion discussion) return GetDueTime(discussion);
             if (item is Notification notification) return GetDueTime(notification);
             return null;
@@ -119,15 +119,15 @@ namespace TodoSynchronizer.Core.Helpers
         }
         #endregion
 
-        #region Anouncement
-        public static DateTime? GetRemindTime(this Anouncement anouncement)
+        #region Announcement
+        public static DateTime? GetRemindTime(this Announcement announcement)
         {
-            return DateTime.Now + SyncConfig.Default.AnouncementConfig.RemindAfter;
+            return DateTime.Now + SyncConfig.Default.AnnouncementConfig.RemindAfter;
         }
 
-        public static DateTime? GetDueTime(this Anouncement anouncement)
+        public static DateTime? GetDueTime(this Announcement announcement)
         {
-            return anouncement.PostedAt;
+            return announcement.PostedAt;
         }
         #endregion
 

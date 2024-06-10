@@ -46,7 +46,7 @@
                                        PageType="{x:Type pages:AssignmentPage}" />
                     <ui:NavigationItem Content="Canvas公告设置"
                                        Image="{x:Null}"
-                                       PageType="{x:Type pages:AnouncementPage}" />
+                                       PageType="{x:Type pages:AnnouncementPage}" />
                     <ui:NavigationItem Content="Canvas测验设置"
                                        Image="{x:Null}"
                                        PageType="{x:Type pages:QuizPage}" />

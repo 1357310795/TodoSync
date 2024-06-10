@@ -22,7 +22,7 @@
         </Border>
     </DataTemplate>
 
-    <DataTemplate x:Key="AnouncementTemplate">
+    <DataTemplate x:Key="AnnouncementTemplate">
         <Border Padding="5"
                 BorderBrush="GreenYellow" BorderThickness="2">
             <DockPanel LastChildFill="True">

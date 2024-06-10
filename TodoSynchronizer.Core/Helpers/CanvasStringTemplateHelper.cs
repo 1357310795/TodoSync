@@ -24,12 +24,12 @@ namespace TodoSynchronizer.Core.Helpers
                     .ReplaceCourse(course)
                     .Replace("{assignment.title}", assignment.Title);
             }
-            if (item is Anouncement anouncement)
+            if (item is Announcement announcement)
             {
-                return SyncConfig.Default.AnouncementConfig.TitleTemplate
+                return SyncConfig.Default.AnnouncementConfig.TitleTemplate
                     .ReplaceCourse(course)
-                    .Replace("{anouncement.title}", anouncement.Title)
-                    .Replace("{anouncement.author}", anouncement.Author.DisplayName);
+                    .Replace("{announcement.title}", announcement.Title)
+                    .Replace("{announcement.author}", announcement.Author.DisplayName);
             }
             if (item is Quiz quiz)
             {
@@ -125,7 +125,7 @@ namespace TodoSynchronizer.Core.Helpers
         {
             if (item is Quiz quiz) return "测验";
             if (item is Assignment assignment) return "作业";
-            if (item is Anouncement anouncement) return "公告";
+            if (item is Announcement announcement) return "公告";
             if (item is Discussion discussion) return "讨论";
             return null;
         }

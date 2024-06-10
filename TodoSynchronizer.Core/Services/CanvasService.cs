@@ -82,13 +82,13 @@ namespace TodoSynchronizer.Core.Services
             return GetAllPageResult<Quiz>($"/api/v1/courses/{course_id}/quizzes", query);
         }
 
-        public static List<Anouncement> ListAnouncements(string course_id)
+        public static List<Announcement> ListAnnouncements(string course_id)
         {
             var query = new Dictionary<string, string>();
             query.Add("only_announcements", "true");
             query.Add("filter_by", "all");
 
-            return GetAllPageResult<Anouncement>($"/api/v1/courses/{course_id}/discussion_topics", query);
+            return GetAllPageResult<Announcement>($"/api/v1/courses/{course_id}/discussion_topics", query);
         }
 
         public static List<Discussion> ListDiscussions(string course_id)

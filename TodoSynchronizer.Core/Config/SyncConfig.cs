@@ -22,8 +22,8 @@ namespace TodoSynchronizer.Core.Config
         public bool IgnoreErrors { get; set; }
         public bool VerboseMode { get; set; }
 
-        //Anouncement
-        public AnouncementConfig AnouncementConfig { get; set; }
+        //Announcement
+        public AnnouncementConfig AnnouncementConfig { get; set; }
 
         //Assignment
         public AssignmentConfig AssignmentConfig { get; set; }
@@ -43,7 +43,7 @@ namespace TodoSynchronizer.Core.Config
         public string QuizListName { get; set; }
         public string DiscussionListName { get; set; }
         public string AssignmentListName { get; set; }
-        public string AnouncementListName { get; set; }
+        public string AnnouncementListName { get; set; }
     }
 
     public enum ListNameMode
@@ -51,7 +51,7 @@ namespace TodoSynchronizer.Core.Config
         Category, Course
     }
 
-    public class AnouncementConfig : ICanvasItemConfig
+    public class AnnouncementConfig : ICanvasItemConfig
     {
         public bool Enabled { get; set; }
         public bool CreateContent { get; set; }

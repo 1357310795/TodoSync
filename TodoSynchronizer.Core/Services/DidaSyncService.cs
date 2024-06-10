@@ -102,8 +102,8 @@ namespace TodoSynchronizer.Core.Services
                         FindList("discussion", SyncConfig.Default.ListNamesForCategory.DiscussionListName);
                     if (SyncConfig.Default.AssignmentConfig.Enabled)
                         FindList("assignment", SyncConfig.Default.ListNamesForCategory.AssignmentListName);
-                    if (SyncConfig.Default.AnouncementConfig.Enabled)
-                        FindList("anouncement", SyncConfig.Default.ListNamesForCategory.AnouncementListName);
+                    if (SyncConfig.Default.AnnouncementConfig.Enabled)
+                        FindList("announcement", SyncConfig.Default.ListNamesForCategory.AnnouncementListName);
                 }
             }
             catch (Exception ex)
@@ -187,8 +187,8 @@ namespace TodoSynchronizer.Core.Services
                         CourseCount++;
                         if (SyncConfig.Default.AssignmentConfig.Enabled)
                             ProcessAssignments(GetCourseMessage(course), course, dicCategory["assignment"]);
-                        if (SyncConfig.Default.AnouncementConfig.Enabled)
-                            ProcessAnouncements(GetCourseMessage(course), course, dicCategory["anouncement"]);
+                        if (SyncConfig.Default.AnnouncementConfig.Enabled)
+                            ProcessAnnouncements(GetCourseMessage(course), course, dicCategory["announcement"]);
                         if (SyncConfig.Default.QuizConfig.Enabled)
                             ProcessQuizes(GetCourseMessage(course), course, dicCategory["quiz"]);
                         if (SyncConfig.Default.DiscussionConfig.Enabled)
@@ -541,29 +541,29 @@ namespace TodoSynchronizer.Core.Services
         }
         #endregion
 
-        #region Anouncements
-        private void ProcessAnouncements(string message_prefix, Course course, DidaTaskList taskList)
+        #region Announcements
+        private void ProcessAnnouncements(string message_prefix, Course course, DidaTaskList taskList)
         {
             Message = message_prefix + "公告";
             try
             {
-                var anouncements = CanvasService.ListAnouncements(course.Id.ToString());
-                if (anouncements == null)
+                var announcements = CanvasService.ListAnnouncements(course.Id.ToString());
+                if (announcements == null)
                     return;
-                if (anouncements.Count == 0)
+                if (announcements.Count == 0)
                     return;
 
-                foreach (var anouncement in anouncements)
+                foreach (var announcement in announcements)
                 {
                     if (SyncConfig.Default.IgnoreTooOldItems)
-                        if (anouncement?.PostedAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
+                        if (announcement?.PostedAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
                             continue;
                     var updated = false;
                     ItemCount++;
-                    Message = message_prefix + GetItemMessage(anouncement);
+                    Message = message_prefix + GetItemMessage(announcement);
                     DidaTask didaTask = null;
-                    if (dicUrl.ContainsKey(anouncement.HtmlUrl))
-                        didaTask = dicUrl[anouncement.HtmlUrl];
+                    if (dicUrl.ContainsKey(announcement.HtmlUrl))
+                        didaTask = dicUrl[announcement.HtmlUrl];
                     else
                         didaTask = new DidaTask()
                         {
@@ -572,14 +572,14 @@ namespace TodoSynchronizer.Core.Services
                         };
 
                     //---Self & LinkedResource---//
-                    var res1 = UpdateCanvasItem(course, anouncement, didaTask, SyncConfig.Default.AnouncementConfig);
+                    var res1 = UpdateCanvasItem(course, announcement, didaTask, SyncConfig.Default.AnnouncementConfig);
                     if (res1)
                     {
                         if (didaTask.Creator is null)
                         {
                             DidaService.AddTask(didaTask);
-                            DidaService.AddTaskComment(taskList.Id.ToString(), didaTask.Id.ToString(), anouncement.HtmlUrl);
-                            dicUrl.Add(anouncement.HtmlUrl, didaTask);
+                            DidaService.AddTaskComment(taskList.Id.ToString(), didaTask.Id.ToString(), announcement.HtmlUrl);
+                            dicUrl.Add(announcement.HtmlUrl, didaTask);
                         }
                         else
                         {
@@ -589,14 +589,14 @@ namespace TodoSynchronizer.Core.Services
                     }
 
                     //---Attachments---//
-                    //if (SyncConfig.Default.AnouncementConfig.CreateAttachments)
+                    //if (SyncConfig.Default.AnnouncementConfig.CreateAttachments)
                     //{
-                    //    var files = anouncement.Attachments;
+                    //    var files = announcement.Attachments;
                     //    var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
 
-                    //    if (anouncement.Content != null)
+                    //    if (announcement.Content != null)
                     //    {
-                    //        CheckAttachments(anouncement.Content, files);
+                    //        CheckAttachments(announcement.Content, files);
                     //    }
                         
                     //    if (files.Count > 0)

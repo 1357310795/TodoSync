@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TodoSynchronizer.Core.Models.CanvasModels
 {
-    public partial class Anouncement : ICanvasItem
+    public partial class Announcement : ICanvasItem
     {
         [JsonProperty("allow_rating")]
         public bool AllowRating { get; set; }
@@ -82,7 +82,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public bool OnlyGradersCanRate { get; set; }
 
         [JsonProperty("permissions")]
-        public AnouncementPermissions Permissions { get; set; }
+        public AnnouncementPermissions Permissions { get; set; }
 
         [JsonProperty("pinned")]
         public bool Pinned { get; set; }
@@ -143,7 +143,7 @@ namespace TodoSynchronizer.Core.Models.CanvasModels
         public string Content { get => $"{UserName}：\n{Message}"; set => throw new NotImplementedException(); }
     }
 
-    public class AnouncementPermissions
+    public class AnnouncementPermissions
     {
         [JsonProperty("attach")]
         public bool Attach { get; set; }

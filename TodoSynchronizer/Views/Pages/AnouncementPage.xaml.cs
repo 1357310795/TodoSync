@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace TodoSynchronizer.Views.Pages
 {
     /// <summary>
-    /// AnouncementPage.xaml 的交互逻辑
+    /// AnnouncementPage.xaml 的交互逻辑
     /// </summary>
-    public partial class AnouncementPage : Page
+    public partial class AnnouncementPage : Page
     {
-        public AnouncementPage()
+        public AnnouncementPage()
         {
             InitializeComponent();
         }

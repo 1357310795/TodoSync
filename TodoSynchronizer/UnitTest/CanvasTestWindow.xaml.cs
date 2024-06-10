@@ -107,15 +107,15 @@ namespace TodoSynchronizer.UnitTest
                 this.RaisePropertyChanged("AssignmentId");
             }
         }
-        private string anouncementId;
+        private string announcementId;
 
-        public string AnouncementId
+        public string AnnouncementId
         {
-            get { return anouncementId; }
+            get { return announcementId; }
             set
             {
-                anouncementId = value;
-                this.RaisePropertyChanged("AnouncementId");
+                announcementId = value;
+                this.RaisePropertyChanged("AnnouncementId");
             }
         }
         private string quizId;
@@ -194,9 +194,9 @@ namespace TodoSynchronizer.UnitTest
             Items = rawres;
         }
 
-        private void ButtonListAnouncements_Click(object sender, RoutedEventArgs e)
+        private void ButtonListAnnouncements_Click(object sender, RoutedEventArgs e)
         {
-            var rawres = CanvasService.ListAnouncements(CourseId);
+            var rawres = CanvasService.ListAnnouncements(CourseId);
             Items = rawres;
         }
 

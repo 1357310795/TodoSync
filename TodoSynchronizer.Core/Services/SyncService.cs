@@ -96,8 +96,8 @@ namespace TodoSynchronizer.Core.Services
                         FindList("discussion", SyncConfig.Default.ListNamesForCategory.DiscussionListName);
                     if (SyncConfig.Default.AssignmentConfig.Enabled)
                         FindList("assignment", SyncConfig.Default.ListNamesForCategory.AssignmentListName);
-                    if (SyncConfig.Default.AnouncementConfig.Enabled)
-                        FindList("anouncement", SyncConfig.Default.ListNamesForCategory.AnouncementListName);
+                    if (SyncConfig.Default.AnnouncementConfig.Enabled)
+                        FindList("announcement", SyncConfig.Default.ListNamesForCategory.AnnouncementListName);
                 }
                 else
                 {
@@ -202,8 +202,8 @@ namespace TodoSynchronizer.Core.Services
                             CourseCount++;
                         if (SyncConfig.Default.AssignmentConfig.Enabled)
                             ProcessAssignments(GetCourseMessage(course), course, dicCategory["assignment"]);
-                        if (SyncConfig.Default.AnouncementConfig.Enabled)
-                            ProcessAnouncements(GetCourseMessage(course), course, dicCategory["anouncement"]);
+                        if (SyncConfig.Default.AnnouncementConfig.Enabled)
+                            ProcessAnnouncements(GetCourseMessage(course), course, dicCategory["announcement"]);
                         if (SyncConfig.Default.QuizConfig.Enabled)
                             ProcessQuizes(GetCourseMessage(course), course, dicCategory["quiz"]);
                         if (SyncConfig.Default.DiscussionConfig.Enabled)
@@ -217,8 +217,8 @@ namespace TodoSynchronizer.Core.Services
                         CourseCount++;
                         if (SyncConfig.Default.AssignmentConfig.Enabled)
                             ProcessAssignments(GetCourseMessage(course), course, dicCourse[course]);
-                        if (SyncConfig.Default.AnouncementConfig.Enabled)
-                            ProcessAnouncements(GetCourseMessage(course), course, dicCourse[course]);
+                        if (SyncConfig.Default.AnnouncementConfig.Enabled)
+                            ProcessAnnouncements(GetCourseMessage(course), course, dicCourse[course]);
                         if (SyncConfig.Default.QuizConfig.Enabled)
                             ProcessQuizes(GetCourseMessage(course), course, dicCourse[course]);
                         if (SyncConfig.Default.DiscussionConfig.Enabled)
@@ -606,42 +606,42 @@ namespace TodoSynchronizer.Core.Services
         }
         #endregion
 
-        #region Anouncements
-        private void ProcessAnouncements(string message_prefix, Course course, TodoTaskList taskList)
+        #region Announcements
+        private void ProcessAnnouncements(string message_prefix, Course course, TodoTaskList taskList)
         {
             Message = message_prefix + "公告";
             try
             {
-                var anouncements = CanvasService.ListAnouncements(course.Id.ToString());
-                if (anouncements == null)
+                var announcements = CanvasService.ListAnnouncements(course.Id.ToString());
+                if (announcements == null)
                     return;
-                if (anouncements.Count == 0)
+                if (announcements.Count == 0)
                     return;
 
-                foreach (var anouncement in anouncements)
+                foreach (var announcement in announcements)
                 {
                     if (SyncConfig.Default.IgnoreTooOldItems)
-                        if (anouncement?.PostedAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
+                        if (announcement?.PostedAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
                             continue;
                     var updated = false;
                     ItemCount++;
-                    Message = message_prefix + GetItemMessage(anouncement);
+                    Message = message_prefix + GetItemMessage(announcement);
                     TodoTask todoTask = null;
-                    if (dicUrl.ContainsKey(anouncement.HtmlUrl))
-                        todoTask = dicUrl[anouncement.HtmlUrl];
+                    if (dicUrl.ContainsKey(announcement.HtmlUrl))
+                        todoTask = dicUrl[announcement.HtmlUrl];
                     else
                         todoTask = null;
 
                     //---Self & LinkedResource---//
                     TodoTask todoTaskNew = new TodoTask();
-                    var res1 = UpdateCanvasItem(course, anouncement, todoTask, todoTaskNew, SyncConfig.Default.AnouncementConfig);
+                    var res1 = UpdateCanvasItem(course, announcement, todoTask, todoTaskNew, SyncConfig.Default.AnnouncementConfig);
                     if (res1)
                     {
                         if (todoTask is null)
                         {
                             todoTask = TodoService.AddTask(taskList.Id.ToString(), todoTaskNew);
-                            TodoService.AddLinkedResource(taskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = anouncement.HtmlUrl, WebUrl = anouncement.HtmlUrl, ApplicationName = "Canvas" });
-                            dicUrl.Add(anouncement.HtmlUrl, todoTask);
+                            TodoService.AddLinkedResource(taskList.Id.ToString(), todoTask.Id.ToString(), new LinkedResource() { DisplayName = announcement.HtmlUrl, WebUrl = announcement.HtmlUrl, ApplicationName = "Canvas" });
+                            dicUrl.Add(announcement.HtmlUrl, todoTask);
                         }
                         else
                         {
@@ -651,14 +651,14 @@ namespace TodoSynchronizer.Core.Services
                     }
 
                     //---Attachments---//
-                    if (SyncConfig.Default.AnouncementConfig.CreateAttachments)
+                    if (SyncConfig.Default.AnnouncementConfig.CreateAttachments)
                     {
-                        var files = anouncement.Attachments;
+                        var files = announcement.Attachments;
                         var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
 
-                        if (anouncement.Content != null)
+                        if (announcement.Content != null)
                         {
-                            CheckAttachments(anouncement.Content, files);
+                            CheckAttachments(announcement.Content, files);
                         }
                         
                         if (files.Count > 0)
