@@ -1,4 +1,4 @@
-﻿using Microsoft.Graph;
+using Microsoft.Graph;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -168,14 +168,21 @@ namespace TodoSynchronizer.Core.Services
                 dicUrl = new Dictionary<string, TodoTask>();
                 foreach (var todoTask in canvasTasks)
                 {
-                    if (todoTask.LinkedResources != null)
-                        if (todoTask.LinkedResources.Count > 0)
+                    if (todoTask.LinkedResources != null && todoTask.LinkedResources.Count > 0)
+                    {
+                        var url = todoTask.LinkedResources.First().WebUrl;
+                        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
                         {
-                            var url = todoTask.LinkedResources.First().WebUrl;
-                            Uri uri;
-                            if (Uri.TryCreate(url, UriKind.Absolute, out uri))
+                            if (!dicUrl.ContainsKey(url))
+                            {
                                 dicUrl.Add(url, todoTask);
+                            }
+                            else
+                            {
+                                // 如果需要，可以更新已有的值，或进行其他处理
+                            }
                         }
+                    }
                 }
             }
             catch (Exception ex)
