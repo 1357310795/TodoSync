@@ -50,11 +50,6 @@ namespace TodoSynchronizer.QuickTool.Pages
                 MessageBox.Show("密钥不能为空！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            if (!Password.Any(check))
-            {
-                MessageBox.Show("为确保安全，密钥必须包含中文字符！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
             var token = DataService.GetData<string>("token");
             var enc = AesHelper.Encrypt(Password, token);
 
