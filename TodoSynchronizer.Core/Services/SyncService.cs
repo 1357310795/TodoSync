@@ -74,7 +74,6 @@ namespace TodoSynchronizer.Core.Services
 
                 void FindList(string cat, string name)
                 {
-                    var name = name;
                     if (resolvedLists.TryGetValue(name, out var resolvedTaskList))
                     {
                         dicCategory.Add(cat, resolvedTaskList);
