@@ -70,9 +70,18 @@ namespace TodoSynchronizer.Core.Services
                 dicCategory = new Dictionary<string, TodoTaskList>();
                 dicCourse = new Dictionary<Course, TodoTaskList>();
                 var todoTaskLists = TodoService.ListLists();
+                var resolvedLists = new Dictionary<string, TodoTaskList>();
 
                 void FindList(string cat, string name)
                 {
+                    var name = name;
+                    if (resolvedLists.TryGetValue(name, out var resolvedTaskList))
+                    {
+                        dicCategory.Add(cat, resolvedTaskList);
+                        return;
+                    }
+
+                    // 忽略 Microsoft To Do 列表名字前的 Emoji 图标
                     var taskList = todoTaskLists.Find(x => x.DisplayName.CleanEmoji() == name);
 
                     if (taskList == null)
@@ -82,6 +91,7 @@ namespace TodoSynchronizer.Core.Services
                         throw new Exception("创建 Todo 列表失败");
                     else
                         Message = $"找到 Todo 列表：{taskList.DisplayName}";
+                    resolvedLists[name] = taskList;
                     dicCategory.Add(cat, taskList);
                 }
 
@@ -133,8 +143,11 @@ namespace TodoSynchronizer.Core.Services
                 {
                     if (SyncConfig.Default.ListNameMode == ListNameMode.Category)
                     {
+                        var visitedListIds = new HashSet<string>();
                         foreach(var item in dicCategory)
                         {
+                            if (!visitedListIds.Add(item.Value.Id))
+                                continue;
                             var tmplist = TodoService.ListTodoTasks(item.Value.Id);
                             foreach (var task in tmplist)
                                 yield return task;
