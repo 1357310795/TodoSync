@@ -41,7 +41,7 @@ namespace Microsoft.Identity.Client.Platforms.Shared.Desktop.OsBrowser
             _uriInterceptor = uriInterceptor ?? new HttpListenerInterceptor();
         }
 
-        public async Task<string> AcquireAuthorizationAsync(
+        public async Task<Uri> AcquireAuthorizationAsync(
             Uri authorizationUri,
             Uri redirectUri,
             CancellationToken cancellationToken)
@@ -61,7 +61,7 @@ namespace Microsoft.Identity.Client.Platforms.Shared.Desktop.OsBrowser
                     throw new Exception("");
                 }
 
-                return authCodeUri.OriginalString;
+                return authCodeUri;
             }
             catch (System.Net.HttpListenerException) // sometimes this exception sneaks out (see issue 1773)
             {

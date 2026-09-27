@@ -7,6 +7,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -59,10 +60,10 @@ namespace TodoSynchronizer.QuickTool.Pages
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            var res = DataService.GetData<string>("uri");
-            var reg = new Regex(@"code=([a-zA-Z0-9-\._]+)");
-            Match match = reg.Match(res);
-            if (match.Success)
+            var uri = DataService.GetData<Uri>("uri");
+            var query = HttpUtility.ParseQueryString(uri.Query);
+            string? code = query["code"];
+            if (code != null)
             {
                 Head = "用户已授权";
                 Message = "正在联系服务器获取信息...";
@@ -72,7 +73,7 @@ namespace TodoSynchronizer.QuickTool.Pages
                     forms.Add(new KeyValuePair<string, string>("scope", "Tasks.ReadWrite User.Read offline_access"));
                     forms.Add(new KeyValuePair<string, string>("redirect_uri", "http://localhost:65399"));
                     forms.Add(new KeyValuePair<string, string>("grant_type", "authorization_code"));
-                    forms.Add(new KeyValuePair<string, string>("code", match.Groups[1].Value));
+                    forms.Add(new KeyValuePair<string, string>("code", code));
 
                     FormUrlEncodedContent form = new FormUrlEncodedContent(forms);
 
@@ -105,7 +106,7 @@ namespace TodoSynchronizer.QuickTool.Pages
             }
             else
                 Head = "授权失败";
-                Message = "错误代码：";
+                Message = "错误代码：未找到 code";
             }
 
         #region INotifyPropertyChanged members
