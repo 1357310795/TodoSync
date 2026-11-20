@@ -19,7 +19,7 @@ namespace TodoSynchronizer.Core.Models.DidaModels
         public string InboxId { get; set; }
 
         [JsonProperty("projectGroups")]
-        public System.Collections.Generic.List<string> ProjectGroups { get; set; }
+        public Newtonsoft.Json.Linq.JToken ProjectGroups { get; set; }
 
         [JsonProperty("projectProfiles")]
         public System.Collections.Generic.List<DidaTaskList> ProjectProfiles { get; set; }
