@@ -53,8 +53,15 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 {"CanvasToken":"这里填上你的 Canvas 令牌","GraphToken":"这里填上你的 Graph 令牌"}
 ```
 
-- 若要同步到滴答清单，按以下格式填写
+- 若要同步到滴答清单，推荐使用[滴答清单网页会话凭据](./dida-auth.md#获取网页会话凭据)。
+
+```json
+{"CanvasToken":"这里填上你的 Canvas 令牌","DidaCredential":{"token":"Cookie t 的值"}}
 ```
+
+也可以沿用手机号密码配置。
+
+```json
 {"CanvasToken":"这里填上你的 Canvas 令牌","DidaCredential":{"phone":"这里填上你的滴答清单登录手机号","password":"这里填上你的滴答清单登录密码"}}
 ```
 

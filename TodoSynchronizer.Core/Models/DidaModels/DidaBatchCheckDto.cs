@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace TodoSynchronizer.Core.Models.DidaModels
 {
@@ -19,20 +16,20 @@ namespace TodoSynchronizer.Core.Models.DidaModels
         public string InboxId { get; set; }
 
         [JsonProperty("projectGroups")]
-        public Newtonsoft.Json.Linq.JToken ProjectGroups { get; set; }
+        public JToken ProjectGroups { get; set; }
 
         [JsonProperty("projectProfiles")]
-        public System.Collections.Generic.List<DidaTaskList> ProjectProfiles { get; set; }
+        public List<DidaTaskList> ProjectProfiles { get; set; }
 
         [JsonProperty("syncTaskBean")]
         public SyncTaskBean SyncTaskBean { get; set; }
 
         [JsonProperty("tags")]
-        public System.Collections.Generic.List<Newtonsoft.Json.Linq.JToken> Tags { get; set; }
+        public List<JToken> Tags { get; set; }
     }
     public partial class SyncTaskBean
     {
         [JsonProperty("update")]
-        public System.Collections.Generic.List<DidaTask> Update { get; set; }
+        public List<DidaTask> Update { get; set; }
     }
 }

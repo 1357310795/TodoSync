@@ -10,7 +10,6 @@ using TodoSynchronizer.Core.Models;
 namespace TodoSynchronizer.CLI;
 class Program
 {
-    static bool error;
     static ISimpleLogger logger;
     static void Main(string[] args)
     {
@@ -240,16 +239,8 @@ class Program
     private static void OnReportProgress(SyncState state)
     {
         Log(state.Message);
-        if (state.State == SyncStateEnum.Finished)
-        {
-            Environment.Exit(error ? -1 : 0);
-            //Finish();
-        }
         if (state.State == SyncStateEnum.Error && !SyncConfig.Default.IgnoreErrors)
-        {
-            error = true;
             Environment.ExitCode = 1;
-        }
     }
 
     private static void Log(string message)

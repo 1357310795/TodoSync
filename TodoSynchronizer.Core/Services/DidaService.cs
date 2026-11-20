@@ -1,17 +1,14 @@
-using Microsoft.Graph;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using TodoSynchronizer.Core.Helpers;
 using TodoSynchronizer.Core.Models;
-using TodoSynchronizer.Core.Models.CanvasModels;
 using TodoSynchronizer.Core.Models.DidaModels;
 using TodoSynchronizer.Core.Service;
-using YamlDotNet.Core.Tokens;
 
 namespace TodoSynchronizer.Core.Services
 {
@@ -23,14 +20,27 @@ namespace TodoSynchronizer.Core.Services
 
         public static HttpClient Client { get; set; }
 
+        private const string BatchCheckPath = "/api/v2/batch/check/0";
+
         public static CommonResult Login(string info)
         {
+            string token;
+            try
+            {
+                var credential = JsonConvert.DeserializeAnonymousType(info, new { token = (string)null });
+                if (credential == null)
+                    return new CommonResult(false, "滴答清单登录信息为空");
+                token = credential.token;
+            }
+            catch (JsonException)
+            {
+                return new CommonResult(false, "滴答清单登录信息不是有效的 JSON");
+            }
+
             Client = new HttpClient()
             {
                 BaseAddress = new Uri("https://api.dida365.com")
             };
-
-            // The V2 session API expects web-client metadata on login and subsequent requests.
             Client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0");
             var deviceInfo = new
             {
@@ -38,7 +48,7 @@ namespace TodoSynchronizer.Core.Services
                 os = "Linux",
                 device = "Firefox 95.0",
                 name = "TodoSynchronizer",
-                version = 8240, // Dida web client version observed on 2026-10-28.
+                version = 8240, // 滴答清单网页版 2026-10-28 的版本号
                 id = Guid.NewGuid().ToString("N").Substring(0, 24),
                 channel = "website",
                 campaign = "",
@@ -46,74 +56,82 @@ namespace TodoSynchronizer.Core.Services
             };
             Client.DefaultRequestHeaders.Add("X-Device", JsonConvert.SerializeObject(deviceInfo));
 
-            var authStage = "credential_json";
             try
             {
-                var credential = JsonConvert.DeserializeAnonymousType(info, new { token = (string)null });
-                if (credential?.token != null)
-                {
-                    if (string.IsNullOrWhiteSpace(credential.token) || credential.token.Any(char.IsWhiteSpace) || credential.token.Contains(";"))
-                        return new CommonResult(false, "滴答会话 token 格式错误：请仅填写 Cookie t 的值");
-                    authStage = "cookie_header";
-                    Client.DefaultRequestHeaders.Add("Cookie", $"t={credential.token}");
-                    authStage = "session_request";
-                    var check = Web.Get(Client, "/api/v2/batch/check/0");
-                    if (check.code != System.Net.HttpStatusCode.OK)
-                        return new CommonResult(false, $"滴答会话验证失败，HTTP 状态码：{(int)check.code}；请检查或更新 DIDA_CREDENTIAL 中的 token");
-                    authStage = check.result?.TrimStart().StartsWith("<") == true ? "session_html" : "session_json";
-                    var data = JsonConvert.DeserializeObject<DidaBatchCheckDto>(check.result);
-                    if (data?.ProjectProfiles == null || data.SyncTaskBean?.Update == null)
-                        return new CommonResult(false, "滴答会话验证失败：同步接口未返回有效数据");
-                    return new CommonResult(true, "滴答会话认证成功");
-                }
+                return token == null ? LoginWithPassword(Client, info) : LoginWithSession(Client, token);
             }
-            catch (Exception ex)
+            catch (AggregateException ex) when (ex.GetBaseException() is OperationCanceledException)
             {
-                var cause = ex is JsonException ? ex : ex.GetBaseException();
-                var kind = cause is JsonException ? "json_parse" : cause is HttpRequestException ? "network" : cause is TaskCanceledException ? "timeout" : cause is FormatException ? "format" : "unexpected";
-                var field = "unknown";
-                var path = (cause as JsonSerializationException)?.Path ?? (cause as JsonReaderException)?.Path ?? "";
-                field = new[] { "projectGroups", "tags", "projectProfiles", "syncTaskBean", "checkPoint", "inboxId" }.FirstOrDefault(name => path == name || path.StartsWith(name + "[") || path.StartsWith(name + ".")) ?? "unknown";
-                // Only fixed categories are logged; exception messages can contain private task data.
-                return new CommonResult(false, $"滴答会话验证失败：阶段={authStage}，类型={kind}，字段={field}；未尝试密码登录");
+                return new CommonResult(false, "请求滴答清单登录接口超时");
             }
-
-            var res = Web.Post(Client, "/api/v2/user/signon?wc=true&remember=true", info);
-
-            if (!res.success)
-                return new CommonResult(false, res.message);
-            if (res.code != System.Net.HttpStatusCode.OK)
+            catch (AggregateException ex) when (ex.GetBaseException() is HttpRequestException)
             {
-                var detail = "empty_response";
-                if (!string.IsNullOrWhiteSpace(res.result))
-                {
-                    try
-                    {
-                        var failure = JsonConvert.DeserializeAnonymousType(res.result, new { errorCode = "" });
-                        var code = failure?.errorCode;
-                        var credential = JsonConvert.DeserializeAnonymousType(info, new { phone = "", password = "" });
-                        // Log only a short symbolic error code, never the response body or credentials.
-                        detail = !string.IsNullOrEmpty(code) && System.Text.RegularExpressions.Regex.IsMatch(code, "^[a-z][a-z_]{0,63}$") && (string.IsNullOrEmpty(credential?.phone) || !code.Contains(credential.phone)) && (string.IsNullOrEmpty(credential?.password) || !code.Contains(credential.password))
-                            ? code : "json_without_safe_error_code";
-                    }
-                    catch (JsonException)
-                    {
-                        detail = res.result.TrimStart().StartsWith("<") ? "html_response" : "non_json_response";
-                    }
-                }
-                return new CommonResult(false, $"滴答清单登录失败，HTTP 状态码：{(int)res.code} ({res.code})，错误类型：{detail}");
+                return new CommonResult(false, "连接滴答清单失败，请检查网络连接");
             }
+        }
+
+        private static CommonResult LoginWithSession(HttpClient client, string token)
+        {
+            if (string.IsNullOrWhiteSpace(token) || token.StartsWith("t=", StringComparison.Ordinal)
+                || token.Any(char.IsWhiteSpace) || token.Any(char.IsControl) || token.Contains(';'))
+                return new CommonResult(false, "滴答会话 token 格式错误：请仅填写 Cookie t 的值");
+
+            client.DefaultRequestHeaders.Add("Cookie", $"t={token}");
+            var res = Web.Get(client, BatchCheckPath);
+            if (res.code != HttpStatusCode.OK)
+                return new CommonResult(false, $"滴答会话验证失败，HTTP 状态码：{(int)res.code} ({res.code})");
+
             try
             {
-                var json = JsonConvert.DeserializeObject<LoginDto>(res.result);
-                if (string.IsNullOrWhiteSpace(json?.Token))
+                ParseBatchCheck(res.result);
+                return new CommonResult(true, "滴答会话认证成功");
+            }
+            catch (InvalidDataException ex)
+            {
+                return new CommonResult(false, $"滴答会话验证失败：{ex.Message}");
+            }
+        }
+
+        private static CommonResult LoginWithPassword(HttpClient client, string info)
+        {
+            var res = Web.Post(client, "/api/v2/user/signon?wc=true&remember=true", info);
+            if (res.code != HttpStatusCode.OK)
+            {
+                var errorCode = GetLoginErrorCode(res.result);
+                return new CommonResult(false, $"滴答清单登录失败，HTTP 状态码：{(int)res.code} ({res.code})，错误类型：{errorCode}");
+            }
+
+            try
+            {
+                var login = JsonConvert.DeserializeObject<LoginDto>(res.result);
+                if (string.IsNullOrWhiteSpace(login?.Token))
                     return new CommonResult(false, "滴答清单登录失败：接口未返回有效 Token");
-                Client.DefaultRequestHeaders.Add("Cookie", $"t={json.Token}");
+
+                client.DefaultRequestHeaders.Add("Cookie", $"t={login.Token}");
                 return new CommonResult(true, "登录成功");
             }
-            catch (Exception ex)
+            catch (JsonException)
             {
-                return new CommonResult(false, ex.Message);
+                return new CommonResult(false, "滴答清单登录失败：无法解析登录响应");
+            }
+        }
+
+        private static string GetLoginErrorCode(string response)
+        {
+            try
+            {
+                var error = JsonConvert.DeserializeAnonymousType(response, new { errorCode = "" });
+                return error?.errorCode switch
+                {
+                    "need_captcha" => "need_captcha",
+                    "need_upgrade_client" => "need_upgrade_client",
+                    "username_password_not_match" => "username_password_not_match",
+                    _ => "unknown"
+                };
+            }
+            catch (JsonException)
+            {
+                return "unknown";
             }
         }
 
@@ -164,24 +182,34 @@ namespace TodoSynchronizer.Core.Services
 
         public static DidaBatchCheckDto BatchCheck()
         {
-            var query = new Dictionary<string, string>();
+            var res = Web.Get(Client, BatchCheckPath);
+            if (res.code != HttpStatusCode.OK)
+                throw new InvalidDataException($"滴答清单读取失败，HTTP 状态码：{(int)res.code} ({res.code})");
 
-            var res = Web.Get(Client, $"/api/v2/batch/check/0", query);
-            if (!res.success)
-                throw new Exception(res.message);
+            return ParseBatchCheck(res.result);
+        }
 
-            if (res.code != System.Net.HttpStatusCode.OK)
-                throw new Exception($"滴答清单读取失败，HTTP 状态码：{(int)res.code} ({res.code})");
-
+        private static DidaBatchCheckDto ParseBatchCheck(string response)
+        {
+            DidaBatchCheckDto data;
             try
             {
-                var json = JsonConvert.DeserializeObject<DidaBatchCheckDto>(res.result);
-                return json ?? throw new Exception("滴答清单接口返回了空数据");
+                data = JsonConvert.DeserializeObject<DidaBatchCheckDto>(response);
             }
-            catch (Exception ex)
+            catch (JsonException ex)
             {
-                throw new Exception(ex.Message);
+                var path = (ex as JsonSerializationException)?.Path ?? (ex as JsonReaderException)?.Path ?? "";
+                var field = path.Split('.', '[')[0];
+                // 只输出已知字段名，避免将响应中的任务内容写入日志
+                var knownFields = new[] { "projectGroups", "tags", "projectProfiles", "syncTaskBean", "checkPoint", "inboxId", "filters" };
+                var detail = knownFields.Contains(field) ? $"（字段：{field}）" : "";
+                throw new InvalidDataException($"无法解析滴答清单同步响应{detail}");
             }
+
+            if (data?.ProjectProfiles == null || data.SyncTaskBean?.Update == null)
+                throw new InvalidDataException("滴答清单同步接口未返回清单或任务数据");
+
+            return data;
         }
 
         public static List<DidaTask> GetCompleted(string listid)

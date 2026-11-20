@@ -70,7 +70,7 @@
 
 ![](https://s2.loli.net/2022/09/14/4akGQOzVLH7nYvC.png)
 
-### 三、配置滴答清单登录信息（若要同步到 滴答清单）
+### 三、配置滴答清单登录信息（若要同步到滴答清单）
 18. 在**自己 fork 的仓库**，进入“Settings”
 
 ![](https://s2.loli.net/2022/08/21/BuWYEbml4QsVUXq.png)
@@ -79,8 +79,15 @@
 
 ![](https://s2.loli.net/2022/08/21/FavMKjp4lGYIh6g.png)
 
-20. “Name”为“DIDA_CREDENTIAL”，“Value”按照下面的格式填写
+20. “Name”填写 `DIDA_CREDENTIAL`。“Value”推荐使用[滴答清单网页会话凭据](./dida-auth.md#获取网页会话凭据)。
+
+```json
+{"token":"Cookie t 的值"}
 ```
+
+也可以沿用手机号密码配置。密码登录遇到验证码时，可改用网页会话凭据。
+
+```json
 {"phone":"你的手机号","password":"你的密码"}
 ```
 
@@ -91,13 +98,15 @@
 ![](https://s2.loli.net/2022/10/20/rNOifXCEohvn2VH.png)
 
 
-### 三、启动定时任务
+### 四、启动定时任务
 
 22. 点击“Actions”选项卡，点击按钮启用
 
 ![](https://s2.loli.net/2022/08/21/qtCnKdpPWRFNbgM.png)
 
 23. 左侧选择合适的项目，右侧点击“Run workflow”
+
+验证滴答清单同步时，选择包含最新代码的分支发起一次新运行。重跑已有记录会使用该记录对应的提交。Pull Request 触发的滴答工作流仅检查编译，手动和定时触发会执行同步。
 
 ![](https://s2.loli.net/2022/10/20/1D8hUHvlxX9qVI2.png)
 ![](https://s2.loli.net/2022/08/21/2kcXUByTOaoLIiv.png)
