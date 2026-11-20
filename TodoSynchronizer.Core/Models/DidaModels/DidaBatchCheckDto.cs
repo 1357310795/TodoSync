@@ -28,7 +28,7 @@ namespace TodoSynchronizer.Core.Models.DidaModels
         public SyncTaskBean SyncTaskBean { get; set; }
 
         [JsonProperty("tags")]
-        public System.Collections.Generic.List<string> Tags { get; set; }
+        public System.Collections.Generic.List<Newtonsoft.Json.Linq.JToken> Tags { get; set; }
     }
     public partial class SyncTaskBean
     {
