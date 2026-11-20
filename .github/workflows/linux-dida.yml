@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: dida-sync
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -22,13 +25,23 @@ jobs:
         run: dotnet restore ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj
       - name: Build
         run: dotnet build ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj --no-restore -c Release
-      - name: Write Dida Credential
+      - name: Restore Dida source index
         if: github.event_name != 'pull_request'
-        env:
-          DIDA_CREDENTIAL: ${{ secrets.DIDA_CREDENTIAL }}
-        run: printf '%s' "$DIDA_CREDENTIAL" > dida.json
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ runner.temp }}/dida-source-index.bin
+          key: dida-source-index-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: dida-source-index-v1-
       - name: Run
         if: github.event_name != 'pull_request'
         env:
           CANVAS_TOKEN: ${{ secrets.CANVAS_TOKEN }}
-        run: ./TodoSynchronizer.CLI/bin/Release/net6.0/TodoSynchronizer.CLI -canvastoken "$CANVAS_TOKEN" -configfile config.yaml -didacredentialfile dida.json
+          DIDA_API: ${{ secrets.DIDA_API }}
+          DIDA_SOURCE_INDEX: ${{ runner.temp }}/dida-source-index.bin
+        run: ./TodoSynchronizer.CLI/bin/Release/net6.0/TodoSynchronizer.CLI -canvastoken "$CANVAS_TOKEN" -configfile config.yaml -dida
+      - name: Save Dida source index
+        if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ runner.temp }}/dida-source-index.bin
+          key: dida-source-index-v1-${{ github.run_id }}-${{ github.run_attempt }}

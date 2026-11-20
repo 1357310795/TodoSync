@@ -71,32 +71,34 @@
 ![](https://s2.loli.net/2022/09/14/4akGQOzVLH7nYvC.png)
 
 ### 三、配置滴答清单登录信息（若要同步到滴答清单）
-18. 在**自己 fork 的仓库**，进入“Settings”
+
+#### 获取滴答清单 API 口令
+
+18. 登录[滴答清单网页版](https://dida365.com/webapp/)，进入 **头像 → 设置 → 账户与安全 → API 口令**，创建并复制口令。
+
+#### 保存仓库 Secret
+
+19. 在**自己 fork 的仓库**，进入“Settings”
 
 ![](https://s2.loli.net/2022/08/21/BuWYEbml4QsVUXq.png)
 
-19. 选择“Secrets - Actions”，点击“New repository secret”
+20. 选择“Secrets - Actions”，点击“New repository secret”
 
 ![](https://s2.loli.net/2022/08/21/FavMKjp4lGYIh6g.png)
 
-20. “Name”填写 `DIDA_CREDENTIAL`。“Value”推荐使用[滴答清单网页会话凭据](./dida-auth.md#获取网页会话凭据)。
+21. “Name”填写 `DIDA_API`，“Value”粘贴 API 口令原文。省略引号、JSON 和 `Bearer` 前缀。
 
-```json
-{"token":"Cookie t 的值"}
-```
+从旧版本升级时，改用 `DIDA_API`，替换原来的 `DIDA_CREDENTIAL`、手机号密码或网页 Cookie 配置。请将 API 口令保存在 Secret 中，避免提交到仓库。
 
-也可以沿用手机号密码配置。密码登录遇到验证码时，可改用网页会话凭据。
+#### 滴答清单任务来源与索引
 
-```json
-{"phone":"你的手机号","password":"你的密码"}
-```
+程序通过滴答清单的 [Open API](https://developer.dida365.com/) 读取清单、未完成和已完成的任务。新建任务会附上一条独立的来源评论，内容为 Canvas 链接。全局通知的来源评论保存通知 ID。已有任务仍可通过旧评论或正文末尾的 `TodoSync: …` 标记识别。
 
-![](https://s2.loli.net/2022/10/20/xpQGq6kPLMfOcX9.png)
+GitHub Actions 会跨运行保存加密索引。同步时，程序先确认任务仍在清单里，再复用索引中的来源映射。成功读取评论但未找到可识别来源的任务也会记入索引，之后直接跳过评论查询。
 
-21. 添加滴答清单登录信息完成
+首次运行、更换 API 口令或缓存失效时，程序会重新读取未标记任务的评论。如果后来手动补写了来源评论，请在仓库的 **Actions → Caches** 中清除以 `dida-source-index-v1-` 开头的缓存，再运行同步。
 
-![](https://s2.loli.net/2022/10/20/rNOifXCEohvn2VH.png)
-
+若滴答 Open API 返回 HTTP 401 或 403，请检查口令是否有效，并确认对应清单允许当前账号写入。
 
 ### 四、启动定时任务
 

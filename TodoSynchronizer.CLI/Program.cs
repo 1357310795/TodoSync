@@ -13,11 +13,11 @@ class Program
     static ISimpleLogger logger;
     static void Main(string[] args)
     {
-        string canvastoken = "", graphtokenpath = "", didacredentialfile = "";
+        string canvastoken = "", graphtokenpath = "";
         string configpath = "", graphtokenkey = "", offlinetokenfile = "";
-        bool local = false;
+        bool local = false, dida = false;
         OfflineTokenDto offlineToken = null;
-        DidaCredential didaCredential = null;
+        string didaApiToken = null;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -33,9 +33,8 @@ class Program
             if (args[i] == "-graphtokenkey")
                 if (i + 1 < args.Length)
                     graphtokenkey = args[i + 1].Trim();
-            if (args[i] == "-didacredentialfile")
-                if (i + 1 < args.Length)
-                    didacredentialfile = args[i + 1].Trim();
+            if (args[i] == "-dida")
+                dida = true;
             if (args[i] == "-local")
                 local = true;
         }
@@ -51,7 +50,7 @@ class Program
                 Log("未指定 Canvas Token！");
                 Environment.Exit(-1);
             }
-            if (didacredentialfile == "")
+            if (!dida)
             {
                 if (graphtokenpath == "")
                 {
@@ -66,7 +65,7 @@ class Program
             }
             else
             {
-                didaCredential = JsonConvert.DeserializeObject<DidaCredential>(File.ReadAllText(didacredentialfile));
+                didaApiToken = Environment.GetEnvironmentVariable("DIDA_API");
             }
         }
         else
@@ -82,14 +81,14 @@ class Program
             offlinetokenfile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"token.json");
             offlineToken = JsonConvert.DeserializeObject<OfflineTokenDto>(File.ReadAllText(offlinetokenfile));
             canvastoken = offlineToken.CanvasToken;
-            didaCredential = offlineToken.DidaCredential;
+            didaApiToken = offlineToken.DidaApiToken;
         }
 
         ReadConfig(configpath);
 
         CanvasLogin(canvastoken);
 
-        if (didacredentialfile == "")
+        if (!dida)
         {
             GraphLogin(graphtokenpath, graphtokenkey, offlinetokenfile, offlineToken);
 
@@ -99,32 +98,18 @@ class Program
         }
         else
         {
-            DidaLogin(didaCredential);
-
-            DidaSyncService sync = new DidaSyncService();
-            sync.OnReportProgress += OnReportProgress;
-            sync.Go();
-        }
-    }
-
-    private static void DidaLogin(DidaCredential didaCredential)
-    {
-        try
-        {
-            var res = DidaService.Login(JsonConvert.SerializeObject(didaCredential));
-            if (!res.success)
+            try
             {
-                Log("滴答清单 认证失败！");
-                Log(res.result);
-                Environment.Exit(-1);
+                using var didaService = new DidaService(didaApiToken);
+                var sync = new DidaSyncService(didaService);
+                sync.OnReportProgress += OnReportProgress;
+                sync.Go();
             }
-            Log("滴答清单 认证成功！");
-        }
-        catch (Exception ex)
-        {
-            Log("滴答清单 认证失败！");
-            Log(ex.ToString());
-            Environment.Exit(-1);
+            catch (ArgumentException ex)
+            {
+                Log(ex.Message);
+                Environment.ExitCode = 1;
+            }
         }
     }
 
