@@ -139,7 +139,7 @@ namespace TodoSynchronizer.Core.Services
             try
             {
                 dicUrl = new Dictionary<string, DidaTask>();
-                int indexHits = 0, commentReads = 0;
+                int indexHits = 0, noSourceHits = 0, commentReads = 0;
                 foreach (var projectId in dicCategory.Values.Select(project => project.Id).Distinct())
                 {
                     var isNotificationList = dicCategory.TryGetValue("notification", out var notificationList)
@@ -152,9 +152,14 @@ namespace TodoSynchronizer.Core.Services
                             continue;
 
                         var source = ReadSource(task.Desc) ?? ReadSource(task.Content);
-                        if (source == null)
+                        if (source == null && sourceIndex.TryGetSource(projectId, task.Id, out var cachedSource))
                         {
-                            var cachedSource = sourceIndex.FindSource(projectId, task.Id);
+                            if (cachedSource == null)
+                            {
+                                noSourceHits++;
+                                continue;
+                            }
+
                             if (IsCanvasUrl(cachedSource) || (isNotificationList && long.TryParse(cachedSource, out _)))
                             {
                                 source = cachedSource;
@@ -178,16 +183,14 @@ namespace TodoSynchronizer.Core.Services
                                 .FirstOrDefault(title => IsCanvasUrl(title) || (isNotificationList && long.TryParse(title, out _)));
                         }
 
+                        sourceIndex.Remember(projectId, task.Id, source);
                         if (source != null)
-                        {
-                            sourceIndex.Remember(projectId, task.Id, source);
                             dicUrl.TryAdd(source, task);
-                        }
                     }
 
                     sourceIndex.RemoveMissing(projectId, liveIds);
                 }
-                Message = $"滴答任务来源索引命中 {indexHits} 项，读取评论 {commentReads} 次";
+                Message = $"滴答任务来源索引命中 {indexHits} 项，跳过无来源任务 {noSourceHits} 项，读取评论 {commentReads} 次";
             }
             catch (Exception ex)
             {

@@ -26,9 +26,11 @@ namespace TodoSynchronizer.Core.Services
             Load();
         }
 
-        public string FindSource(string projectId, string taskId)
+        public bool TryGetSource(string projectId, string taskId, out string source)
         {
-            return entries.TryGetValue((projectId, taskId), out var entry) ? entry.Source : null;
+            var found = entries.TryGetValue((projectId, taskId), out var entry);
+            source = entry?.Source;
+            return found;
         }
 
         public bool NeedsComment(string projectId, string taskId)
@@ -38,8 +40,8 @@ namespace TodoSynchronizer.Core.Services
 
         public void Remember(string projectId, string taskId, string source, bool needsComment = false)
         {
-            if (string.IsNullOrWhiteSpace(source)
-                || (FindSource(projectId, taskId) == source && NeedsComment(projectId, taskId) == needsComment))
+            if (TryGetSource(projectId, taskId, out var cachedSource)
+                && cachedSource == source && NeedsComment(projectId, taskId) == needsComment)
                 return;
 
             entries[(projectId, taskId)] = new Entry
@@ -81,8 +83,7 @@ namespace TodoSynchronizer.Core.Services
 
                 foreach (var entry in restored)
                 {
-                    if (!string.IsNullOrWhiteSpace(entry?.ProjectId)
-                        && !string.IsNullOrWhiteSpace(entry.TaskId) && !string.IsNullOrWhiteSpace(entry.Source))
+                    if (!string.IsNullOrWhiteSpace(entry?.ProjectId) && !string.IsNullOrWhiteSpace(entry.TaskId))
                         entries[(entry.ProjectId, entry.TaskId)] = entry;
                 }
             }
