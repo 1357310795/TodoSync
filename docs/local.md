@@ -53,19 +53,13 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 {"CanvasToken":"这里填上你的 Canvas 令牌","GraphToken":"这里填上你的 Graph 令牌"}
 ```
 
-- 若要同步到滴答清单，推荐使用[滴答清单网页会话凭据](./dida-auth.md#获取网页会话凭据)。
+- 若要同步到滴答清单，将[滴答清单 API 口令](./dida-auth.md)填入 `DidaApiToken`。
 
 ```json
-{"CanvasToken":"这里填上你的 Canvas 令牌","DidaCredential":{"token":"Cookie t 的值"}}
+{"CanvasToken":"这里填上你的 Canvas 令牌","DidaApiToken":"这里填上你的滴答清单 API 口令"}
 ```
 
-也可以沿用手机号密码配置。
-
-```json
-{"CanvasToken":"这里填上你的 Canvas 令牌","DidaCredential":{"phone":"这里填上你的滴答清单登录手机号","password":"这里填上你的滴答清单登录密码"}}
-```
-
-![](https://s2.loli.net/2022/10/16/B2V95rqDgX7UAR3.png)
+Windows 图形界面的滴答同步入口读取环境变量 `DIDA_API`。
 
 ### 四、配置定时任务
 #### Windows
@@ -83,15 +77,13 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 ![](https://s2.loli.net/2022/10/17/37nD4mpM6NabzeW.png)
 ![](https://s2.loli.net/2022/10/17/Cjl3nehm2VvFGcR.png)
 
-其中程序名称为 `wscript.exe`，参数为程序包中 vbs 文件的路径（建议包含引号），例如
-- 同步到 Microsoft Todo
+按同步目标填写程序和参数。路径含空格时请加引号。
+- 同步到 Microsoft Todo，程序为 `wscript.exe`，参数为 VBS 路径。
 ```
 "C:\Users\Public\Download\TodoSync.Local\TodoSync-Todo.vbs"
 ```
-- 同步到 滴答清单
-```
-"C:\Users\Public\Download\TodoSync.Local\TodoSync-Dida.vbs"
-```
+- 同步到滴答清单，程序为 `TodoSynchronizer.CLI.exe`，参数为 `-local -dida`。
+
 #### Linux
 下面以 crontab 服务为例展示 Linux 配置定时任务
 
@@ -100,11 +92,11 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 17. 光标移动到新的一行，输入
 - 同步到 Microsoft Todo
 ```
-0 * * * * /path_to_your_program/TodoSyncronizer.CLI -local
+0 * * * * /path_to_your_program/TodoSynchronizer.CLI -local
 ```
 - 同步到 滴答清单
 ```
-0 * * * * /path_to_your_program/TodoSyncronizer.CLI -local -didacredentialfile 114514
+0 * * * * /path_to_your_program/TodoSynchronizer.CLI -local -dida
 ```
 
 ![](https://s2.loli.net/2022/10/17/tzHrZnBcJ94TQVF.png)

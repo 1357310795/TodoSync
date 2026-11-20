@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: dida-sync
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -22,13 +25,9 @@ jobs:
         run: dotnet restore ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj
       - name: Build
         run: dotnet build ./TodoSynchronizer.CLI/TodoSynchronizer.CLI.csproj --no-restore -c Release
-      - name: Write Dida Credential
-        if: github.event_name != 'pull_request'
-        env:
-          DIDA_CREDENTIAL: ${{ secrets.DIDA_CREDENTIAL }}
-        run: printf '%s' "$DIDA_CREDENTIAL" > dida.json
       - name: Run
         if: github.event_name != 'pull_request'
         env:
           CANVAS_TOKEN: ${{ secrets.CANVAS_TOKEN }}
-        run: ./TodoSynchronizer.CLI/bin/Release/net6.0/TodoSynchronizer.CLI -canvastoken "$CANVAS_TOKEN" -configfile config.yaml -didacredentialfile dida.json
+          DIDA_API: ${{ secrets.DIDA_API }}
+        run: ./TodoSynchronizer.CLI/bin/Release/net6.0/TodoSynchronizer.CLI -canvastoken "$CANVAS_TOKEN" -configfile config.yaml -dida

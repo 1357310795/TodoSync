@@ -79,24 +79,7 @@
 
 ![](https://s2.loli.net/2022/08/21/FavMKjp4lGYIh6g.png)
 
-20. “Name”填写 `DIDA_CREDENTIAL`。“Value”推荐使用[滴答清单网页会话凭据](./dida-auth.md#获取网页会话凭据)。
-
-```json
-{"token":"Cookie t 的值"}
-```
-
-也可以沿用手机号密码配置。密码登录遇到验证码时，可改用网页会话凭据。
-
-```json
-{"phone":"你的手机号","password":"你的密码"}
-```
-
-![](https://s2.loli.net/2022/10/20/xpQGq6kPLMfOcX9.png)
-
-21. 添加滴答清单登录信息完成
-
-![](https://s2.loli.net/2022/10/20/rNOifXCEohvn2VH.png)
-
+20. “Name”填写 `DIDA_API`，“Value”粘贴[滴答清单 API 口令](./dida-auth.md)原文。省略引号、JSON 和 `Bearer` 前缀。
 
 ### 四、启动定时任务
 

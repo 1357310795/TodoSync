@@ -67,9 +67,21 @@ namespace TodoSynchronizer.Views
         private void GoDida()
         {
             Items = new ObservableCollection<string>();
-            DidaSyncService sync = new DidaSyncService();
-            sync.OnReportProgress += OnReportProgress;
-            sync.Go();
+            try
+            {
+                using var didaService = new DidaService(Environment.GetEnvironmentVariable("DIDA_API"));
+                var sync = new DidaSyncService(didaService);
+                sync.OnReportProgress += OnReportProgress;
+                sync.Go();
+            }
+            catch (ArgumentException ex)
+            {
+                OnReportProgress(new SyncState(SyncStateEnum.Error, ex.Message));
+            }
+            finally
+            {
+                Finish();
+            }
         }
 
         private void OnReportProgress(SyncState state)
@@ -131,7 +143,6 @@ namespace TodoSynchronizer.Views
 
         private void ButtonDida_Click(object sender, RoutedEventArgs e)
         {
-            DidaService.Login(File.ReadAllText(@"C:\Users\111\Downloads\dida.txt"));
             ReadConfig();
             ButtonProgressAssist.SetIsIndicatorVisible(GoButton, true);
             ButtonProgressAssist.SetIsIndeterminate(GoButton, true);
