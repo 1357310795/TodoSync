@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using TodoSynchronizer.Core.Models.DidaModels;
@@ -39,6 +40,12 @@ namespace TodoSynchronizer.Core.Services
             client = new HttpClient(handler) { BaseAddress = new Uri("https://api.dida365.com/open/v1/") };
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiToken.Trim());
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
+
+        internal byte[] GetSourceIndexKey()
+        {
+            var material = Encoding.UTF8.GetBytes("TodoSync Dida source index v1\0" + client.DefaultRequestHeaders.Authorization.Parameter);
+            return SHA512.HashData(material);
         }
 
         public List<DidaTaskList> ListProjects()

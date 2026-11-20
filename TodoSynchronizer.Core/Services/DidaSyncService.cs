@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Extensions;
 using TodoSynchronizer.Core.Helpers;
@@ -14,13 +16,17 @@ namespace TodoSynchronizer.Core.Services
     {
         private const string SourcePrefix = "TodoSync: ";
         private readonly DidaService didaService;
+        private readonly DidaSourceIndex sourceIndex;
         private Dictionary<string, DidaTask> dicUrl;
         private Dictionary<string, DidaTaskList> dicCategory;
         public int CourseCount, ItemCount, UpdateCount, FailedCount;
 
-        public DidaSyncService(DidaService didaService)
+        public DidaSyncService(DidaService didaService, string indexPath = null)
         {
             this.didaService = didaService;
+            indexPath ??= Environment.GetEnvironmentVariable("DIDA_SOURCE_INDEX")
+                ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TodoSync", "dida-source-index.bin");
+            sourceIndex = new DidaSourceIndex(indexPath, didaService.GetSourceIndexKey());
         }
 
         private string message;
@@ -38,6 +44,25 @@ namespace TodoSynchronizer.Core.Services
         public event ReportProgressDelegate OnReportProgress;
 
         public void Go()
+        {
+            try
+            {
+                Sync();
+            }
+            finally
+            {
+                try
+                {
+                    sourceIndex.Save();
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or CryptographicException)
+                {
+                    Message = "无法保存滴答任务来源索引，下次同步将重新查询未缓存的评论";
+                }
+            }
+        }
+
+        private void Sync()
         {
             #region 初始化
             CourseCount = 0;
@@ -112,26 +137,48 @@ namespace TodoSynchronizer.Core.Services
             try
             {
                 dicUrl = new Dictionary<string, DidaTask>();
+                int indexHits = 0, commentReads = 0;
                 foreach (var projectId in dicCategory.Values.Select(project => project.Id).Distinct())
                 {
                     var isNotificationList = dicCategory.TryGetValue("notification", out var notificationList)
                         && notificationList.Id == projectId;
                     var tasks = didaService.GetTasks(projectId).Concat(didaService.GetCompleted(projectId));
-                    foreach (var task in tasks.DistinctBy(task => task.Id))
+                    var liveIds = new HashSet<string>();
+                    foreach (var task in tasks)
                     {
+                        if (!liveIds.Add(task.Id))
+                            continue;
+
                         var source = ReadSource(task.Desc) ?? ReadSource(task.Content);
                         if (source == null)
                         {
+                            var cachedSource = sourceIndex.FindSource(projectId, task.Id);
+                            if (IsCanvasUrl(cachedSource) || (isNotificationList && long.TryParse(cachedSource, out _)))
+                            {
+                                source = cachedSource;
+                                indexHits++;
+                            }
+                        }
+
+                        if (source == null)
+                        {
                             // 旧版本将 Canvas 链接或全局通知 ID 写入任务评论。
+                            commentReads++;
                             source = didaService.ListTaskComments(projectId, task.Id)
                                 .Select(comment => comment.Title?.Trim())
                                 .FirstOrDefault(title => IsCanvasUrl(title) || (isNotificationList && long.TryParse(title, out _)));
                         }
 
                         if (source != null)
+                        {
+                            sourceIndex.Remember(projectId, task.Id, source);
                             dicUrl.TryAdd(source, task);
+                        }
                     }
+
+                    sourceIndex.RemoveMissing(projectId, liveIds);
                 }
+                Message = $"滴答任务来源索引命中 {indexHits} 项，读取评论 {commentReads} 次";
             }
             catch (Exception ex)
             {
@@ -509,6 +556,7 @@ namespace TodoSynchronizer.Core.Services
                 task.Content = WithSource(task.Content ?? task.Desc, source);
 
             didaService.SaveTask(task);
+            sourceIndex.Remember(task.ProjectId, task.Id, source);
             dicUrl[source] = task;
             UpdateCount++;
         }
