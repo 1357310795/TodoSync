@@ -53,12 +53,19 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 {"CanvasToken":"这里填上你的 Canvas 令牌","GraphToken":"这里填上你的 Graph 令牌"}
 ```
 
-- 若要同步到滴答清单，按以下格式填写
-```
-{"CanvasToken":"这里填上你的 Canvas 令牌","DidaCredential":{"phone":"这里填上你的滴答清单登录手机号","password":"这里填上你的滴答清单登录密码"}}
+- 若要同步到滴答清单，按[获取滴答清单 API 口令](./actions-persis.md#获取滴答清单-api-口令)的步骤创建口令，然后将它填入 `DidaApiToken`。
+
+```json
+{"CanvasToken":"这里填上你的 Canvas 令牌","DidaApiToken":"这里填上你的滴答清单 API 口令"}
 ```
 
-![](https://s2.loli.net/2022/10/16/B2V95rqDgX7UAR3.png)
+从旧版本升级时，将本地 `token.json` 里的 `DidaCredential` 配置替换为 `DidaApiToken`。Windows 图形界面的滴答同步入口读取环境变量 `DIDA_API`。请妥善保存口令，避免将其提交到仓库。
+
+#### 滴答清单本地索引
+
+本地同步会将加密索引保存到当前用户应用数据目录下的 `TodoSync/dida-source-index.bin`。[任务来源的识别规则](./actions-persis.md#滴答清单任务来源与索引)与 GitHub Actions 相同。如果后来给已跳过的任务补写了来源评论，删除该文件后再运行，程序就会重新读取评论。
+
+若滴答 Open API 返回 HTTP 401 或 403，请检查口令是否有效，并确认对应清单允许当前账号写入。
 
 ### 四、配置定时任务
 #### Windows
@@ -76,15 +83,13 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 ![](https://s2.loli.net/2022/10/17/37nD4mpM6NabzeW.png)
 ![](https://s2.loli.net/2022/10/17/Cjl3nehm2VvFGcR.png)
 
-其中程序名称为 `wscript.exe`，参数为程序包中 vbs 文件的路径（建议包含引号），例如
-- 同步到 Microsoft Todo
+按同步目标填写程序和参数。路径含空格时请加引号。
+- 同步到 Microsoft Todo，程序为 `wscript.exe`，参数为 VBS 路径。
 ```
 "C:\Users\Public\Download\TodoSync.Local\TodoSync-Todo.vbs"
 ```
-- 同步到 滴答清单
-```
-"C:\Users\Public\Download\TodoSync.Local\TodoSync-Dida.vbs"
-```
+- 同步到滴答清单，程序为 `TodoSynchronizer.CLI.exe`，参数为 `-local -dida`。
+
 #### Linux
 下面以 crontab 服务为例展示 Linux 配置定时任务
 
@@ -93,11 +98,11 @@ Linux系统可参考[手动配置 Graph Token](./graph-token-manually.md)**（�
 17. 光标移动到新的一行，输入
 - 同步到 Microsoft Todo
 ```
-0 * * * * /path_to_your_program/TodoSyncronizer.CLI -local
+0 * * * * /path_to_your_program/TodoSynchronizer.CLI -local
 ```
 - 同步到 滴答清单
 ```
-0 * * * * /path_to_your_program/TodoSyncronizer.CLI -local -didacredentialfile 114514
+0 * * * * /path_to_your_program/TodoSynchronizer.CLI -local -dida
 ```
 
 ![](https://s2.loli.net/2022/10/17/tzHrZnBcJ94TQVF.png)

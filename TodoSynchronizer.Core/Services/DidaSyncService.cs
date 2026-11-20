@@ -1,13 +1,8 @@
-﻿using Microsoft.Graph.TermStore;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 using TodoSynchronizer.Core.Config;
 using TodoSynchronizer.Core.Extensions;
 using TodoSynchronizer.Core.Helpers;
@@ -19,13 +14,21 @@ namespace TodoSynchronizer.Core.Services
 {
     public class DidaSyncService
     {
-        public Dictionary<string, DidaTask> dicUrl = null;
-        public Dictionary<string, DidaTaskList> dicCategory = null;
-        public Dictionary<Course, DidaTaskList> dicCourse = null;
-        public List<DidaTask> canvasTasks = null;
-        public List<Course> courses = null;
-        public DidaBatchCheckDto batchCheckDto = null;
+        private const string SourcePrefix = "TodoSync: ";
+        private readonly DidaService didaService;
+        private readonly DidaSourceIndex sourceIndex;
+        private Dictionary<string, DidaTask> dicUrl;
+        private Dictionary<string, DidaTaskList> dicCategory;
+        private int sourceCommentsCreated;
         public int CourseCount, ItemCount, UpdateCount, FailedCount;
+
+        public DidaSyncService(DidaService didaService, string indexPath = null)
+        {
+            this.didaService = didaService;
+            indexPath ??= Environment.GetEnvironmentVariable("DIDA_SOURCE_INDEX")
+                ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TodoSync", "dida-source-index.bin");
+            sourceIndex = new DidaSourceIndex(indexPath, didaService.GetSourceIndexKey());
+        }
 
         private string message;
         public string Message
@@ -43,14 +46,34 @@ namespace TodoSynchronizer.Core.Services
 
         public void Go()
         {
+            try
+            {
+                Sync();
+            }
+            finally
+            {
+                try
+                {
+                    sourceIndex.Save();
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or CryptographicException)
+                {
+                    Message = "无法保存滴答任务来源索引，下次同步将重新查询未缓存的评论";
+                }
+            }
+        }
+
+        private void Sync()
+        {
             #region 初始化
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings() { DateTimeZoneHandling = DateTimeZoneHandling.Utc, NullValueHandling = NullValueHandling.Ignore, DateFormatString = "yyyy-MM-ddTHH:mm:ss.fff+0000" };
             CourseCount = 0;
             ItemCount = 0;
             UpdateCount = 0;
             FailedCount = 0;
+            sourceCommentsCreated = 0;
             #endregion
 
+            List<Course> courses;
             #region 读取 Canvas 课程列表
             Message = "读取 Canvas 课程列表";
             try
@@ -71,10 +94,7 @@ namespace TodoSynchronizer.Core.Services
             try
             {
                 dicCategory = new Dictionary<string, DidaTaskList>();
-                dicCourse = new Dictionary<Course, DidaTaskList>();
-                batchCheckDto = DidaService.BatchCheck();
-                if (batchCheckDto.ProjectProfiles == null || batchCheckDto.ProjectProfiles.Count == 0)
-                    throw new Exception("清单 ProjectProfiles 为空");
+                var projects = didaService.ListProjects();
                 var resolvedLists = new Dictionary<string, DidaTaskList>();
 
                 void FindList(string cat, string name)
@@ -85,15 +105,12 @@ namespace TodoSynchronizer.Core.Services
                         return;
                     }
 
-                    var taskList = batchCheckDto.ProjectProfiles.Find(x => x.Name.CleanEmoji() == name);
+                    var taskList = projects.Find(x => x.Closed != true && x.Kind != "NOTE" && x.Name?.CleanEmoji() == name);
 
                     if (taskList == null)
-                        taskList = DidaService.AddTaskList(name);
+                        taskList = didaService.AddTaskList(name);
 
-                    if (taskList == null)
-                        throw new Exception("创建滴答清单失败");
-                    else
-                        Message = $"找到滴答清单：{taskList.Name}";
+                    Message = $"找到滴答清单：{taskList.Name}";
                     resolvedLists[name] = taskList;
                     dicCategory.Add(cat, taskList);
                 }
@@ -101,18 +118,14 @@ namespace TodoSynchronizer.Core.Services
                 if (SyncConfig.Default.NotificationConfig.Enabled)
                     FindList("notification", CanvasStringTemplateHelper.GetNotificationListName());
 
-                //滴答清单只支持 Category
-                if (true || SyncConfig.Default.ListNameMode == ListNameMode.Category)
-                {
-                    if (SyncConfig.Default.QuizConfig.Enabled)
-                        FindList("quiz", SyncConfig.Default.ListNamesForCategory.QuizListName);
-                    if (SyncConfig.Default.DiscussionConfig.Enabled)
-                        FindList("discussion", SyncConfig.Default.ListNamesForCategory.DiscussionListName);
-                    if (SyncConfig.Default.AssignmentConfig.Enabled)
-                        FindList("assignment", SyncConfig.Default.ListNamesForCategory.AssignmentListName);
-                    if (SyncConfig.Default.AnouncementConfig.Enabled)
-                        FindList("anouncement", SyncConfig.Default.ListNamesForCategory.AnouncementListName);
-                }
+                if (SyncConfig.Default.QuizConfig.Enabled)
+                    FindList("quiz", SyncConfig.Default.ListNamesForCategory.QuizListName);
+                if (SyncConfig.Default.DiscussionConfig.Enabled)
+                    FindList("discussion", SyncConfig.Default.ListNamesForCategory.DiscussionListName);
+                if (SyncConfig.Default.AssignmentConfig.Enabled)
+                    FindList("assignment", SyncConfig.Default.ListNamesForCategory.AssignmentListName);
+                if (SyncConfig.Default.AnouncementConfig.Enabled)
+                    FindList("anouncement", SyncConfig.Default.ListNamesForCategory.AnouncementListName);
             }
             catch (Exception ex)
             {
@@ -121,55 +134,63 @@ namespace TodoSynchronizer.Core.Services
             }
             #endregion
 
-            #region 读取滴答清单项目
-            Message = "读取滴答清单项目";
-            try
-            {
-                IEnumerable<DidaTask> ListDidaTasksInternal()
-                {
-                    var lists = new HashSet<string>();
-                    foreach (var item in dicCategory)
-                        lists.Add(item.Value.Id);
-
-                    var tmplist = batchCheckDto.SyncTaskBean.Update;
-                    foreach (var task in tmplist)
-                        if (lists.Contains(task.ProjectId))
-                            yield return task;
-
-                    foreach (var listId in lists)
-                    {
-                        tmplist = DidaService.GetCompleted(listId);
-                        foreach (var task in tmplist)
-                            yield return task;
-                    }
-                }
-                canvasTasks = ListDidaTasksInternal().ToList();
-                if (canvasTasks == null)
-                    throw new Exception("滴答清单项目为空");
-            }
-            catch (Exception ex)
-            {
-                OnReportProgress.Invoke(new SyncState(SyncStateEnum.Error, ex.ToString()));
-                return;
-            }
-            #endregion
-
-            #region 处理 Comment
-            Message = "建立字典";
+            #region 读取滴答清单任务与 Canvas 来源
+            Message = "读取滴答清单任务与 Canvas 来源";
             try
             {
                 dicUrl = new Dictionary<string, DidaTask>();
-                foreach (var didaTask in canvasTasks)
+                int indexHits = 0, noSourceHits = 0, commentReads = 0;
+                foreach (var projectId in dicCategory.Values.Select(project => project.Id).Distinct())
                 {
-                    var comments = DidaService.ListTaskComments(didaTask.ProjectId, didaTask.Id);
-                    if (comments != null && comments.Count > 0)
+                    var isNotificationList = dicCategory.TryGetValue("notification", out var notificationList)
+                        && notificationList.Id == projectId;
+                    var tasks = didaService.GetTasks(projectId).Concat(didaService.GetCompleted(projectId));
+                    var liveIds = new HashSet<string>();
+                    foreach (var task in tasks)
                     {
-                        var url = comments.First().Title;
-                        Uri uri;
-                        if (Uri.TryCreate(url, UriKind.Absolute, out uri))
-                            dicUrl.Add(url, didaTask);
+                        if (!liveIds.Add(task.Id))
+                            continue;
+
+                        var source = ReadSource(task.Desc) ?? ReadSource(task.Content);
+                        if (source == null && sourceIndex.TryGetSource(projectId, task.Id, out var cachedSource))
+                        {
+                            if (cachedSource == null)
+                            {
+                                noSourceHits++;
+                                continue;
+                            }
+
+                            if (IsCanvasUrl(cachedSource) || (isNotificationList && long.TryParse(cachedSource, out _)))
+                            {
+                                source = cachedSource;
+                                indexHits++;
+                                if (sourceIndex.NeedsComment(projectId, task.Id))
+                                {
+                                    commentReads++;
+                                    var comments = didaService.ListTaskComments(projectId, task.Id);
+                                    if (!comments.Any(comment => comment.Title?.Trim() == source))
+                                        AddSourceComment(task, source);
+                                }
+                            }
+                        }
+
+                        if (source == null)
+                        {
+                            // 旧版本将 Canvas 链接或全局通知 ID 写入任务评论。
+                            commentReads++;
+                            source = didaService.ListTaskComments(projectId, task.Id)
+                                .Select(comment => comment.Title?.Trim())
+                                .FirstOrDefault(title => IsCanvasUrl(title) || (isNotificationList && long.TryParse(title, out _)));
+                        }
+
+                        sourceIndex.Remember(projectId, task.Id, source);
+                        if (source != null)
+                            dicUrl.TryAdd(source, task);
                     }
+
+                    sourceIndex.RemoveMissing(projectId, liveIds);
                 }
+                Message = $"滴答任务来源索引命中 {indexHits} 项，跳过无来源任务 {noSourceHits} 项，读取评论 {commentReads} 次";
             }
             catch (Exception ex)
             {
@@ -188,20 +209,17 @@ namespace TodoSynchronizer.Core.Services
             #region Main
             try
             {
-                if (true || SyncConfig.Default.ListNameMode == ListNameMode.Category)
+                foreach (var course in courses)
                 {
-                    foreach (var course in courses)
-                    {
-                        CourseCount++;
-                        if (SyncConfig.Default.AssignmentConfig.Enabled)
-                            ProcessAssignments(GetCourseMessage(course), course, dicCategory["assignment"]);
-                        if (SyncConfig.Default.AnouncementConfig.Enabled)
-                            ProcessAnouncements(GetCourseMessage(course), course, dicCategory["anouncement"]);
-                        if (SyncConfig.Default.QuizConfig.Enabled)
-                            ProcessQuizes(GetCourseMessage(course), course, dicCategory["quiz"]);
-                        if (SyncConfig.Default.DiscussionConfig.Enabled)
-                            ProcessDiscussions(GetCourseMessage(course), course, dicCategory["discussion"]);
-                    }
+                    CourseCount++;
+                    if (SyncConfig.Default.AssignmentConfig.Enabled)
+                        ProcessAssignments(GetCourseMessage(course), course, dicCategory["assignment"]);
+                    if (SyncConfig.Default.AnouncementConfig.Enabled)
+                        ProcessAnouncements(GetCourseMessage(course), course, dicCategory["anouncement"]);
+                    if (SyncConfig.Default.QuizConfig.Enabled)
+                        ProcessQuizes(GetCourseMessage(course), course, dicCategory["quiz"]);
+                    if (SyncConfig.Default.DiscussionConfig.Enabled)
+                        ProcessDiscussions(GetCourseMessage(course), course, dicCategory["discussion"]);
                 }
             }
             catch (Exception ex)
@@ -214,7 +232,7 @@ namespace TodoSynchronizer.Core.Services
             #region 完成
             OnReportProgress.Invoke(new SyncState(
                 SyncStateEnum.Finished,
-                $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目"
+                $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目，写入来源评论 {sourceCommentsCreated} 条"
             ));
             #endregion
         }
@@ -237,55 +255,32 @@ namespace TodoSynchronizer.Core.Services
                     if (SyncConfig.Default.IgnoreTooOldItems)
                         if (assignment?.DueAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
                             continue;
-                    var updated = false;
                     ItemCount++;
                     Message = message_prefix + GetItemMessage(assignment);
-                    DidaTask didaTask = null;
-                    if (dicUrl.ContainsKey(assignment.HtmlUrl))
-                        didaTask = dicUrl[assignment.HtmlUrl];
-                    else
-                        didaTask = new DidaTask()
-                        {
-                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
-                            ProjectId = taskList.Id,
-                        };
-                    var isnew = didaTask.Creator is null;
-
-                    //---Self & LinkedResource---//
-                    var res1 = UpdateCanvasItem(course, assignment, didaTask, SyncConfig.Default.AssignmentConfig);
-                    if (res1)
-                    {
-                        if (didaTask.Creator is null)
-                        {
-                            DidaService.AddTask(didaTask);
-                            DidaService.AddTaskComment(taskList.Id.ToString(), didaTask.Id.ToString(), assignment.HtmlUrl);
-                            dicUrl.Add(assignment.HtmlUrl, didaTask);
-                        }
-                        else
-                        {
-                            DidaService.UpdateTask(didaTask);
-                        }
-                        updated = true;
-                    }
+                    var source = assignment.HtmlUrl;
+                    var isNew = !dicUrl.TryGetValue(source, out var didaTask);
+                    didaTask ??= new DidaTask { ProjectId = taskList.Id };
+                    var updated = UpdateCanvasItem(course, assignment, didaTask, SyncConfig.Default.AssignmentConfig);
 
                     //---Submissions -> CheckItems---//
-                    if (SyncConfig.Default.AssignmentConfig.CreateScoreAndCommit && isnew
-                        || SyncConfig.Default.AssignmentConfig.UpdateScoreAndCommit && !isnew)
-                        if (assignment.HasSubmittedSubmissions)
+                    var assignmentConfig = SyncConfig.Default.AssignmentConfig;
+                    if ((isNew ? assignmentConfig.CreateScoreAndCommit : assignmentConfig.UpdateScoreAndCommit)
+                        && assignment.HasSubmittedSubmissions)
+                    {
+                        var submission = CanvasService.GetAssignmentSubmisson(course.Id.ToString(), assignment.Id.ToString());
+                        if (submission != null)
                         {
                             bool checkitemupdated = false;
                             if (didaTask.Items == null)
                                 didaTask.Items = new List<DidaCheckItem>();
                             var links = didaTask.Items;
 
-                            var submission = CanvasService.GetAssignmentSubmisson(course.Id.ToString(), assignment.Id.ToString());
-
                             DidaCheckItem checkitem1 = null;
                             if (links.Count >= 1)
                                 checkitem1 = links[0];
                             else
                             {
-                                links.Add(new DidaCheckItem() { Id= Common.GetRandomString(24, true, false, false, false, "abcdef")});
+                                links.Add(new DidaCheckItem());
                                 checkitem1 = links[0];
                             }
                                 
@@ -297,7 +292,7 @@ namespace TodoSynchronizer.Core.Services
                                 checkitem2 = links[1];
                             else
                             {
-                                links.Add(new DidaCheckItem() { Id = Common.GetRandomString(24, true, false, false, false, "abcdef") });
+                                links.Add(new DidaCheckItem());
                                 checkitem2 = links[1];
                             }
 
@@ -305,8 +300,8 @@ namespace TodoSynchronizer.Core.Services
                             checkitemupdated |= res3;
 
                             //---Comments---//
-                            if (SyncConfig.Default.AssignmentConfig.CreateComments && isnew
-                                || SyncConfig.Default.AssignmentConfig.UpdateComments && !isnew)
+                            if (SyncConfig.Default.AssignmentConfig.CreateComments && isNew
+                                || SyncConfig.Default.AssignmentConfig.UpdateComments && !isNew)
                             {
                                 if (submission.SubmissionComments?.Count > 0)
                                 {
@@ -318,7 +313,7 @@ namespace TodoSynchronizer.Core.Services
                                             checkitem3 = links[i];
                                         else
                                         {
-                                            links.Add(new DidaCheckItem() { Id = Common.GetRandomString(24, true, false, false, false, "abcdef") });
+                                            links.Add(new DidaCheckItem());
                                             checkitem3 = links[i];
                                         }
                                         i++;
@@ -329,31 +324,12 @@ namespace TodoSynchronizer.Core.Services
                                 }
                             }
 
-                            if (checkitemupdated)
-                            {
-                                DidaService.UpdateTask(didaTask);
-                                updated = true;
-                            }
+                            updated |= checkitemupdated;
                         }
+                    }
 
-                    //---Attachments---//
-                    //if (SyncConfig.Default.AssignmentConfig.CreateAttachments)
-                    //{
-                    //    var files = new List<Models.CanvasModels.Attachment>();
-
-                    //    if (assignment.Content != null)
-                    //    {
-                    //        CheckAttachments(assignment.Content, files);
-                    //    }
-
-                    //    if (files.Count > 0)
-                    //    {
-                    //        updated |= UploadAttachments(taskList, didaTask, files);
-                    //    }
-                    //}
-                        
                     if (updated)
-                        UpdateCount++;
+                        SaveTask(source, didaTask);
                 }
             }
             catch (Exception ex)
@@ -381,54 +357,15 @@ namespace TodoSynchronizer.Core.Services
                     if (SyncConfig.Default.IgnoreTooOldItems)
                         if (discussion?.PostedAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
                             continue;
-                    var updated = false;
                     ItemCount++;
                     Message = message_prefix + GetItemMessage(discussion);
-                    DidaTask didaTask = null;
-                    if (dicUrl.ContainsKey(discussion.HtmlUrl))
-                        didaTask = dicUrl[discussion.HtmlUrl];
-                    else
-                        didaTask = new DidaTask()
-                        {
-                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
-                            ProjectId = taskList.Id,
-                        };
+                    var source = discussion.HtmlUrl;
+                    dicUrl.TryGetValue(source, out var didaTask);
+                    didaTask ??= new DidaTask { ProjectId = taskList.Id };
+                    var updated = UpdateCanvasItem(course, discussion, didaTask, SyncConfig.Default.DiscussionConfig);
 
-                    //---Self & LinkedResource---//
-                    var res1 = UpdateCanvasItem(course, discussion, didaTask, SyncConfig.Default.DiscussionConfig);
-                    if (res1)
-                    {
-                        if (didaTask.Creator is null)
-                        {
-                            DidaService.AddTask(didaTask);
-                            DidaService.AddTaskComment(taskList.Id.ToString(), didaTask.Id.ToString(), discussion.HtmlUrl);
-                            dicUrl.Add(discussion.HtmlUrl, didaTask);
-                        }
-                        else
-                        {
-                            DidaService.UpdateTask(didaTask);
-                        }
-                        updated = true;
-                    }
-
-                    //---Attachments---//
-                    //if (SyncConfig.Default.DiscussionConfig.CreateAttachments)
-                    //{
-                    //    var files = discussion.Attachments;
-                        
-                    //    if (discussion.Content != null)
-                    //    {
-                    //        CheckAttachments(discussion.Content, files);
-                    //    }
-
-                    //    if (files.Count > 0)
-                    //    {
-                    //        updated |= UploadAttachments(taskList, didaTask, files);
-                    //    }
-                    //}
-                        
                     if (updated)
-                        UpdateCount++;
+                        SaveTask(source, didaTask);
                 }
             }
             catch (Exception ex)
@@ -457,40 +394,16 @@ namespace TodoSynchronizer.Core.Services
                     if (SyncConfig.Default.IgnoreTooOldItems)
                         if (assignment?.DueAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
                             continue;
-                    var updated = false;
                     ItemCount++;
                     Message = message_prefix + GetItemMessage(assignment);
-                    DidaTask didaTask = null;
-                    if (dicUrl.ContainsKey(assignment.HtmlUrl))
-                        didaTask = dicUrl[assignment.HtmlUrl];
-                    else
-                        didaTask = new DidaTask()
-                        {
-                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
-                            ProjectId = taskList.Id,
-                        };
-                    var isnew = didaTask == null;
-
-                    //---Self & LinkedResource---//
-                    var res1 = UpdateCanvasItem(course, assignment, didaTask, SyncConfig.Default.QuizConfig);
-                    if (res1)
-                    {
-                        if (didaTask.Creator is null)
-                        {
-                            DidaService.AddTask(didaTask);
-                            DidaService.AddTaskComment(taskList.Id.ToString(), didaTask.Id.ToString(), assignment.HtmlUrl);
-                            dicUrl.Add(assignment.HtmlUrl, didaTask);
-                        }
-                        else
-                        {
-                            DidaService.UpdateTask(didaTask);
-                        }
-                        updated = true;
-                    }
+                    var source = assignment.HtmlUrl;
+                    var isNew = !dicUrl.TryGetValue(source, out var didaTask);
+                    didaTask ??= new DidaTask { ProjectId = taskList.Id };
+                    var updated = UpdateCanvasItem(course, assignment, didaTask, SyncConfig.Default.QuizConfig);
 
                     //---Submissions -> CheckItems---//
-                    if (SyncConfig.Default.QuizConfig.CreateScoreAndCommit && isnew
-                        || SyncConfig.Default.QuizConfig.UpdateScoreAndCommit && !isnew)
+                    if (SyncConfig.Default.QuizConfig.CreateScoreAndCommit && isNew
+                        || SyncConfig.Default.QuizConfig.UpdateScoreAndCommit && !isNew)
                         if (assignment.HasSubmittedSubmissions)
                         {
                             if (didaTask.Items == null)
@@ -507,38 +420,18 @@ namespace TodoSynchronizer.Core.Services
                                         checkitem0 = links[i];
                                     else
                                     {
-                                        links.Add(new DidaCheckItem() { Id = Common.GetRandomString(24, true, false, false, false, "abcdef") });
+                                        links.Add(new DidaCheckItem());
                                         checkitem0 = links[i];
                                     }
 
-                                    var res4 = UpdateSubmissionInfo(assignment, quizsubmissions[i], checkitem0, CanvasStringTemplateHelper.GetSubmissionDesc);
-                                    if (res4)
-                                    {
-                                        DidaService.UpdateTask(didaTask);
-                                        updated = true;
-                                    }
+                                    updated |= UpdateSubmissionInfo(assignment, quizsubmissions[i], checkitem0, CanvasStringTemplateHelper.GetSubmissionDesc);
                                 }
                             }
                         
                         }
-                    //---Attachments---//
-                    //if (SyncConfig.Default.QuizConfig.CreateAttachments)
-                    //{
-                    //    var files = new List<Models.CanvasModels.Attachment>();
 
-                    //    if (assignment.Content != null)
-                    //    {
-                    //        CheckAttachments(assignment.Content, files);
-                    //    }
-                        
-                    //    if (files.Count > 0)
-                    //    {
-                    //        updated |= UploadAttachments(taskList, didaTask, files);
-                    //    }
-                    //}
-                    
                     if (updated)
-                        UpdateCount++;
+                        SaveTask(source, didaTask);
                 }
             }
             catch (Exception ex)
@@ -566,55 +459,15 @@ namespace TodoSynchronizer.Core.Services
                     if (SyncConfig.Default.IgnoreTooOldItems)
                         if (anouncement?.PostedAt?.ToUniversalTime() < DateTime.Now.AddDays(-14).ToUniversalTime())
                             continue;
-                    var updated = false;
                     ItemCount++;
                     Message = message_prefix + GetItemMessage(anouncement);
-                    DidaTask didaTask = null;
-                    if (dicUrl.ContainsKey(anouncement.HtmlUrl))
-                        didaTask = dicUrl[anouncement.HtmlUrl];
-                    else
-                        didaTask = new DidaTask()
-                        {
-                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
-                            ProjectId = taskList.Id,
-                        };
+                    var source = anouncement.HtmlUrl;
+                    dicUrl.TryGetValue(source, out var didaTask);
+                    didaTask ??= new DidaTask { ProjectId = taskList.Id };
+                    var updated = UpdateCanvasItem(course, anouncement, didaTask, SyncConfig.Default.AnouncementConfig);
 
-                    //---Self & LinkedResource---//
-                    var res1 = UpdateCanvasItem(course, anouncement, didaTask, SyncConfig.Default.AnouncementConfig);
-                    if (res1)
-                    {
-                        if (didaTask.Creator is null)
-                        {
-                            DidaService.AddTask(didaTask);
-                            DidaService.AddTaskComment(taskList.Id.ToString(), didaTask.Id.ToString(), anouncement.HtmlUrl);
-                            dicUrl.Add(anouncement.HtmlUrl, didaTask);
-                        }
-                        else
-                        {
-                            DidaService.UpdateTask(didaTask);
-                        }
-                        updated = true;
-                    }
-
-                    //---Attachments---//
-                    //if (SyncConfig.Default.AnouncementConfig.CreateAttachments)
-                    //{
-                    //    var files = anouncement.Attachments;
-                    //    var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
-
-                    //    if (anouncement.Content != null)
-                    //    {
-                    //        CheckAttachments(anouncement.Content, files);
-                    //    }
-                        
-                    //    if (files.Count > 0)
-                    //    {
-                    //        updated |= UploadAttachments(taskList, didaTask, files);
-                    //    }
-                    //}
-                        
                     if (updated)
-                        UpdateCount++;
+                        SaveTask(source, didaTask);
                 }
             }
             catch (Exception ex)
@@ -640,69 +493,17 @@ namespace TodoSynchronizer.Core.Services
 
                 
                 var notilist = dicCategory["notification"];
-
-                IEnumerable<DidaTask> ListDidaTasksInternal(string listid)
-                {
-                    var tmplist2 = batchCheckDto.SyncTaskBean.Update;
-                    foreach (var task in tmplist2)
-                        if (task.ProjectId == listid)
-                            yield return task;
-
-                    tmplist2 = DidaService.GetCompleted(listid);
-                    foreach (var task in tmplist2)
-                        yield return task;
-                }
-
-                var tmplist = ListDidaTasksInternal(notilist.Id).ToList();
-                var dic = new Dictionary<string, DidaTask>();
-
-                foreach (var didaTask in tmplist)
-                {
-                    if (didaTask.CommentCount != null && didaTask.CommentCount > 0)
-                    {
-                        var comments = DidaService.ListTaskComments(didaTask.ProjectId, didaTask.Id);
-                        var url = comments.First().Title;
-                        dic.Add(url, didaTask);
-                    }
-                }
-
                 foreach (var notification in notifications)
                 {
-                    var updated = false;
                     ItemCount++;
                     Message = "处理全局通知 " + notification.Subject;
-                    DidaTask didaTask = null;
-                    didaTask = tmplist.FirstOrDefault(x => x.Title == notification.Subject);
+                    var source = notification.Id.ToString();
+                    if (!dicUrl.TryGetValue(source, out var didaTask))
+                        didaTask = new DidaTask { ProjectId = notilist.Id };
 
-                    if (dic.ContainsKey(notification.Id.ToString()))
-                        didaTask = dic[notification.Id.ToString()];
-                    else
-                        didaTask = new DidaTask()
-                        {
-                            Id = Common.GetRandomString(24, true, false, false, false, "abcdef"),
-                            ProjectId = notilist.Id,
-                        };
-
-                    //---Self---//
-                    var res1 = UpdateCanvasItem(null, notification, didaTask, SyncConfig.Default.NotificationConfig);
-
-                    if (res1)
-                    {
-                        if (didaTask.Creator is null)
-                        {
-                            DidaService.AddTask(didaTask);
-                            DidaService.AddTaskComment(notilist.Id.ToString(), didaTask.Id.ToString(), notification.Id.ToString());
-                            dicUrl.Add(notification.Id.ToString(), didaTask);
-                        }
-                        else
-                        {
-                            DidaService.UpdateTask(didaTask);
-                        }
-                        updated = true;
-                    }
-
+                    var updated = UpdateCanvasItem(null, notification, didaTask, SyncConfig.Default.NotificationConfig);
                     if (updated)
-                        UpdateCount++;
+                        SaveTask(source, didaTask);
                 }
             }
             catch (Exception ex)
@@ -752,79 +553,126 @@ namespace TodoSynchronizer.Core.Services
             return modified;
         }
 
+        private void SaveTask(string source, DidaTask task)
+        {
+            var isNew = task.Id == null;
+            if (task.Items?.Count > 0 && task.Kind != "CHECKLIST")
+            {
+                task.Desc = WithoutSource(task.Content) ?? WithoutSource(task.Desc);
+                task.Content = null;
+                task.Kind = "CHECKLIST";
+            }
+
+            didaService.SaveTask(task);
+            dicUrl[source] = task;
+            if (isNew)
+            {
+                // 先保存已创建的滴答 ID，评论失败后下次可以补写评论。
+                sourceIndex.Remember(task.ProjectId, task.Id, source, needsComment: true);
+                sourceIndex.Save();
+                AddSourceComment(task, source);
+            }
+
+            sourceIndex.Remember(task.ProjectId, task.Id, source);
+            UpdateCount++;
+        }
+
+        private void AddSourceComment(DidaTask task, string source)
+        {
+            didaService.AddTaskComment(task.ProjectId, task.Id, source);
+            sourceCommentsCreated++;
+        }
+
+        private static bool IsCanvasUrl(string source)
+        {
+            return Uri.TryCreate(source, UriKind.Absolute, out var uri)
+                && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
+                && string.Equals(uri.Host, CanvasService.Client?.BaseAddress?.Host, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ReadSource(string description)
+        {
+            var lastLine = description?.TrimEnd().Split('\n').LastOrDefault();
+            return lastLine != null && lastLine.StartsWith(SourcePrefix, StringComparison.Ordinal)
+                ? lastLine.Substring(SourcePrefix.Length).Trim()
+                : null;
+        }
+
+        private static string WithoutSource(string description)
+        {
+            if (ReadSource(description) == null)
+                return description;
+
+            var index = description.TrimEnd().LastIndexOf('\n');
+            return index < 0 ? "" : description.Substring(0, index).TrimEnd();
+        }
+
         public bool UpdateCanvasItem(Course course, ICanvasItem item, DidaTask didaTask, ICanvasItemConfig config)
         {
-            var modified = false;
-
-            if (didaTask == null || didaTask != null && config.UpdateTitle)
+            var isNew = didaTask.Id == null;
+            var modified = isNew;
+            if (isNew || config.UpdateTitle)
             {
                 var title = CanvasStringTemplateHelper.GetTitle(course, item);
-                if (didaTask == null || didaTask.Title == null || title.Trim() != didaTask.Title.Trim())
+                if (title.Trim() != didaTask.Title?.Trim())
                 {
                     didaTask.Title = title;
                     modified = true;
                 }
             }
 
-            if (didaTask == null && config.CreateContent || didaTask != null && config.UpdateContent)
+            if (isNew ? config.CreateContent : config.UpdateContent)
             {
                 var content = CanvasStringTemplateHelper.GetContent(item);
-                if (didaTask == null || didaTask.Desc == null || content.Trim() != didaTask.Desc.Trim())
+                var current = didaTask.Kind == "CHECKLIST" ? didaTask.Desc : didaTask.Content ?? didaTask.Desc;
+                if (content.Trim() != (WithoutSource(current)?.Trim() ?? ""))
                 {
-                    didaTask.Desc = content;
+                    if (didaTask.Kind == "CHECKLIST")
+                        didaTask.Desc = content;
+                    else
+                        didaTask.Content = content;
                     modified = true;
                 }
             }
 
-            if (didaTask == null && config.CreateDueDate || didaTask != null && config.UpdateDueDate)
+            if (isNew ? config.CreateDueDate : config.UpdateDueDate)
             {
-                var duetime = CanvasPreference.GetDueTime(item);
-                if (duetime.HasValue)
+                var date = CanvasPreference.GetDueTime(item)?.ToUniversalTime();
+                if (date != didaTask.DueDate)
                 {
-                    var date = duetime.Value.ToUniversalTime();
-                    if (didaTask == null || didaTask.DueDate == null || date != didaTask.DueDate)
-                    {
-                        didaTask.DueDate = didaTask.StartDate = didaTask.RepeatFirstDate = date;
+                    didaTask.DueDate = didaTask.StartDate = date;
+                    if (date.HasValue)
                         didaTask.TimeZone = "Asia/Shanghai";
-                        modified = true;
-                    }
-                }
-                else if (didaTask != null && didaTask.DueDate != null)
-                {
-                    didaTask.DueDate = didaTask.StartDate = null;
                     modified = true;
                 }
             }
 
-            if (didaTask == null && config.CreateRemind || didaTask != null && config.UpdateRemind)
+            if (isNew ? config.CreateRemind : config.UpdateRemind)
             {
-                var remindtime = CanvasPreference.GetRemindBefore(config);
-                if (remindtime.HasValue && didaTask.RepeatFirstDate != null)
+                var remindTime = CanvasPreference.GetRemindBefore(config);
+                if (remindTime.HasValue && didaTask.StartDate.HasValue)
                 {
-                    var trigger = CanvasStringTemplateHelper.GetTrigger(remindtime.Value);
-                    if (didaTask == null || didaTask.Reminders == null || didaTask.Reminders.Count == 0 || didaTask.Reminders[0].Trigger != trigger)
+                    var trigger = CanvasStringTemplateHelper.GetTrigger(remindTime.Value);
+                    if (trigger != didaTask.Reminders?.FirstOrDefault())
                     {
-                        didaTask.Reminders = new List<Reminder>();
-                        didaTask.Reminders.Add(new Reminder() { Id = Common.GetRandomString(24, true, false, false, false, "abcdef"), Trigger = trigger });
-
+                        didaTask.Reminders = new List<string> { trigger };
                         modified = true;
                     }
                 }
             }
 
-            if (didaTask == null && config.CreateImportance || didaTask != null && config.UpdateImportance)
+            if (isNew ? config.CreateImportance : config.UpdateImportance)
             {
-                var importance = config.SetImportance;
-                if (didaTask == null || didaTask.Priority != (importance ? 5 : 0))
+                var priority = config.SetImportance ? 5 : 0;
+                if (didaTask.Priority != priority)
                 {
-                    didaTask.Priority = (importance ? 5 : 0);
+                    didaTask.Priority = priority;
                     modified = true;
                 }
             }
 
             return modified;
         }
-
 
         private string GetCourseMessage(Course course)
         {
@@ -837,107 +685,6 @@ namespace TodoSynchronizer.Core.Services
         }
 
 
-        #endregion
-
-        #region Attachments
-        //private static void CheckAttachments(string content, List<Models.CanvasModels.Attachment> files)
-        //{
-        //    var file_reg = new Regex(@"<a.+?instructure_file_link.+?title=""(.+?)"".+?href=""(.+?)"".+?</a>");
-        //    var file_matches = file_reg.Matches(content);
-        //    var img_reg = new Regex(@"<img.+?src=""(.+?)"".+?alt=""(.+?)"".+?>");
-        //    var img_matches = img_reg.Matches(content);
-        //    foreach (Match match in file_matches)
-        //    {
-        //        var filename = match.Groups[1].Value;
-        //        var filepath = match.Groups[2].Value;
-        //        files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-        //    }
-        //    foreach (Match match in img_matches)
-        //    {
-        //        var filename = match.Groups[2].Value;
-        //        var filepath = match.Groups[1].Value;
-        //        files.Add(new Core.Models.CanvasModels.Attachment() { DisplayName = filename, Url = filepath, Locked = false });
-        //    }
-        //}
-
-        //private bool UploadAttachments(DidaTaskList taskList, DidaTask didaTask, List<Models.CanvasModels.Attachment> files)
-        //{
-        //    var updated = false;
-        //    try
-        //    {
-        //        var attachments = DidaService.ListAttachments(taskList.Id.ToString(), didaTask.Id.ToString());
-        //        foreach (var file in files)
-        //        {
-        //            var exist = attachments.Any(x => x.Name == file.DisplayName);
-        //            if (!exist)
-        //            {
-        //                file.Url = file.Url.UrlUnescape().EscToHtml();
-        //                Uri fulluri;
-        //                var isabsolute = Uri.TryCreate(file.Url, UriKind.Absolute, out fulluri);
-        //                if (!isabsolute)
-        //                {
-        //                    var urires = Uri.TryCreate(new Uri("https://oc.sjtu.edu.cn"), file.Url, out fulluri);
-        //                    if (!urires)
-        //                        throw new Exception($"Uri无效：{file.Url}");
-        //                }
-
-        //                HttpClient client = CanvasService.Client;
-        //                HttpResponseMessage res = null;
-        //                try
-        //                {
-        //                    var datatask = client.GetAsync(fulluri);
-        //                    //datatask.RunSynchronously();
-        //                    datatask.Wait();
-        //                    res = datatask.GetAwaiter().GetResult();
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n{ex.Message}");
-        //                }
-
-        //                if (res.StatusCode != HttpStatusCode.OK)
-        //                    throw new Exception($"获取文件时发生错误\n{fulluri.AbsoluteUri}\n[{(int)res.StatusCode} {res.StatusCode.ToString()}] {res.Content.ReadAsStringAsync().Result}");
-        //                var data = res.Content.ReadAsByteArrayAsync().Result;
-
-        //                if (data.Length > 25 * 1024 * 1024) continue;
-        //                Stream stream = new MemoryStream(data);
-
-        //                //HttpWebRequest req = (HttpWebRequest)WebRequest.Create(fulluri);
-        //                //req.Method = "GET";
-        //                //HttpWebResponse resp = null;
-        //                //resp = (HttpWebResponse)req.GetResponse();
-        //                //Stream stream = null;
-        //                //stream = resp.GetResponseStream();
-        //                //MemoryStream ms = new MemoryStream();
-        //                //stream.CopyTo(ms);
-        //                //var data = StreamToBytes(ms);
-
-        //                AttachmentInfo info = new AttachmentInfo();
-        //                info.AttachmentType = AttachmentType.File;
-        //                info.Size = data.Length;
-        //                info.Name = file.DisplayName;
-
-        //                DidaService.UploadAttachment(taskList.Id.ToString(), didaTask.Id.ToString(), info, stream);
-        //                updated = true;
-        //            }
-        //        }
-        //        return updated;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        OnReportProgress.Invoke(new SyncState(SyncStateEnum.Progress, $"上传文件失败：{ex.Message}"));
-        //        return false;
-        //    }
-        //}
-
-        //public static byte[] StreamToBytes(Stream stream)
-        //{
-
-        //    byte[] bytes = new byte[stream.Length];
-        //    stream.Read(bytes, 0, bytes.Length);
-        //    stream.Seek(0, SeekOrigin.Begin);
-        //    return bytes;
-        //}
         #endregion
     }
 }
