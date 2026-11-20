@@ -19,6 +19,7 @@ namespace TodoSynchronizer.Core.Services
         private readonly DidaSourceIndex sourceIndex;
         private Dictionary<string, DidaTask> dicUrl;
         private Dictionary<string, DidaTaskList> dicCategory;
+        private int sourceCommentsCreated;
         public int CourseCount, ItemCount, UpdateCount, FailedCount;
 
         public DidaSyncService(DidaService didaService, string indexPath = null)
@@ -69,6 +70,7 @@ namespace TodoSynchronizer.Core.Services
             ItemCount = 0;
             UpdateCount = 0;
             FailedCount = 0;
+            sourceCommentsCreated = 0;
             #endregion
 
             List<Course> courses;
@@ -157,6 +159,13 @@ namespace TodoSynchronizer.Core.Services
                             {
                                 source = cachedSource;
                                 indexHits++;
+                                if (sourceIndex.NeedsComment(projectId, task.Id))
+                                {
+                                    commentReads++;
+                                    var comments = didaService.ListTaskComments(projectId, task.Id);
+                                    if (!comments.Any(comment => comment.Title?.Trim() == source))
+                                        AddSourceComment(task, source);
+                                }
                             }
                         }
 
@@ -220,7 +229,7 @@ namespace TodoSynchronizer.Core.Services
             #region 完成
             OnReportProgress.Invoke(new SyncState(
                 SyncStateEnum.Finished,
-                $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目"
+                $"完成！已处理 {CourseCount} 门课程中的 {ItemCount} 个项目，更新 {UpdateCount} 个项目，写入来源评论 {sourceCommentsCreated} 条"
             ));
             #endregion
         }
@@ -543,6 +552,7 @@ namespace TodoSynchronizer.Core.Services
 
         private void SaveTask(string source, DidaTask task)
         {
+            var isNew = task.Id == null;
             if (task.Items?.Count > 0 && task.Kind != "CHECKLIST")
             {
                 task.Desc = WithoutSource(task.Content) ?? WithoutSource(task.Desc);
@@ -550,15 +560,24 @@ namespace TodoSynchronizer.Core.Services
                 task.Kind = "CHECKLIST";
             }
 
-            if (task.Kind == "CHECKLIST")
-                task.Desc = WithSource(task.Desc, source);
-            else
-                task.Content = WithSource(task.Content ?? task.Desc, source);
-
             didaService.SaveTask(task);
-            sourceIndex.Remember(task.ProjectId, task.Id, source);
             dicUrl[source] = task;
+            if (isNew)
+            {
+                // 先保存已创建的滴答 ID，评论失败后下次可以补写评论。
+                sourceIndex.Remember(task.ProjectId, task.Id, source, needsComment: true);
+                sourceIndex.Save();
+                AddSourceComment(task, source);
+            }
+
+            sourceIndex.Remember(task.ProjectId, task.Id, source);
             UpdateCount++;
+        }
+
+        private void AddSourceComment(DidaTask task, string source)
+        {
+            didaService.AddTaskComment(task.ProjectId, task.Id, source);
+            sourceCommentsCreated++;
         }
 
         private static bool IsCanvasUrl(string source)
@@ -583,13 +602,6 @@ namespace TodoSynchronizer.Core.Services
 
             var index = description.TrimEnd().LastIndexOf('\n');
             return index < 0 ? "" : description.Substring(0, index).TrimEnd();
-        }
-
-        private static string WithSource(string description, string source)
-        {
-            var text = WithoutSource(description)?.TrimEnd();
-            var marker = SourcePrefix + source;
-            return string.IsNullOrEmpty(text) ? marker : text + "\n\n" + marker;
         }
 
         public bool UpdateCanvasItem(Course course, ICanvasItem item, DidaTask didaTask, ICanvasItemConfig config)

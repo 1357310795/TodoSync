@@ -98,6 +98,12 @@ namespace TodoSynchronizer.Core.Services
             return Request<List<DidaTaskComment>>(HttpMethod.Get, path, "读取任务评论");
         }
 
+        public void AddTaskComment(string projectId, string taskId, string title)
+        {
+            var path = ProjectPath(projectId) + "/task/" + Uri.EscapeDataString(taskId) + "/comment";
+            Request<JToken>(HttpMethod.Post, path, "添加任务评论", new { title }, readResponse: false);
+        }
+
         public void SaveTask(DidaTask task)
         {
             var isNew = task.Id == null;
@@ -123,7 +129,8 @@ namespace TodoSynchronizer.Core.Services
             return "project/" + Uri.EscapeDataString(projectId);
         }
 
-        private T Request<T>(HttpMethod method, string path, string operation, object body = null) where T : class
+        private T Request<T>(HttpMethod method, string path, string operation, object body = null, bool readResponse = true)
+            where T : class
         {
             var payload = body == null ? null : JsonConvert.SerializeObject(body, jsonSettings);
             for (var attempt = 0; ; attempt++)
@@ -150,6 +157,9 @@ namespace TodoSynchronizer.Core.Services
 
                 if (!response.IsSuccessStatusCode)
                     throw new HttpRequestException($"滴答 Open API {operation}失败，HTTP {(int)response.StatusCode}", null, response.StatusCode);
+
+                if (!readResponse)
+                    return null;
 
                 var json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
                 try

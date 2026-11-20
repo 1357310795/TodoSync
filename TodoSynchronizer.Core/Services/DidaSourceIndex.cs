@@ -31,12 +31,21 @@ namespace TodoSynchronizer.Core.Services
             return entries.TryGetValue((projectId, taskId), out var entry) ? entry.Source : null;
         }
 
-        public void Remember(string projectId, string taskId, string source)
+        public bool NeedsComment(string projectId, string taskId)
         {
-            if (string.IsNullOrWhiteSpace(source) || FindSource(projectId, taskId) == source)
+            return entries.TryGetValue((projectId, taskId), out var entry) && entry.NeedsComment;
+        }
+
+        public void Remember(string projectId, string taskId, string source, bool needsComment = false)
+        {
+            if (string.IsNullOrWhiteSpace(source)
+                || (FindSource(projectId, taskId) == source && NeedsComment(projectId, taskId) == needsComment))
                 return;
 
-            entries[(projectId, taskId)] = new Entry { ProjectId = projectId, TaskId = taskId, Source = source };
+            entries[(projectId, taskId)] = new Entry
+            {
+                ProjectId = projectId, TaskId = taskId, Source = source, NeedsComment = needsComment
+            };
             changed = true;
         }
 
@@ -117,6 +126,7 @@ namespace TodoSynchronizer.Core.Services
             public string ProjectId { get; set; }
             public string TaskId { get; set; }
             public string Source { get; set; }
+            public bool NeedsComment { get; set; }
         }
     }
 }
